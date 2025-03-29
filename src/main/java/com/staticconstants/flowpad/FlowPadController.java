@@ -1,9 +1,9 @@
-package com.staticconstants.flowpad.flowpad;
+package com.staticconstants.flowpad;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
-public class HelloController {
+public class FlowPadController {
     @FXML
     private Label welcomeText;
 
