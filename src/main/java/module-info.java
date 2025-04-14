@@ -8,4 +8,6 @@ module com.staticconstants.flowpad.flowpad {
 
     opens com.staticconstants.flowpad to javafx.fxml;
     exports com.staticconstants.flowpad;
+    exports com.staticconstants.flowpad.controller;
+    opens com.staticconstants.flowpad.controller to javafx.fxml;
 }
