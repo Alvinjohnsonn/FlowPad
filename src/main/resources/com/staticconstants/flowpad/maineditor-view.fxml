@@ -1,124 +1,186 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
+<?import java.net.*?>
 <?import javafx.collections.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<!--TODO: Add fixed size to specific pane for feature navigation and the collapsible pane when resizing-->
+<VBox alignment="TOP_CENTER" prefHeight="475.0" prefWidth="710.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.controller.MainEditorController">
 
-<VBox alignment="TOP_CENTER" prefHeight="475.0" prefWidth="620.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.controller.MainEditorController">
-   <MenuBar>
-     <menus>
-       <Menu mnemonicParsing="false" text="File">
-         <items>
-           <MenuItem mnemonicParsing="false" text="New" />
-             <MenuItem mnemonicParsing="false" text="Open" />
-             <MenuItem mnemonicParsing="false" text="Recent Notes" />
-             <MenuItem mnemonicParsing="false" text="Save" />
-             <MenuItem mnemonicParsing="false" text="Save As" />
-             <MenuItem mnemonicParsing="false" text="Save All" />
-         </items>
-       </Menu>
-       <Menu mnemonicParsing="false" text="Edit">
-         <items>
-           <MenuItem mnemonicParsing="false" text="Undo" />
-             <MenuItem mnemonicParsing="false" text="Redo" />
-             <MenuItem mnemonicParsing="false" text="Cut" />
-             <MenuItem mnemonicParsing="false" text="Copy" />
-             <MenuItem mnemonicParsing="false" text="Paste" />
-             <MenuItem mnemonicParsing="false" text="Select All" />
-             <MenuItem mnemonicParsing="false" text="Find" />
-         </items>
-       </Menu>
-       <Menu mnemonicParsing="false" text="Insert">
-         <items>
-           <MenuItem mnemonicParsing="false" text="Hyperlink" />
-             <MenuItem mnemonicParsing="false" text="Image" />
-             <MenuItem mnemonicParsing="false" text="Table" />
-         </items>
-       </Menu>
-     </menus>
-   </MenuBar>
-   <SplitPane dividerPositions="0.10097192224622031, 0.27591792656587477" prefHeight="160.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
-     <items>
-         <VBox prefWidth="200" style="-fx-background-color: #d3d3d3;">
-        <!--TODO: Change icon emojis to image if possible-->
-             <Button alignment="CENTER" maxWidth="Infinity" prefHeight="45.0" prefWidth="59.0" text="📄" />
-             <Button alignment="CENTER" maxWidth="Infinity" prefHeight="45.0" prefWidth="59.0" text="✨ AI" />
-         </VBox>
-
-         <VBox>
-             <TreeView fx:id="folderTree" prefHeight="247.0" prefWidth="73.0" VBox.vgrow="ALWAYS" />
-
-<!--             TODO: Add selection of AI features when the left-side tab is switched to AI-->
-         </VBox>
-         <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
-           <tabs>
-             <Tab text="Note 1">
-               <content>
-                   <SplitPane dividerPositions="0.7192192192192192">
-                       <VBox spacing="5">
-                           <ToolBar>
-                               <!--TODO: Change icon emojis to image if possible-->
-                               <Button text="🔍" />
-                               <Button text="↩" />
-                               <Button text="↪" />
-                               <ComboBox fx:id="formatComboBox" prefHeight="25.0" prefWidth="109.0" promptText="Normal text">
-                                   <items>
-                                       <FXCollections fx:factory="observableArrayList">
-                                           <String fx:value="Normal text" />
-                                           <String fx:value="Heading 1" />
-                                           <String fx:value="Heading 2" />
-                                       </FXCollections>
-                                   </items>
-                               </ComboBox>
-                               <ComboBox fx:id="fontComboBox" prefHeight="25.0" prefWidth="70.0" promptText="Arial">
-                                   <items>
-                                       <FXCollections fx:factory="observableArrayList">
-                                           <String fx:value="Arial" />
-                                           <String fx:value="Times New Roman" />
-                                       </FXCollections>
-                                   </items>
-                               </ComboBox>
-                               <Button text="-" />
-                               <Label text="12" />
-                               <Button text="+" />
-                           </ToolBar>
-                           <TextArea fx:id="editorTextArea" prefHeight="381.0" prefWidth="346.0" wrapText="true" VBox.vgrow="ALWAYS" />
-                       </VBox>
-
-                       <ScrollPane fitToHeight="true" fitToWidth="true">
-                           <VBox prefHeight="247.0" prefWidth="195.0">
-                               <Label fx:id="previewAIOutput" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit..." wrapText="true" />
-                               <padding>
-                                   <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                               </padding>
-                           </VBox>
-                       </ScrollPane>
-                   </SplitPane>
-               </content>
-             </Tab>
-
-<!--               TODO: Delete after feature is implemented, only shown as an example-->
-             <Tab text="Note 2">
-               <content>
-                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
-               </content>
-             </Tab>
-           </tabs>
-
-<!--             TODO: Add the group of buttons on the top right corner-->
-         </TabPane>
-     </items>
-   </SplitPane>
-   <HBox prefHeight="24.0" prefWidth="1280.0">
-       <Label text="Page 1 of 10" />
-       <Label text="0 words" />
-       <Label text="0 characters" />
-       <Region HBox.hgrow="ALWAYS" />
-       <Slider fx:id="zoomSlider" max="200" min="50" prefWidth="150" value="100" />
-       <Label text="100%" />
+    <stylesheets>
+        <URL value="@css/editor-style.css" />
+    </stylesheets>
+   <HBox>
+      <children>
+         <ImageView fitHeight="28.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="NEVER">
+            <image>
+               <Image url="@icons/flowpad.png" />
+            </image></ImageView>
+      
+          <MenuBar fx:id="menubar">
+              <menus>
+                  <Menu text="File">
+                      <items>
+                          <MenuItem text="New" />
+                          <MenuItem text="Open" />
+                          <MenuItem text="Recent Notes" />
+                          <MenuItem text="Save" />
+                          <MenuItem text="Save As" />
+                          <MenuItem text="Save All" />
+                      </items>
+                  </Menu>
+                  <Menu text="Edit">
+                      <items>
+                          <MenuItem text="Undo" />
+                          <MenuItem text="Redo" />
+                          <MenuItem text="Cut" />
+                          <MenuItem text="Copy" />
+                          <MenuItem text="Paste" />
+                          <MenuItem text="Select All" />
+                          <MenuItem text="Find" />
+                      </items>
+                  </Menu>
+                  <Menu text="Insert">
+                      <items>
+                          <MenuItem text="Hyperlink" />
+                          <MenuItem text="Image" />
+                          <MenuItem text="Table" />
+                      </items>
+                  </Menu>
+              </menus>
+          </MenuBar>
+      </children>
+      <padding>
+         <Insets left="10.0" />
+      </padding>
    </HBox>
+
+    <SplitPane dividerPositions="0.08953817153628653, 0.21960414703110276" VBox.vgrow="ALWAYS" >
+        <items>
+            <!-- Navigation Sidebar -->
+            <VBox maxWidth="60" minWidth="60" prefWidth="60" styleClass="sidebar">
+                <Button fx:id="btnDocuments" maxWidth="1.7976931348623157E308" onAction="#showDocuments" prefHeight="51.0" styleClass="selected">
+                    <graphic>
+                        <ImageView fitHeight="46.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@icons/notes.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                </Button>
+
+                <Button fx:id="btnAi" maxWidth="1.7976931348623157E308" onAction="#showAIOptions" prefHeight="51.0">
+                    <graphic>
+                        <ImageView fitHeight="46.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@icons/ai.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </VBox>
+
+            <!-- Folder Tree / AI Options -->
+            <VBox>
+                <StackPane fx:id="switchablePane" prefHeight="419.0" prefWidth="64.0" VBox.vgrow="ALWAYS">
+                    <TreeView fx:id="folderTree" maxWidth="1.7976931348623157E308" prefHeight="419.0" prefWidth="112.0" />
+
+                    <VBox fx:id="aiOptions" managed="false" maxWidth="1.7976931348623157E308" prefHeight="419.0" prefWidth="98.0" visible="false">
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Generate Summary" />
+                        <Button maxWidth="1.7976931348623157E308" prefWidth="99.0" styleClass="button-ai" text="Highlight" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Auto-Correct" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Refactor Content" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Generate Outlines" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Format Writing" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Convert Abbreviation to Full Text" textAlignment="CENTER" wrapText="true" />
+                    </VBox>
+                </StackPane>
+            </VBox>
+
+
+            <TabPane prefHeight="419.0" prefWidth="510.0" tabClosingPolicy="UNAVAILABLE">
+                <tabs>
+<!--                    TODO: Add "cancel" for each tab if possible-->
+                    <Tab text="Note 1">
+                        <content>
+                            <SplitPane dividerPositions="0.72">
+                                <VBox spacing="5.0" VBox.vgrow="ALWAYS">
+                                    <ToolBar>
+                                        <Button text="🔍">
+                                        </Button>
+                                        <Button>
+                                            <graphic>
+                                                <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/undo.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <Button>
+                                            <graphic>
+                                                <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/redo.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <ComboBox fx:id="formatComboBox" prefWidth="109.0" promptText="Normal text">
+                                            <items>
+                                                <FXCollections fx:factory="observableArrayList">
+                                                    <String fx:value="Normal text" />
+                                                    <String fx:value="Heading 1" />
+                                                    <String fx:value="Heading 2" />
+                                                </FXCollections>
+                                            </items>
+                                        </ComboBox>
+                                        <ComboBox fx:id="fontComboBox" prefWidth="70.0" promptText="Arial">
+                                            <items>
+                                                <FXCollections fx:factory="observableArrayList">
+                                                    <String fx:value="Arial" />
+                                                    <String fx:value="Times New Roman" />
+                                                </FXCollections>
+                                            </items>
+                                        </ComboBox>
+                                        <Button text="-" />
+                                        <Label text="12" />
+                                        <Button text="+" />
+                                    </ToolBar>
+                                    <TextArea fx:id="editorTextArea" wrapText="true" VBox.vgrow="ALWAYS" />
+                                </VBox>
+
+                                <ScrollPane fitToHeight="true" fitToWidth="true">
+                                    <VBox VBox.vgrow="ALWAYS">
+                                        <Label fx:id="previewAIOutput" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit..." wrapText="true" />
+                                    </VBox>
+                                </ScrollPane>
+                            </SplitPane>
+                        </content>
+                    </Tab>
+
+
+                    <Tab text="Note 2">
+                        <content>
+                            <AnchorPane />
+                        </content>
+                    </Tab>
+                </tabs>
+            </TabPane>
+
+<!--            TODO: Add the remaining buttons on the right side of the tabs-->
+        </items>
+    </SplitPane>
+
+    <HBox prefHeight="24.0" styleClass="bottom-bar">
+        <Label text="Page 1 of 10" />
+        <Label text="0 words" />
+        <Label text="0 characters" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Slider fx:id="zoomSlider" max="200" min="50" prefWidth="150" value="100" />
+        <Label text="100%" />
+    </HBox>
 </VBox>

@@ -22,10 +22,10 @@ public class FlowPadController {
 //        TODO: Delete the code below, previously used to launch and view the main editor page
 
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
-        //String flowpadStylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
+//        String stylesheet =  FlowPadApplication.class.getResource("editor-style.css").toExternalForm();
 
         Scene scene = new Scene(fxmlLoader.load());
-        //scene.getStylesheets().add(flowpadStylesheet);
+//        scene.getStylesheets().add(stylesheet);
 
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setTitle("Note Editor");
