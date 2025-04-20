@@ -146,9 +146,9 @@
                                                 </FXCollections>
                                             </items>
                                         </ComboBox>
-                                        <Button fx:id="btnMinus" text="-" />
-                                        <Label text="12" />
-                                        <Button fx:id="btnPlus" text="+" />
+                                        <Button fx:id="btnMinus" text="-" onAction="#decreaseFontSize"/>
+                                        <Label fx:id="labelFontSize" text="12" />
+                                        <Button fx:id="btnPlus" text="+" onAction="#increaseFontSize"/>
                                     </ToolBar>
                                     <TextArea fx:id="editorTextArea" wrapText="true" VBox.vgrow="ALWAYS" />
                                 </VBox>

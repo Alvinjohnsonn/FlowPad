@@ -13,6 +13,8 @@ public class MainEditorController {
     @FXML private Label zoomLabel;
     @FXML private Button btnMinus;
     @FXML private Button btnPlus;
+    @FXML private Label labelFontSize;
+    private int fontSize = 12;
 
     @FXML
     private void showDocuments() {
@@ -60,16 +62,31 @@ public class MainEditorController {
         zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             int zoomPercent = newVal.intValue();
             zoomLabel.setText(zoomPercent + "%");
-        });zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            int zoomPercent = newVal.intValue();
-            zoomLabel.setText(zoomPercent + "%");
         });
+
+
+
+
     }
 
     private void setActiveButton(Button active, Button inactive) {
         if (!active.getStyleClass().contains("selected")) active.getStyleClass().add("selected");
 
         inactive.getStyleClass().remove("selected");
+    }
+
+    @FXML
+    private void increaseFontSize() {
+        fontSize++;
+        labelFontSize.setText(fontSize + "");
+    }
+
+    @FXML
+    private void decreaseFontSize() {
+        if (fontSize > 1) {
+            fontSize--;
+            labelFontSize.setText(fontSize + "");
+        }
     }
 
 }
