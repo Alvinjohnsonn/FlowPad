@@ -58,7 +58,7 @@
       </padding>
    </HBox>
 
-    <SplitPane dividerPositions="0.08953817153628653, 0.21960414703110276" VBox.vgrow="ALWAYS" >
+    <SplitPane dividerPositions="0.08953817153628653, 0.21960414703110276" VBox.vgrow="ALWAYS">
         <items>
             <!-- Navigation Sidebar -->
             <VBox maxWidth="60" minWidth="60" prefWidth="60" styleClass="sidebar">
@@ -146,9 +146,9 @@
                                                 </FXCollections>
                                             </items>
                                         </ComboBox>
-                                        <Button text="-" />
+                                        <Button fx:id="btnMinus" text="-" />
                                         <Label text="12" />
-                                        <Button text="+" />
+                                        <Button fx:id="btnPlus" text="+" />
                                     </ToolBar>
                                     <TextArea fx:id="editorTextArea" wrapText="true" VBox.vgrow="ALWAYS" />
                                 </VBox>
@@ -180,7 +180,7 @@
         <Label text="0 words" />
         <Label text="0 characters" />
         <Region HBox.hgrow="ALWAYS" />
-        <Slider fx:id="zoomSlider" max="200" min="50" prefWidth="150" value="100" />
-        <Label text="100%" />
+        <Slider fx:id="zoomSlider" prefWidth="150" value="100.0" />
+        <Label fx:id="zoomLabel" text="100%" />
     </HBox>
 </VBox>

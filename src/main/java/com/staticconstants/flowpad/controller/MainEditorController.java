@@ -1,10 +1,7 @@
 package com.staticconstants.flowpad.controller;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 public class MainEditorController {
@@ -12,6 +9,10 @@ public class MainEditorController {
     @FXML private VBox aiOptions;
     @FXML private Button btnDocuments;
     @FXML private Button btnAi;
+    @FXML private Slider zoomSlider;
+    @FXML private Label zoomLabel;
+    @FXML private Button btnMinus;
+    @FXML private Button btnPlus;
 
     @FXML
     private void showDocuments() {
@@ -55,6 +56,14 @@ public class MainEditorController {
         rootItem.getChildren().addAll(personalNotes, workNotes);
 
         folderTree.setRoot(rootItem);
+
+        zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            int zoomPercent = newVal.intValue();
+            zoomLabel.setText(zoomPercent + "%");
+        });zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            int zoomPercent = newVal.intValue();
+            zoomLabel.setText(zoomPercent + "%");
+        });
     }
 
     private void setActiveButton(Button active, Button inactive) {
