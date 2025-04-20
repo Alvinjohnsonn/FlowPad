@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      spacing="15" alignment="TOP_LEFT">
+
+    <Label text="👤 Profile and Privacy"/>
+    <TextField promptText="Full Name"/>
+    <TextField promptText="Email"/>
+    <PasswordField promptText="New Password"/>
+
+    <Label text="🔐 Privacy Options"/>
+    <CheckBox text="Enable tracking protection"/>
+    <CheckBox text="Enable smart recommendations"/>
+</VBox>
