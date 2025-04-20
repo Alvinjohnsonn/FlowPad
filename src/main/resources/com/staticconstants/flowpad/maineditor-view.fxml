@@ -139,6 +139,15 @@
                                     <ToolBar>
                                         <Button text="🔍">
                                         </Button>
+                              <Button layoutX="50.0" layoutY="10.0">
+                                 <graphic>
+                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icons/undo.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
                                         <Button>
                                             <graphic>
                                                 <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
@@ -168,15 +177,6 @@
                                         <Button fx:id="btnMinus" onAction="#decreaseFontSize" text="-" />
                                         <Label fx:id="labelFontSize" text="12" />
                                         <Button fx:id="btnPlus" onAction="#decreaseFontSize" text="+" />
-                              <Button layoutX="50.0" layoutY="10.0">
-                                 <graphic>
-                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@icons/undo.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
                                     </ToolBar>
                            <HBox prefHeight="100.0" prefWidth="200.0" />
                                     <TextArea fx:id="editorTextArea" wrapText="true" VBox.vgrow="ALWAYS" />
