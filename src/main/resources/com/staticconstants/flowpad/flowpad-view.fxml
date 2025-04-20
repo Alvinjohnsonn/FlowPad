@@ -1,19 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.TextArea?>
-
-<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.shape.Circle?>
+<VBox alignment="CENTER" spacing="20.0"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.staticconstants.flowpad.FlowPadController">
+
     <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+        <Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/>
     </padding>
+    <VBox alignment="CENTER" spacing="10">
+            <ImageView fx:id="profileImage" fitWidth="50" fitHeight="50"/>
+            <Label text="Profile name"/>
+
+    </VBox>
+
+    <!-- Buttons stacked vertically -->
+    <VBox spacing="10.0" alignment="CENTER">
+        <Button text="Profile and Privacy" contentDisplay="LEFT"/>
+        <Button text="Saved Files" contentDisplay="LEFT"/>
+        <Button text="Highlight Options" contentDisplay="LEFT"/>
+        <Button text="Theme and Accessibility" contentDisplay="LEFT"/>
+        <Button text="Review History" contentDisplay="LEFT"/>
+
+    </VBox>
 
     <Label fx:id="welcomeText"/>
-    <Button text="Hello!" onAction="#onHelloButtonClick"/>
-    <TextArea />
+    <Label fx:id="Settings"/>
 </VBox>

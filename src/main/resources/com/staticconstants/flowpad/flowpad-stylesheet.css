@@ -1,0 +1,12 @@
+.button {
+    -fx-font-size: 14px;             /* Uniform text size */
+    -fx-alignment: CENTER_LEFT;      /* Align text inside button to the left */
+    -fx-pref-width: 200px;           /* Set button width */
+    -fx-padding: 8 16 8 16;          /* Inner spacing */
+    -fx-border-radius: 5;            /* Rounded corners */
+}
+
+/* Button hover effect */
+.button:hover {
+    -fx-background-color: #2e2e2e;
+}
