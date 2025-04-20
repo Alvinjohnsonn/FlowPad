@@ -16,6 +16,7 @@ public class MainEditorController {
     @FXML private Label labelFontSize;
     private int fontSize = 12;
 
+
     @FXML
     private void showDocuments() {
         setActiveButton(btnDocuments, btnAi);

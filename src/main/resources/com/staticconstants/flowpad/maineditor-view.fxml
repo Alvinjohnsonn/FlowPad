@@ -178,7 +178,6 @@
                                         <Label fx:id="labelFontSize" text="12" />
                                         <Button fx:id="btnPlus" onAction="#decreaseFontSize" text="+" />
                                     </ToolBar>
-                           <HBox prefHeight="100.0" prefWidth="200.0" />
                                     <TextArea fx:id="editorTextArea" wrapText="true" VBox.vgrow="ALWAYS" />
                                 </VBox>
 
