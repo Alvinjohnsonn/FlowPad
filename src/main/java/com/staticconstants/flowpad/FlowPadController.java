@@ -1,12 +1,24 @@
 package com.staticconstants.flowpad;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.shape.Circle;
+import javafx.stage.Stage;
+
+import javax.swing.*;
+import java.io.IOException;
+import java.util.Objects;
 
 public class FlowPadController {
+    @FXML
+    public Button Privacy;
+
     @FXML
     private Label welcomeText;
 
@@ -27,8 +39,13 @@ public class FlowPadController {
         profileImage.setClip(clip);
     }
 
+
     @FXML
-    protected void onHelloButtonClick() {
-        welcomeText.setText("Welcome to JavaFX Application!");
+    protected void onPrivacyButtonClick() throws IOException {
+        Stage stage = (Stage) Privacy.getScene().getWindow();
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Privacy.fxml"));
+        Scene scene = new Scene(fxmlLoader.load(), stage.getWidth(), stage.getHeight());
+        stage.setScene(scene);
     }
+
 }

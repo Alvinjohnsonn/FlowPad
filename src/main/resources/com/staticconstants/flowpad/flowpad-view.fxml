@@ -22,11 +22,11 @@
 
     <!-- Buttons stacked vertically -->
     <VBox spacing="10.0" alignment="CENTER">
-        <Button text="Profile and Privacy" contentDisplay="LEFT"/>
-        <Button text="Saved Files" contentDisplay="LEFT"/>
-        <Button text="Highlight Options" contentDisplay="LEFT"/>
-        <Button text="Theme and Accessibility" contentDisplay="LEFT"/>
-        <Button text="Review History" contentDisplay="LEFT"/>
+        <Button fx:id="Privacy" text="Profile and Privacy" onAction="#onPrivacyButtonClick"/>
+        <Button text="Saved Files"/>
+        <Button text="Highlight Options"/>
+        <Button text="Theme"/>
+        <Button text="Review History"/>
 
     </VBox>
 

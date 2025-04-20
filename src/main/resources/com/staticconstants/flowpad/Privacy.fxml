@@ -1,14 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.staticconstants.flowpad.HelloView"
-            prefHeight="400.0" prefWidth="600.0">
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           stylesheets="@flowpad-stylesheet.css">
 
-</AnchorPane>
+    <VBox alignment="TOP_CENTER" spacing="15" maxWidth="400" styleClass="main-container">
+        <padding>
+            <Insets top="30" right="30" bottom="30" left="30"/>
+        </padding>
+
+        <Label text="👤 Profile and Privacy" styleClass="section-title"/>
+
+        <VBox spacing="10" maxWidth="Infinity" styleClass="input-container">
+            <Label text="Username" styleClass="label-text"/>
+            <TextField promptText="Enter username"/>
+
+            <Label text="Old Password" styleClass="label-text"/>
+            <PasswordField promptText="Enter old password"/>
+
+            <Label text="New Password" styleClass="label-text"/>
+            <PasswordField promptText="Enter new password"/>
+        </VBox>
+
+        <Separator styleClass="separator"/>
+
+        <Label text="🔒 Privacy Options" styleClass="section-subtitle"/>
+
+        <VBox spacing="10" alignment="CENTER_LEFT" styleClass="options-container">
+            <CheckBox text="Enable tracking protection"/>
+            <CheckBox text="Enable smart recommendations"/>
+        </VBox>
+
+        <Button text="Save Changes" maxWidth="Infinity" styleClass="save-button"/>
+        <Button text="← Back" fx:id="backButton"
+                styleClass="save-button"
+                />
+    </VBox>
+</StackPane>
