@@ -1,11 +1,15 @@
 package com.staticconstants.flowpad;
 
+import com.staticconstants.flowpad.backend.db.DbHandler;
+import com.staticconstants.flowpad.backend.db.users.User;
+import com.staticconstants.flowpad.backend.db.users.UserDAO;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 public class FlowPadApplication extends Application {
     @Override
@@ -23,7 +27,16 @@ public class FlowPadApplication extends Application {
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+
+        User user = new User("david", "funnell", "password".toCharArray());
+
+        UserDAO userDAO = new UserDAO();
+        userDAO.insert(user);
+
+        userDAO.delete(user.getId());
+
+
         launch();
     }
 }
