@@ -86,6 +86,7 @@
       </padding>
    </HBox>
 
+<!--    TODO: Adjust the size of the main editor pane to occupy most of the frame, currently the tree view/ai options occupy more-->
     <SplitPane dividerPositions="0.08953817153628653, 0.21960414703110276" VBox.vgrow="ALWAYS">
         <items>
             <!-- Navigation Sidebar -->
@@ -114,7 +115,7 @@
             <!-- Folder Tree / AI Options -->
             <VBox>
                 <StackPane fx:id="switchablePane" prefHeight="419.0" prefWidth="64.0" VBox.vgrow="ALWAYS">
-                    <TreeView fx:id="folderTree" maxWidth="1.7976931348623157E308" prefHeight="419.0" prefWidth="112.0" />
+                    <TreeView fx:id="folderTree" maxWidth="1.7976931348623157E308" minWidth="58.0" prefHeight="409.0" prefWidth="58.0" />
 
                     <VBox fx:id="aiOptions" managed="false" maxWidth="1.7976931348623157E308" prefHeight="419.0" prefWidth="98.0" visible="false">
                         <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Generate Summary" />
@@ -134,8 +135,8 @@
 <!--                    TODO: Add "cancel" for each tab if possible-->
                     <Tab text="Note 1">
                         <content>
-                            <SplitPane dividerPositions="0.72">
-                                <VBox spacing="5.0" VBox.vgrow="ALWAYS">
+                            <SplitPane dividerPositions="0.8317132442284326">
+                                <VBox prefHeight="379.0" prefWidth="501.0" spacing="5.0" VBox.vgrow="ALWAYS">
                                     <ToolBar>
                                         <Button text="🔍">
                                         </Button>
@@ -174,11 +175,24 @@
                                                 </FXCollections>
                                             </items>
                                         </ComboBox>
-                                        <Button fx:id="btnMinus" onAction="#decreaseFontSize" text="-" />
-                                        <Label fx:id="labelFontSize" text="12" />
-                                        <Button fx:id="btnPlus" onAction="#decreaseFontSize" text="+" />
+                                        <Button fx:id="btnMinus" focusTraversable="false" onAction="#decreaseFontSize" text="-" />
+                                        <TextField fx:id="textFieldFontSize" prefWidth="30.0" text="12" />
+                                        <Button fx:id="btnPlus" focusTraversable="false" onAction="#increaseFontSize" text="+" />
+
+                                        <Button fx:id="btnBold" focusTraversable="false" onAction="#bold" text="B" />
+                                        <Button fx:id="btnItalic" focusTraversable="false" onAction="#italic" text="I" />
+                                        <Button fx:id="btnUnderline" focusTraversable="false" onAction="#underline" text="U" />
                                     </ToolBar>
-                                    <TextArea fx:id="editorTextArea" wrapText="true" VBox.vgrow="ALWAYS" />
+
+                                    <VBox fx:id="editorContainer" prefWidth="500.0" VBox.vgrow="ALWAYS">
+                              <padding>
+                                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                              </padding></VBox>
+
+<!--                                    <TextArea fx:id="editorTextArea" wrapText="true" VBox.vgrow="ALWAYS">-->
+<!--                              <font>-->
+<!--                                 <Font name="Arial" size="12.0" />-->
+<!--                              </font></TextArea>-->
                                 </VBox>
 
                                 <ScrollPane fitToHeight="true" fitToWidth="true">
@@ -209,6 +223,6 @@
         <Label text="0 characters" />
         <Region HBox.hgrow="ALWAYS" />
         <Slider fx:id="zoomSlider" prefWidth="150" value="100.0" />
-        <Label fx:id="zoomLabel" text="100%" />
+        <Label fx:id="zoomLabel" alignment="CENTER" prefHeight="15.0" prefWidth="40.0" text="100%" />
     </HBox>
 </VBox>
