@@ -11,7 +11,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class FlowPadController {
-    public Button RegisterAccountButton;
+
+    @FXML
+    private Button RegisterAccountButton;
     @FXML
     private Label welcomeText;
 
@@ -22,7 +24,7 @@ public class FlowPadController {
 
     @FXML
     protected void onHelloButtonClick() {
-        welcomeText.setText("this is a new branch");
+        welcomeText.setText("");
     }
 
 

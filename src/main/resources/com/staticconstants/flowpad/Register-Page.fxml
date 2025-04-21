@@ -26,20 +26,20 @@
             <font>
                 <Font size="20.0" />
             </font></Label>
-        <TextField promptText="First Name">
+        <TextField promptText="First Name" maxWidth="400">
             <font>
                 <Font size="18.0" />
             </font></TextField>
-        <TextField promptText="Last Name">
+        <TextField promptText="Last Name" maxWidth="400">
             <font>
                 <Font size="18.0" />
             </font></TextField>
 
-        <TextField promptText="Username">
+        <TextField promptText="Username" maxWidth="400">
             <font>
                 <Font size="18.0" />
             </font></TextField>
-        <PasswordField promptText="Password">
+        <PasswordField promptText="Password" maxWidth="400">
             <font>
                 <Font size="18.0" />
             </font></PasswordField>
