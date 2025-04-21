@@ -1,56 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.staticconstants.flowpad.RegisterPageController"
-            prefHeight="400.0" prefWidth="600.0">
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.RegisterPageController">
 
-    <VBox alignment="CENTER" spacing="20.0">
-
+    <VBox alignment="CENTER" layoutX="99.0" spacing="20.0" AnchorPane.topAnchor="0.0">
 
         <padding>
             <Insets bottom="100.0" left="100.0" right="100.0" top="100.0" />
         </padding>
 
-        <Label text="REGISTER YOUR ACCOUNT">
-            <font>
-                <Font size="20.0" />
-            </font></Label>
-        <TextField promptText="First Name" maxWidth="400">
-            <font>
-                <Font size="18.0" />
-            </font></TextField>
-        <TextField promptText="Last Name" maxWidth="400">
-            <font>
-                <Font size="18.0" />
-            </font></TextField>
-
-        <TextField promptText="Username" maxWidth="400">
-            <font>
-                <Font size="18.0" />
-            </font></TextField>
-        <PasswordField promptText="Password" maxWidth="400">
-            <font>
-                <Font size="18.0" />
-            </font></PasswordField>
-
-        <HBox spacing="20.0" VBox.vgrow="ALWAYS">
-            <Button fx:id="BackButton" alignment="CENTER" contentDisplay="CENTER" onAction="#onBackButtonClick" text="Back" />
-            <Button fx:id="Register" defaultButton="true" onAction="#onRegisterButtonClick" style="-fx-background-color: #a8e5e8;" text="Register">
-                <font>
-                    <Font size="17.0" />
-                </font></Button>
-        </HBox>
+        <VBox>
+      <Pane prefHeight="500" prefWidth="200.0">
+         <children>
+             <TextField alignment="CENTER" layoutX="8.0" layoutY="95.0" maxWidth="400" promptText="First Name">
+                 <font>
+                     <Font size="18.0" />
+                 </font>
+             </TextField>
+              <TextField alignment="CENTER" layoutX="8.0" layoutY="211.0" maxWidth="400" promptText="Username">
+                  <font>
+                      <Font size="18.0" />
+                  </font>
+            </TextField>
+              <PasswordField alignment="CENTER" layoutX="8.0" layoutY="267.0" maxWidth="400" promptText="Password">
+                  <font>
+                      <Font size="18.0" />
+                  </font>
+            </PasswordField>
+      
+              <HBox spacing="20.0" />
+               <Button fx:id="Register" defaultButton="true" layoutX="79.0" layoutY="325.0" onAction="#onRegisterButtonClick" style="-fx-background-color: #a8e5e8;" text="Register">
+                   <font>
+                       <Font size="17.0" />
+                   </font>
+            </Button>
+               <Button fx:id="BackButton" alignment="CENTER" contentDisplay="CENTER" layoutX="14.0" layoutY="332.0" onAction="#onBackButtonClick" text="Back" />
+              <TextField alignment="CENTER" layoutX="8.0" layoutY="154.0" maxWidth="400" promptText="Last Name">
+                  <font>
+                      <Font size="18.0" />
+                  </font>
+            </TextField>
+         
+              <Label layoutX="-20.0" layoutY="37.0" text="REGISTER YOUR ACCOUNT" textAlignment="CENTER">
+                  <font>
+                      <Font size="20.0" />
+                  </font>
+            </Label>
+         </children></Pane>
+        </VBox>
 
 
     </VBox>
