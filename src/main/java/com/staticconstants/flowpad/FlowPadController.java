@@ -1,17 +1,22 @@
 package com.staticconstants.flowpad;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.ImageView;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
 
 import java.io.IOException;
 
 public class FlowPadController {
 
+    @FXML
+    private ImageView Logo;
     @FXML
     private Button RegisterAccountButton;
     @FXML
@@ -27,6 +32,16 @@ public class FlowPadController {
         welcomeText.setText("");
     }
 
+    @FXML
+    public void initialize() {
+
+        Image image = new Image(getClass().getResource("/com/staticconstants/flowpad/Logo.jpg").toExternalForm());
+
+        Logo.setImage(image);
+
+        Circle clip = new Circle(150, 150, 150);
+        Logo.setClip(clip);
+    }
 
     // When the Submit Button is clicked, could lead to the Home Page.
     @FXML

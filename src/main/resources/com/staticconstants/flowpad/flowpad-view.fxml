@@ -1,56 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.*?>
+<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.paint.*?>
 <?import javafx.scene.text.*?>
 
-<VBox alignment="CENTER" spacing="20.0"
-      xmlns="http://javafx.com/javafx/17.0.12"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.staticconstants.flowpad.FlowPadController">
-
-    <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-    </padding>
-
-    <Label text="LOGIN">
-        <font>
-            <Font size="25.0" />
-        </font></Label>
-
-    <TextField maxWidth="400" promptText="Username">
-        <font>
-            <Font size="20.0" />
-        </font>
-      <opaqueInsets>
+<VBox alignment="CENTER" spacing="20.0" style="-fx-background-color: #8abffe;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.FlowPadController">
+    <HBox spacing="300">
+    <ImageView fx:id="Logo" fitHeight="300" fitWidth="300">
+      <VBox.margin>
          <Insets />
-      </opaqueInsets>
-      <VBox.margin>
-         <Insets left="50.0" right="50.0" />
       </VBox.margin>
-    </TextField>
-    <PasswordField maxWidth="400" promptText="Password">
-        <font>
-            <Font size="20.0" />
-        </font>
+         <HBox.margin>
+            <Insets left="200.0" />
+         </HBox.margin>
+         <effect>
+             <DropShadow
+                     blurType="GAUSSIAN"
+                     color="#000000"
+                     height="20.0"
+                     radius="9.5"
+                     spread="0.0"
+                     width="20.0"/>
+         </effect>
+    </ImageView>
+
+    <Pane prefHeight="400.0" prefWidth="400.0" style="-fx-background-color: #cffff9;">
+      <children>
+
+          <Label fx:id="Login" />
+
+          <Label alignment="CENTER" contentDisplay="CENTER" layoutX="138.0" layoutY="67.0" text="LOGIN">
+              <font>
+                  <Font size="25.0" />
+              </font>
+         </Label>
+
+          <TextField layoutX="58.0" layoutY="128.0" prefWidth="275.0" promptText="Username">
+              <font>
+                  <Font size="20.0" />
+              </font>
+            <opaqueInsets>
+               <Insets />
+            </opaqueInsets>
+          </TextField>
+          <PasswordField layoutX="58.0" layoutY="195.0" prefWidth="275.0" promptText="Password">
+              <font>
+                  <Font size="20.0" />
+              </font>
+          </PasswordField>
+          <Button fx:id="SubmitButton" defaultButton="true" layoutX="134.0" layoutY="262.0" onAction="#onSubmitButtonClick" text="Submit">
+              <font>
+                  <Font size="18.0" />
+              </font>
+          </Button>
+
+          <Button fx:id="RegisterAccountButton" layoutX="113.0" layoutY="329.0" onAction="#onRegisterAccountButtonClick" text="Register Account">
+              <font>
+                  <Font size="14.0" />
+              </font>
+         </Button>
+      </children>
       <VBox.margin>
-         <Insets left="50.0" right="50.0" />
+         <Insets />
       </VBox.margin>
-    </PasswordField>
-
-    <Label fx:id="Login" />
-    <Button fx:id="SubmitButton" defaultButton="true" onAction="#onSubmitButtonClick" text="Submit">
-        <font>
-            <Font size="18.0" />
-        </font>
-    </Button>
-
-    <Label />
-
-    <Button fx:id="RegisterAccountButton" onAction="#onRegisterAccountButtonClick" text="Register Account">
-        <font>
-            <Font size="14.0" />
-        </font></Button>
-
+      <cursor>
+         <Cursor fx:constant="DEFAULT" />
+      </cursor>
+      <effect>
+         <DropShadow height="151.44" radius="66.06" width="114.8">
+            <color>
+               <Color opacity="0.8051947951316833" />
+            </color>
+         </DropShadow>
+      </effect>
+   </Pane>
+    </HBox>
 </VBox>

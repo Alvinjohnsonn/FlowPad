@@ -5,56 +5,60 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.RegisterPageController">
+<AnchorPane prefHeight="525.0" prefWidth="443.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.RegisterPageController">
+   <Pane prefHeight="458.0" prefWidth="382.0" style="-fx-border-color: #000000;">
+      <children>
 
-    <VBox alignment="CENTER" layoutX="99.0" spacing="20.0" AnchorPane.topAnchor="0.0">
+          <VBox alignment="CENTER" fillWidth="false" spacing="20.0" style="-fx-background-color: #def8f4;;">
 
-        <padding>
-            <Insets bottom="100.0" left="100.0" right="100.0" top="100.0" />
-        </padding>
+              <padding>
+                  <Insets bottom="100.0" left="100.0" right="100.0" top="100.0" />
+              </padding>
 
-        <VBox>
-      <Pane prefHeight="500" prefWidth="200.0">
-         <children>
-             <TextField alignment="CENTER" layoutX="8.0" layoutY="95.0" maxWidth="400" promptText="First Name">
-                 <font>
-                     <Font size="18.0" />
-                 </font>
-             </TextField>
-              <TextField alignment="CENTER" layoutX="8.0" layoutY="211.0" maxWidth="400" promptText="Username">
-                  <font>
-                      <Font size="18.0" />
-                  </font>
-            </TextField>
-              <PasswordField alignment="CENTER" layoutX="8.0" layoutY="267.0" maxWidth="400" promptText="Password">
-                  <font>
-                      <Font size="18.0" />
-                  </font>
-            </PasswordField>
-      
-              <HBox spacing="20.0" />
-               <Button fx:id="Register" defaultButton="true" layoutX="79.0" layoutY="325.0" onAction="#onRegisterButtonClick" style="-fx-background-color: #a8e5e8;" text="Register">
-                   <font>
-                       <Font size="17.0" />
-                   </font>
-            </Button>
-               <Button fx:id="BackButton" alignment="CENTER" contentDisplay="CENTER" layoutX="14.0" layoutY="332.0" onAction="#onBackButtonClick" text="Back" />
-              <TextField alignment="CENTER" layoutX="8.0" layoutY="154.0" maxWidth="400" promptText="Last Name">
-                  <font>
-                      <Font size="18.0" />
-                  </font>
-            </TextField>
-         
-              <Label layoutX="-20.0" layoutY="37.0" text="REGISTER YOUR ACCOUNT" textAlignment="CENTER">
-                  <font>
-                      <Font size="20.0" />
-                  </font>
-            </Label>
-         </children></Pane>
-        </VBox>
+                      <Label alignment="CENTER" text="REGISTER YOUR ACCOUNT" textAlignment="CENTER">
+                          <font>
+                              <Font size="20.0" />
+                          </font>
+                      </Label>
 
+                      <TextField alignment="CENTER" maxWidth="400" promptText="First Name">
+                          <font>
+                              <Font size="18.0" />
+                          </font>
+                      </TextField>
+                      <TextField alignment="CENTER" maxWidth="400" promptText="Last Name">
+                          <font>
+                              <Font size="18.0" />
+                          </font>
+                      </TextField>
+                      <TextField alignment="CENTER" maxWidth="400" promptText="Username">
+                          <font>
+                              <Font size="18.0" />
+                          </font>
+                      </TextField>
+                      <PasswordField alignment="CENTER" maxWidth="400" promptText="Password">
+                          <font>
+                              <Font size="18.0" />
+                          </font>
+                      </PasswordField>
 
-    </VBox>
+                      <HBox spacing="20.0">
+                  <children>
+                            <Button fx:id="BackButton" alignment="CENTER" onAction="#onBackButtonClick" text="Back" />
+                            <Button fx:id="Register" alignment="CENTER" defaultButton="true" onAction="#onRegisterButtonClick" style="-fx-background-color: #a8e5e8;" text="Register">
+                                <font>
+                                    <Font size="17.0" />
+                                </font>
+                            </Button>
+                  </children>
+            </HBox>
+
+              </VBox>
+      </children>
+   </Pane>
+   <padding>
+      <Insets bottom="100.0" left="100.0" right="100.0" top="100.0" />
+   </padding>
 
 
 </AnchorPane>
