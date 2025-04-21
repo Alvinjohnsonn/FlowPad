@@ -12,27 +12,30 @@ public class User implements DbRecord {
     private final UUID id;
     private String firstName;
     private String lastName;
+    private String username;
     private final HashedPassword hashedPassword;
-
-    public User(String firstName, String lastName, char[] password) throws Exception
+//TODO: Check password length is appropriate length for hashing & insertion to database
+    public User(String firstName, String lastName, String username, char[] password) throws Exception
     {
         this.firstName = firstName;
         this.lastName = lastName;
+        this.username = username;
         this.hashedPassword = PasswordHasher.hashPassword(password);
         this.id = UUID.randomUUID();
     }
 
-    private User(UUID id, String firstName, String lastName, HashedPassword hp)
+    private User(UUID id, String firstName, String lastName, String username, HashedPassword hp)
     {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.username = username;
         this.hashedPassword = hp;
     }
 
-    public static User fromExisting(UUID id, String firstName, String lastName, HashedPassword hp)
+    public static User fromExisting(UUID id, String firstName, String lastName, String username, HashedPassword hp)
     {
-        return new User(id, firstName, lastName, hp);
+        return new User(id, firstName, lastName, username, hp);
     }
 
     @Override
@@ -54,6 +57,14 @@ public class User implements DbRecord {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public HashedPassword getHashedPassword() {

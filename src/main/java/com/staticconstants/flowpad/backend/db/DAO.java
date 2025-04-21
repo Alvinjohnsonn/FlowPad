@@ -1,6 +1,7 @@
 package com.staticconstants.flowpad.backend.db;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -40,10 +41,10 @@ public abstract class DAO<T extends DbRecord> {
     }
 
 
-    protected abstract Void deleteImpl(Connection connection, UUID id);
-    protected abstract Void updateImpl(Connection connection, T obj);
-    protected abstract Void insertImpl(Connection connection, T obj);
-    protected abstract Void createTableImpl(Connection connection);
-    protected abstract List<T> getAllImpl(Connection connection);
-    protected abstract T getByIdImpl(Connection connection, UUID id);
+    protected abstract Void createTableImpl(Connection connection) throws SQLException;
+    protected abstract Void deleteImpl(Connection connection, UUID id) throws SQLException;
+    protected abstract Void insertImpl(Connection connection, T obj) throws SQLException;
+    protected abstract Void updateImpl(Connection connection, T obj) throws SQLException;
+    protected abstract T getByIdImpl(Connection connection, UUID id) throws SQLException;
+    protected abstract List<T> getAllImpl(Connection connection) throws SQLException;
 }

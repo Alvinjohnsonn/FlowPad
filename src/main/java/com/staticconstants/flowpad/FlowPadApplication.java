@@ -28,15 +28,6 @@ public class FlowPadApplication extends Application {
     }
 
     public static void main(String[] args) throws Exception {
-
-        User user = new User("david", "funnell", "password".toCharArray());
-
-        UserDAO userDAO = new UserDAO();
-        userDAO.insert(user);
-
-        userDAO.delete(user.getId());
-
-
         launch();
     }
 }
