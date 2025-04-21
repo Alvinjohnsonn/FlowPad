@@ -9,6 +9,6 @@ public class FlowPadController {
 
     @FXML
     protected void onHelloButtonClick() {
-        welcomeText.setText("Welcome to JavaFX Application!");
+        welcomeText.setText("this is a new branch");
     }
 }
