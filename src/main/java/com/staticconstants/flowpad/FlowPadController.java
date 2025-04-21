@@ -33,7 +33,7 @@ public class FlowPadController {
     protected void onSubmitButtonClick() throws IOException {
         Stage stage = (Stage) SubmitButton.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Submit-Page.fxml"));
-        Scene scene = new Scene(fxmlLoader.load());
+        Scene scene = new Scene(fxmlLoader.load(), FlowPadApplication.WIDTH, FlowPadApplication.HEIGHT);
         stage.setTitle("Home Page");
         stage.setScene(scene);
     }
@@ -43,7 +43,7 @@ public class FlowPadController {
     protected void onRegisterAccountButtonClick() throws IOException {
         Stage stage = (Stage) RegisterAccountButton.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Register-Page.fxml"));
-        Scene scene = new Scene(fxmlLoader.load());
+        Scene scene = new Scene(fxmlLoader.load(), FlowPadApplication.WIDTH, FlowPadApplication.HEIGHT);
         stage.setTitle("Register Page");
         stage.setScene(scene);
     }

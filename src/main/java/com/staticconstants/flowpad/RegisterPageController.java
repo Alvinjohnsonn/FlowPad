@@ -24,7 +24,7 @@ public class RegisterPageController {
     protected void onBackButtonClick() throws IOException {
         Stage stage = (Stage) BackButton.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("flowpad-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load());
+        Scene scene = new Scene(fxmlLoader.load(), FlowPadApplication.WIDTH, FlowPadApplication.HEIGHT);
         stage.setScene(scene);
         stage.show();
     }
@@ -33,7 +33,7 @@ public class RegisterPageController {
     protected void onRegisterButtonClick() throws IOException {
         Stage stage = (Stage) SubmitButton.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Submit-Page.fxml"));
-        Scene scene = new Scene(fxmlLoader.load());
+        Scene scene = new Scene(fxmlLoader.load(), FlowPadApplication.WIDTH, FlowPadApplication.HEIGHT);
         stage.setScene(scene);
         stage.show();
 
