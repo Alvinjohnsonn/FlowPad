@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.staticconstants.flowpad.RegisterPageController"
+            prefHeight="400.0" prefWidth="600.0">
+
+    <VBox alignment="CENTER" spacing="20.0">
+
+
+        <padding>
+            <Insets bottom="100.0" left="100.0" right="100.0" top="100.0" />
+        </padding>
+
+        <Label text="REGISTER YOUR ACCOUNT">
+            <font>
+                <Font size="20.0" />
+            </font></Label>
+        <TextField promptText="First Name">
+            <font>
+                <Font size="18.0" />
+            </font></TextField>
+        <TextField promptText="Last Name">
+            <font>
+                <Font size="18.0" />
+            </font></TextField>
+
+        <TextField promptText="Username">
+            <font>
+                <Font size="18.0" />
+            </font></TextField>
+        <PasswordField promptText="Password">
+            <font>
+                <Font size="18.0" />
+            </font></PasswordField>
+
+        <HBox spacing="20.0" VBox.vgrow="ALWAYS">
+            <Button fx:id="BackButton" alignment="CENTER" contentDisplay="CENTER" onAction="#onBackButtonClick" text="Back" />
+            <Button fx:id="Register" defaultButton="true" onAction="#onRegisterButtonClick" style="-fx-background-color: #a8e5e8;" text="Register">
+                <font>
+                    <Font size="17.0" />
+                </font></Button>
+        </HBox>
+
+
+    </VBox>
+
+
+</AnchorPane>

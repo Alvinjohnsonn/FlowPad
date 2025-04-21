@@ -1,0 +1,18 @@
+.root {
+    -fx-background-color: #def8f4;
+}
+
+.button {
+    -fx-background-color: #a8e5e8;
+    -fx-text-fill: black;
+    -fx-border-color: white;
+    -fx-border-radius: 5;
+}
+
+.button:hover {
+    -fx-background-color: #10b4d3;
+}
+
+#Register{
+    -fx-background-color: #a8e5e8;
+}

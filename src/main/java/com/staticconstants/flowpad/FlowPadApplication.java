@@ -17,7 +17,7 @@ public class FlowPadApplication extends Application {
 
         Scene scene = new Scene(fxmlLoader.load());
         scene.getStylesheets().add(flowpadStylesheet);
-        stage.setTitle("Hello!");
+        stage.setTitle("FlowPad!");
         stage.setScene(scene);
         stage.show();
         //test
