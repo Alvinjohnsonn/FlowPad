@@ -6,9 +6,10 @@
 
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.staticconstants.flowpad.FlowPadController"
            stylesheets="@flowpad-stylesheet.css">
 
-    <VBox alignment="TOP_CENTER" spacing="15" maxWidth="400" styleClass="main-container">
+    <VBox alignment="CENTER" spacing="15" maxWidth="400" styleClass="main-container">
         <padding>
             <Insets top="30" right="30" bottom="30" left="30"/>
         </padding>
@@ -24,20 +25,19 @@
 
             <Label text="New Password" styleClass="label-text"/>
             <PasswordField promptText="Enter new password"/>
+
+            <HBox alignment="BOTTOM_RIGHT">
+                <Button text="Forgot Password" styleClass="link-button"/>
+            </HBox>
         </VBox>
+
 
         <Separator styleClass="separator"/>
 
-        <Label text="🔒 Privacy Options" styleClass="section-subtitle"/>
-
-        <VBox spacing="10" alignment="CENTER_LEFT" styleClass="options-container">
-            <CheckBox text="Enable tracking protection"/>
-            <CheckBox text="Enable smart recommendations"/>
-        </VBox>
-
         <Button text="Save Changes" maxWidth="Infinity" styleClass="save-button"/>
-        <Button text="← Back" fx:id="backButton"
-                styleClass="save-button"
-                />
+        <Button text="← Back" fx:id="backButton" maxWidth="Infinity" styleClass="save-button"
+        onAction="#onBackButton"/>
+
+
     </VBox>
 </StackPane>

@@ -24,7 +24,7 @@
     <VBox spacing="10.0" alignment="CENTER">
         <Button fx:id="Privacy" text="Profile and Privacy" onAction="#onPrivacyButtonClick"/>
         <Button text="Saved Files"/>
-        <Button text="Highlight Options"/>
+        <Button fx:id="Highlight" text="Highlight Options" onAction="#onHighlight"/>
         <Button text="Theme"/>
         <Button text="Review History"/>
 

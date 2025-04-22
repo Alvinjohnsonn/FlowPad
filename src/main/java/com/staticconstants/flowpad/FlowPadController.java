@@ -12,6 +12,7 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
 import javax.swing.*;
+import javax.swing.text.Highlighter;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -20,24 +21,26 @@ public class FlowPadController {
     public Button Privacy;
 
     @FXML
+    public Button backButton;
+
+    @FXML
+    public Button Highlight;
+
+    @FXML
     private Label welcomeText;
 
     @FXML
     private ImageView profileImage;
 
     public void initialize() {
-        // Load image from resources
-        Image image = new Image(getClass().getResource("/com/staticconstants/flowpad/profiles.jpg").toExternalForm());
-
-
-
-        // Set image into the ImageView
-        profileImage.setImage(image);
-
-        // Clip the ImageView with a circular mask
-        Circle clip = new Circle(50, 50, 50); // x, y, radius (adjust as needed)
-        profileImage.setClip(clip);
+        if (profileImage != null) {
+            Image image = new Image(getClass().getResource("/com/staticconstants/flowpad/profiles.jpg").toExternalForm());
+            profileImage.setImage(image);
+            Circle clip = new Circle(50, 50, 50);
+            profileImage.setClip(clip);
+        }
     }
+
 
 
     @FXML
@@ -47,5 +50,27 @@ public class FlowPadController {
         Scene scene = new Scene(fxmlLoader.load(), stage.getWidth(), stage.getHeight());
         stage.setScene(scene);
     }
+    @FXML
+    protected void onHighlight() throws IOException {
+        Stage stage = (Stage) Highlight.getScene().getWindow();
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("HighlightOptions.fxml"));
+        Scene scene = new Scene(fxmlLoader.load(), stage.getWidth(), stage.getHeight());
+        stage.setScene(scene);
+    }
+
+
+
+    @FXML
+    private void onBackButton() throws IOException {
+        Stage stage = (Stage) backButton.getScene().getWindow();
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("flowpad-view.fxml")); // Your main view FXML
+        Scene scene = new Scene(fxmlLoader.load(), stage.getWidth(), stage.getHeight());
+        stage.setScene(scene);
+        String css = Objects.requireNonNull(getClass().getResource("flowpad-stylesheet.css")).toExternalForm();
+        scene.getStylesheets().add(css);
+
+        stage.setScene(scene);
+    }
+
 
 }
