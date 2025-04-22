@@ -19,13 +19,7 @@
             <Insets left="200.0" />
          </HBox.margin>
          <effect>
-             <DropShadow
-                     blurType="GAUSSIAN"
-                     color="#000000"
-                     height="20.0"
-                     radius="9.5"
-                     spread="0.0"
-                     width="20.0"/>
+             <DropShadow blurType="GAUSSIAN" color="#000000" height="20.0" radius="9.5" spread="0.0" width="20.0" />
          </effect>
     </ImageView>
 
@@ -47,22 +41,34 @@
             <opaqueInsets>
                <Insets />
             </opaqueInsets>
+               <effect>
+                  <DropShadow height="9.28" radius="4.14" width="9.28" />
+               </effect>
           </TextField>
           <PasswordField layoutX="58.0" layoutY="195.0" prefWidth="275.0" promptText="Password">
               <font>
                   <Font size="20.0" />
               </font>
+               <effect>
+                  <DropShadow height="9.28" radius="4.14" width="9.28" />
+               </effect>
           </PasswordField>
-          <Button fx:id="SubmitButton" defaultButton="true" layoutX="134.0" layoutY="262.0" onAction="#onSubmitButtonClick" text="Submit">
+          <Button fx:id="SubmitButton" defaultButton="true" layoutX="134.0" layoutY="262.0" onAction="#onSubmitButtonClick" style="-fx-background-color: #a8e5e8;" text="Submit">
               <font>
                   <Font size="18.0" />
               </font>
+               <effect>
+                  <DropShadow height="12.21" radius="5.605" width="12.21" />
+               </effect>
           </Button>
 
-          <Button fx:id="RegisterAccountButton" layoutX="113.0" layoutY="329.0" onAction="#onRegisterAccountButtonClick" text="Register Account">
+          <Button fx:id="RegisterAccountButton" layoutX="113.0" layoutY="329.0" onAction="#onRegisterAccountButtonClick" style="-fx-background-color: #a8e5e8;" text="Register Account">
               <font>
                   <Font size="14.0" />
               </font>
+               <effect>
+                  <DropShadow height="9.28" radius="5.605" width="15.14" />
+               </effect>
          </Button>
       </children>
       <VBox.margin>
