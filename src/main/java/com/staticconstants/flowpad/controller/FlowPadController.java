@@ -17,18 +17,40 @@ public class FlowPadController {
     private Label welcomeText;
 
     @FXML
-    protected void onHelloButtonClick(ActionEvent event) throws IOException {
-
-//        TODO: Delete the code below, previously used to launch and view the main editor page
+    protected void OpenMainPageButton(ActionEvent event) throws IOException {
 
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
-//        String stylesheet =  FlowPadApplication.class.getResource("editor-style.css").toExternalForm();
 
         Scene scene = new Scene(fxmlLoader.load());
-//        scene.getStylesheets().add(stylesheet);
 
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setTitle("Note Editor");
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    @FXML
+    protected void OpenSettingsButton(ActionEvent event) throws IOException {
+
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("settings-view.fxml"));
+
+        Scene scene = new Scene(fxmlLoader.load());
+
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setTitle("Settings");
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    @FXML
+    protected void OpenRegisterButton(ActionEvent event) throws IOException {
+
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("register-view.fxml"));
+
+        Scene scene = new Scene(fxmlLoader.load());
+
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setTitle("Register");
         stage.setScene(scene);
         stage.show();
     }

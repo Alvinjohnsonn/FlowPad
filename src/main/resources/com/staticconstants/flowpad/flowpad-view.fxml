@@ -14,6 +14,7 @@
     </padding>
 
     <Label fx:id="welcomeText"/>
-    <Button text="Hello!" onAction="#onHelloButtonClick"/>
-    <TextArea />
+    <Button text="Main Page" onAction="#OpenMainPageButton"/>
+    <Button text="Register" onAction="#OpenRegisterButton"/>
+    <Button text="Settings" onAction="#OpenSettingsButton"/>
 </VBox>

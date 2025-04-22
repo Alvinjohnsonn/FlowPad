@@ -25,9 +25,6 @@ public class FlowPadApplication extends Application {
         stage.setScene(scene);
         stage.show();
 
-
-        //test
-
     }
 
     public static void main(String[] args) throws Exception {
