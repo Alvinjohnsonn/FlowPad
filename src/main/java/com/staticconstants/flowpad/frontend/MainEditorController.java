@@ -1,7 +1,6 @@
-package com.staticconstants.flowpad.controller;
+package com.staticconstants.flowpad.frontend;
 
 import javafx.application.Platform;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.Priority;

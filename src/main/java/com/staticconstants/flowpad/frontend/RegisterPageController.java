@@ -1,11 +1,10 @@
-package com.staticconstants.flowpad;
+package com.staticconstants.flowpad.frontend;
 
-import javafx.event.ActionEvent;
+import com.staticconstants.flowpad.FlowPadApplication;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -24,7 +23,7 @@ public class RegisterPageController {
     protected void onBackButtonClick() throws IOException {
         Stage stage = (Stage) BackButton.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("flowpad-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), FlowPadApplication.WIDTH, FlowPadApplication.HEIGHT);
+        Scene scene = new Scene(fxmlLoader.load());
         stage.setScene(scene);
         stage.show();
     }
@@ -33,7 +32,7 @@ public class RegisterPageController {
     protected void onRegisterButtonClick() throws IOException {
         Stage stage = (Stage) SubmitButton.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Submit-Page.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), FlowPadApplication.WIDTH, FlowPadApplication.HEIGHT);
+        Scene scene = new Scene(fxmlLoader.load());
         stage.setScene(scene);
         stage.show();
 

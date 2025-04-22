@@ -1,11 +1,11 @@
-package com.staticconstants.flowpad;
+package com.staticconstants.flowpad.frontend;
 
+import com.staticconstants.flowpad.FlowPadApplication;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.ImageView;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
@@ -13,7 +13,7 @@ import javafx.scene.image.Image;
 
 import java.io.IOException;
 
-public class FlowPadController {
+public class RegisterController {
 
     @FXML
     private ImageView Logo;
@@ -48,7 +48,7 @@ public class FlowPadController {
     protected void onSubmitButtonClick() throws IOException {
         Stage stage = (Stage) SubmitButton.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Submit-Page.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), FlowPadApplication.WIDTH, FlowPadApplication.HEIGHT);
+        Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Home Page");
         stage.setScene(scene);
     }
@@ -58,7 +58,7 @@ public class FlowPadController {
     protected void onRegisterAccountButtonClick() throws IOException {
         Stage stage = (Stage) RegisterAccountButton.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Register-Page.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), FlowPadApplication.WIDTH, FlowPadApplication.HEIGHT);
+        Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Register Page");
         stage.setScene(scene);
     }
