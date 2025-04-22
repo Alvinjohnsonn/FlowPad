@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.shape.Circle?>
+<VBox alignment="CENTER" spacing="20.0"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.staticconstants.flowpad.FlowPadController">
+
+    <padding>
+        <Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/>
+    </padding>
+    <VBox alignment="CENTER" spacing="10">
+        <ImageView fx:id="profileImage" fitWidth="50" fitHeight="50"/>
+        <Label text="Profile name"/>
+
+    </VBox>
+
+    <!-- Buttons stacked vertically -->
+    <VBox spacing="10.0" alignment="CENTER">
+        <Button fx:id="Privacy" text="Profile and Privacy" onAction="#onPrivacyButtonClick"/>
+        <Button text="Saved Files"/>
+        <Button fx:id="Highlight" text="Highlight Options" onAction="#onHighlight"/>
+        <Button text="Theme"/>
+        <Button text="Review History"/>
+
+    </VBox>
+
+    <Label fx:id="welcomeText"/>
+    <Label fx:id="Settings"/>
+</VBox>
