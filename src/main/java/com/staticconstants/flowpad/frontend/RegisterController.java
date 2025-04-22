@@ -35,7 +35,7 @@ public class RegisterController {
     @FXML
     public void initialize() {
 
-        Image image = new Image(getClass().getResource("/com/staticconstants/flowpad/Logo.jpg").toExternalForm());
+        Image image = new Image(getClass().getResource("/com/staticconstants/flowpad/icons/Logo.jpg").toExternalForm());
 
         Logo.setImage(image);
 

@@ -11,8 +11,6 @@ module com.staticconstants.flowpad.flowpad {
 
     opens com.staticconstants.flowpad to javafx.fxml;
     exports com.staticconstants.flowpad;
-    exports com.staticconstants.flowpad.frontend.controller;
-    opens com.staticconstants.flowpad.frontend.controller to javafx.fxml;
     exports com.staticconstants.flowpad.frontend;
     opens com.staticconstants.flowpad.frontend to javafx.fxml;
 }
