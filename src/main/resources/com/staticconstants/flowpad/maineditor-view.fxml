@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import javafx.collections.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="TOP_CENTER" prefHeight="475.0" prefWidth="710.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.controller.MainEditorController">
+
+    <stylesheets>
+        <URL value="@css/editor-style.css" />
+    </stylesheets>
+   <HBox>
+      <children>
+         <ImageView fitHeight="28.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="NEVER">
+            <image>
+               <Image url="@icons/flowpad.png" />
+            </image></ImageView>
+      
+          <MenuBar fx:id="menubar">
+              <menus>
+                  <Menu text="File">
+                      <items>
+                          <MenuItem text="New" />
+                          <MenuItem text="Open" />
+                          <MenuItem text="Recent Notes" />
+                          <MenuItem text="Save" />
+                          <MenuItem text="Save As" />
+                          <MenuItem text="Save All" />
+                      </items>
+                  </Menu>
+                  <Menu text="Edit">
+                      <items>
+                          <MenuItem text="Undo" />
+                          <MenuItem text="Redo" />
+                          <MenuItem text="Cut" />
+                          <MenuItem text="Copy" />
+                          <MenuItem text="Paste" />
+                          <MenuItem text="Select All" />
+                          <MenuItem text="Find" />
+                      </items>
+                  </Menu>
+                  <Menu text="Insert">
+                      <items>
+                          <MenuItem text="Hyperlink" />
+                          <MenuItem text="Image" />
+                          <MenuItem text="Table" />
+                      </items>
+                  </Menu>
+              </menus>
+          </MenuBar>
+         <Pane prefHeight="0.0" prefWidth="100.0" HBox.hgrow="ALWAYS" />
+                   <Button>
+                       <graphic>
+                           <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                               <image>
+                                   <Image url="@icons/refresh-arrow.png" />
+                               </image>
+                           </ImageView>
+                       </graphic>
+                   </Button>
+         <Button layoutX="691.0" layoutY="10.0">
+            <graphic>
+               <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@icons/downloads.png" />
+                  </image>
+               </ImageView>
+            </graphic>
+         </Button>
+         <Button layoutX="691.0" layoutY="10.0">
+            <graphic>
+               <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@icons/account.png" />
+                  </image>
+               </ImageView>
+            </graphic>
+         </Button>
+      </children>
+      <padding>
+         <Insets left="10.0" />
+      </padding>
+   </HBox>
+
+<!--    TODO: Adjust the size of the main editor pane to occupy most of the frame, currently the tree view/ai options occupy more-->
+    <SplitPane dividerPositions="0.08953817153628653, 0.21960414703110276" VBox.vgrow="ALWAYS">
+        <items>
+            <!-- Navigation Sidebar -->
+            <VBox maxWidth="60" minWidth="60" prefWidth="60" styleClass="sidebar">
+                <Button fx:id="btnDocuments" maxWidth="1.7976931348623157E308" onAction="#showDocuments" prefHeight="51.0" styleClass="selected">
+                    <graphic>
+                        <ImageView fitHeight="46.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@icons/notes.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                </Button>
+
+                <Button fx:id="btnAi" maxWidth="1.7976931348623157E308" onAction="#showAIOptions" prefHeight="51.0">
+                    <graphic>
+                        <ImageView fitHeight="46.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@icons/ai.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </VBox>
+
+            <!-- Folder Tree / AI Options -->
+            <VBox>
+                <StackPane fx:id="switchablePane" prefHeight="419.0" prefWidth="64.0" VBox.vgrow="ALWAYS">
+                    <TreeView fx:id="folderTree" maxWidth="1.7976931348623157E308" minWidth="58.0" prefHeight="409.0" prefWidth="58.0" />
+
+                    <VBox fx:id="aiOptions" managed="false" maxWidth="1.7976931348623157E308" prefHeight="419.0" prefWidth="98.0" visible="false">
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Generate Summary" />
+                        <Button maxWidth="1.7976931348623157E308" prefWidth="99.0" styleClass="button-ai" text="Highlight" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Auto-Correct" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Refactor Content" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Generate Outlines" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Format Writing" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Convert Abbreviation to Full Text" textAlignment="CENTER" wrapText="true" />
+                    </VBox>
+                </StackPane>
+            </VBox>
+
+
+            <TabPane prefHeight="419.0" prefWidth="510.0" tabClosingPolicy="UNAVAILABLE">
+                <tabs>
+<!--                    TODO: Add "cancel" for each tab if possible-->
+                    <Tab text="Note 1">
+                        <content>
+                            <SplitPane dividerPositions="0.8317132442284326">
+                                <VBox prefHeight="379.0" prefWidth="501.0" spacing="5.0" VBox.vgrow="ALWAYS">
+                                    <ToolBar>
+                                        <Button text="🔍">
+                                        </Button>
+                              <Button layoutX="50.0" layoutY="10.0">
+                                 <graphic>
+                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icons/undo.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                                        <Button>
+                                            <graphic>
+                                                <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/redo.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <ComboBox fx:id="formatComboBox" prefWidth="109.0" promptText="Normal text">
+                                            <items>
+                                                <FXCollections fx:factory="observableArrayList">
+                                                    <String fx:value="Normal text" />
+                                                    <String fx:value="Heading 1" />
+                                                    <String fx:value="Heading 2" />
+                                                </FXCollections>
+                                            </items>
+                                        </ComboBox>
+                                        <ComboBox fx:id="fontComboBox" prefWidth="70.0" promptText="Arial">
+                                            <items>
+                                                <FXCollections fx:factory="observableArrayList">
+                                                    <String fx:value="Arial" />
+                                                    <String fx:value="Times New Roman" />
+                                                </FXCollections>
+                                            </items>
+                                        </ComboBox>
+                                        <Button fx:id="btnMinus" focusTraversable="false" onAction="#decreaseFontSize" text="-" />
+                                        <TextField fx:id="textFieldFontSize" prefWidth="30.0" text="12" />
+                                        <Button fx:id="btnPlus" focusTraversable="false" onAction="#increaseFontSize" text="+" />
+
+                                        <Button fx:id="btnBold" focusTraversable="false" onAction="#bold" text="B" />
+                                        <Button fx:id="btnItalic" focusTraversable="false" onAction="#italic" text="I" />
+                                        <Button fx:id="btnUnderline" focusTraversable="false" onAction="#underline" text="U" />
+                                    </ToolBar>
+
+                                    <VBox fx:id="editorContainer" prefWidth="500.0" VBox.vgrow="ALWAYS">
+                              <padding>
+                                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                              </padding></VBox>
+
+<!--                                    <TextArea fx:id="editorTextArea" wrapText="true" VBox.vgrow="ALWAYS">-->
+<!--                              <font>-->
+<!--                                 <Font name="Arial" size="12.0" />-->
+<!--                              </font></TextArea>-->
+                                </VBox>
+
+                                <ScrollPane fitToHeight="true" fitToWidth="true">
+                                    <VBox VBox.vgrow="ALWAYS">
+                                        <Label fx:id="previewAIOutput" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit..." wrapText="true" />
+                                    </VBox>
+                                </ScrollPane>
+                            </SplitPane>
+                        </content>
+                    </Tab>
+
+
+                    <Tab text="Note 2">
+                        <content>
+                            <AnchorPane />
+                        </content>
+                    </Tab>
+                </tabs>
+            </TabPane>
+
+<!--            TODO: Add the remaining buttons on the right side of the tabs-->
+        </items>
+    </SplitPane>
+
+    <HBox prefHeight="24.0" styleClass="bottom-bar">
+        <Label text="Page 1 of 10" />
+        <Label text="0 words" />
+        <Label text="0 characters" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Slider fx:id="zoomSlider" prefWidth="150" value="100.0" />
+        <Label fx:id="zoomLabel" alignment="CENTER" prefHeight="15.0" prefWidth="40.0" text="100%" />
+    </HBox>
+</VBox>
