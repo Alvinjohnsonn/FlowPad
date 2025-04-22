@@ -1,5 +1,6 @@
-package com.staticconstants.flowpad;
+package com.staticconstants.flowpad.controller;
 
+import com.staticconstants.flowpad.FlowPadApplication;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -16,7 +17,7 @@ import javax.swing.text.Highlighter;
 import java.io.IOException;
 import java.util.Objects;
 
-public class FlowPadController {
+public class SettingsController {
     @FXML
     public Button Privacy;
 
@@ -74,3 +75,4 @@ public class FlowPadController {
 
 
 }
+
