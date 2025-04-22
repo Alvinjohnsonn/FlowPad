@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.staticconstants.flowpad.FlowPadController"
+           stylesheets="@flowpad-stylesheet.css">
+
+    <VBox alignment="CENTER" spacing="15" maxWidth="400" styleClass="main-container">
+        <padding>
+            <Insets top="30" right="30" bottom="30" left="30"/>
+        </padding>
+
+        <Label text="👤 Profile and Privacy" styleClass="section-title"/>
+
+        <VBox spacing="10" maxWidth="Infinity" styleClass="input-container">
+            <Label text="Username" styleClass="label-text"/>
+            <TextField promptText="Enter username"/>
+
+            <Label text="Old Password" styleClass="label-text"/>
+            <PasswordField promptText="Enter old password"/>
+
+            <Label text="New Password" styleClass="label-text"/>
+            <PasswordField promptText="Enter new password"/>
+
+            <HBox alignment="BOTTOM_RIGHT">
+                <Button text="Forgot Password" styleClass="link-button"/>
+            </HBox>
+        </VBox>
+
+
+        <Separator styleClass="separator"/>
+
+        <Button text="Save Changes" maxWidth="Infinity" styleClass="save-button"/>
+        <Button text="← Back" fx:id="backButton" maxWidth="Infinity" styleClass="save-button"
+        onAction="#onBackButton"/>
+
+
+    </VBox>
+</StackPane>

@@ -7,6 +7,7 @@ module com.staticconstants.flowpad.flowpad {
     requires org.kordamp.bootstrapfx.core;
     requires java.sql;
     requires org.fxmisc.richtext;
+    requires java.desktop;
 
     opens com.staticconstants.flowpad to javafx.fxml;
     exports com.staticconstants.flowpad;

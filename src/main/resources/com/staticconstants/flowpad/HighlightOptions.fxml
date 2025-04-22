@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.staticconstants.flowpad.FlowPadController"
+           stylesheets="@flowpad-stylesheet.css">
+
+    <VBox alignment="CENTER" spacing="20" maxWidth="400" styleClass="main-container">
+        <padding>
+            <Insets top="30" right="30" bottom="30" left="30"/>
+        </padding>
+
+        <Label text="🖌 Highlight Preferences" styleClass="section-title"/>
+
+        <VBox spacing="15" alignment="CENTER_LEFT" styleClass="options-container">
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <CheckBox fx:id="checkYellow"/>
+                <Label text="Yellow" style="-fx-background-color: yellow; -fx-padding: 5 10; -fx-background-radius: 5;"/>
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <CheckBox fx:id="checkGreen"/>
+                <Label text="Green" style="-fx-background-color: lightgreen; -fx-padding: 5 10; -fx-background-radius: 5;"/>
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <CheckBox fx:id="checkBlue"/>
+                <Label text="Blue" style="-fx-background-color: deepskyblue; -fx-padding: 5 10; -fx-background-radius: 5;"/>
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <CheckBox fx:id="checkPink"/>
+                <Label text="Pink" style="-fx-background-color: pink; -fx-padding: 5 10; -fx-background-radius: 5;"/>
+            </HBox>
+
+            <Separator styleClass="separator"/>
+
+            <Button text="Save Changes" maxWidth="Infinity" styleClass="save-button"/>
+            <Button text="← Back" fx:id="backButton" maxWidth="Infinity" styleClass="save-button"
+                    onAction="#onBackButton"/>
+        </VBox>
+    </VBox>
+</StackPane>
