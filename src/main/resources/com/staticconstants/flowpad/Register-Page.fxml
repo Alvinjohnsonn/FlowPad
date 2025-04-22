@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane style="-fx-background-color: #8abffe;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.RegisterPageController">
+
+    <HBox alignment="CENTER" spacing="30">
+    <VBox alignment="CENTER" fillWidth="false" prefHeight="400.0" prefWidth="400.0" spacing="20.0" style="-fx-background-color: #cffff9;" HBox.hgrow="ALWAYS">
+
+                <Label alignment="CENTER" text="REGISTER YOUR ACCOUNT" textAlignment="CENTER">
+                    <font>
+                        <Font size="20.0" />
+                    </font>
+                </Label>
+
+                <TextField alignment="CENTER" maxWidth="400" promptText="First Name">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </TextField>
+                <TextField alignment="CENTER" maxWidth="400" promptText="Last Name">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </TextField>
+                <TextField alignment="CENTER" maxWidth="400" promptText="Username">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </TextField>
+                <PasswordField alignment="CENTER" maxWidth="400" promptText="Password">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </PasswordField>
+
+                <HBox spacing="20.0">
+            <children>
+                      <Button fx:id="BackButton" alignment="CENTER" onAction="#onBackButtonClick" text="Back">
+               <effect>
+                  <DropShadow />
+               </effect>
+                  <HBox.margin>
+                     <Insets right="30.0" top="20.0" />
+                  </HBox.margin></Button>
+                      <Button fx:id="Register" alignment="CENTER" defaultButton="true" onAction="#onRegisterButtonClick" style="-fx-background-color: #a8e5e8;" text="Register">
+                          <font>
+                              <Font size="17.0" />
+                          </font>
+               <effect>
+                  <DropShadow />
+               </effect>
+                  <HBox.margin>
+                     <Insets top="20.0" />
+                  </HBox.margin>
+                      </Button>
+            </children>
+      </HBox>
+      <effect>
+         <DropShadow height="85.48" radius="42.24" spread="0.28" width="85.48" />
+      </effect>
+         <HBox.margin>
+            <Insets bottom="800.0" left="800.0" right="800.0" top="300.0" />
+         </HBox.margin>
+
+        </VBox>
+    </HBox>
+
+</AnchorPane>
