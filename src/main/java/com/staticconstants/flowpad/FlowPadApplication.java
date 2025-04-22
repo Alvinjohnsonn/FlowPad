@@ -9,8 +9,8 @@ import java.io.IOException;
 
 public class FlowPadApplication extends Application {
 
-    public static final int WIDTH = 1450;
-    public static final int HEIGHT = 750;
+    public static final int WIDTH = 1920;
+    public static final int HEIGHT = 1000;
 
 
     @Override

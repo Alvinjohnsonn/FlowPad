@@ -19,7 +19,7 @@
             <Insets left="200.0" />
          </HBox.margin>
          <effect>
-             <DropShadow blurType="GAUSSIAN" color="#000000" height="20.0" radius="9.5" spread="0.0" width="20.0" />
+             <DropShadow blurType="GAUSSIAN" height="20.0" radius="9.5" spread="0.67" width="20.0" />
          </effect>
     </ImageView>
 
@@ -78,7 +78,7 @@
          <Cursor fx:constant="DEFAULT" />
       </cursor>
       <effect>
-         <DropShadow height="151.44" radius="66.06" width="114.8">
+         <DropShadow height="133.12" radius="61.480000000000004" spread="0.43" width="114.8">
             <color>
                <Color opacity="0.8051947951316833" />
             </color>
