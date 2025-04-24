@@ -59,14 +59,11 @@ public class SettingsController {
 
 
     @FXML
-    private void onBackButton() throws IOException {
+    protected void onBackButton() throws IOException {
         Stage stage = (Stage) backButton.getScene().getWindow();
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("flowpad-view.fxml")); // Your main view FXML
-        Scene scene = new Scene(fxmlLoader.load(), stage.getWidth(), stage.getHeight());
-        stage.setScene(scene);
-        String css = Objects.requireNonNull(getClass().getResource("flowpad-stylesheet.css")).toExternalForm();
-        scene.getStylesheets().add(css);
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/staticconstants/flowpad/settings-view.fxml"));
 
+        Scene scene = new Scene(fxmlLoader.load(), stage.getWidth(), stage.getHeight());
         stage.setScene(scene);
     }
 

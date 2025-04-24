@@ -7,7 +7,8 @@
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.staticconstants.flowpad.frontend.SettingsController"
-           stylesheets="@flowpad-stylesheet.css">
+           stylesheets="@css/flowpad-stylesheet.css">
+
 
     <VBox alignment="CENTER" spacing="15" maxWidth="400" styleClass="main-container">
         <padding>
