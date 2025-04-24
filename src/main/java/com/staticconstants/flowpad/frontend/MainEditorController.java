@@ -1,10 +1,14 @@
 package com.staticconstants.flowpad.frontend;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import org.fxmisc.richtext.InlineCssTextArea;
 
 import java.util.*;
@@ -23,6 +27,12 @@ public class MainEditorController {
     @FXML private Button btnPlus;
     @FXML private TextField textFieldFontSize;
     @FXML private VBox editorContainer;
+    @FXML private TabPane tabPane;
+    @FXML private ComboBox fontComboBox;
+
+
+
+
     private InlineCssTextArea richTextArea;
     private boolean isProgrammaticFontUpdate = false;
     private int fontSize = 12;
@@ -98,13 +108,19 @@ public class MainEditorController {
             handleFontSizeChange(textFieldFontSize.getText());
         });
 
-        richTextArea.selectionProperty().addListener((obs, oldSel, newSel) -> {
+        richTextArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
             updateFontSizeFieldFromSelection();
 
 //            TODO: Do more testing, doesn't always work
         });
 
 //        TODO: Change background color and text color when richtextarea is selected
+
+
+        fontComboBox.getItems().addAll(Font.getFamilies());
+        fontComboBox.setOnAction(event -> {
+            changeFontFamily();
+        });
     }
 
 
@@ -143,9 +159,19 @@ public class MainEditorController {
     @FXML
     private void underline(){
         addStyle(richTextArea, "-fx-underline", "true");
-       applyStyleAtCaret ("-fx-underline: true");
+        applyStyleAtCaret ("-fx-underline: true");
     }
 
+    @FXML
+    private void changeFontFamily(){
+        fontComboBox.getItems().addAll(Font.getFamilies());
+        fontComboBox.setOnAction(event -> {
+            String selectedFont = (String)fontComboBox.getValue();
+            if (selectedFont != null) {
+                addStyle(richTextArea, "-fx-font-family","'"+ selectedFont + "';");
+            }
+        });
+    }
     @FXML
     private void handleFontSizeChange(String size){
         addStyle(richTextArea, "-fx-font-size", size+"px");
@@ -154,12 +180,13 @@ public class MainEditorController {
 
     private void applyStyleAtCaret(String style) {
         int caretPos = richTextArea.getCaretPosition();
+        if (caretPos != richTextArea.getLength()) return;
 
         Platform.runLater(() -> {
             // Restore focus just in case
             richTextArea.requestFocus();
             // Apply style at the caret
-            richTextArea.setStyle(caretPos, caretPos+1, style);
+            richTextArea.setStyle(caretPos, caretPos, style);
 
 //            TODO: Fix last caret position formatting, doesn't apply to the next text written
         });
@@ -204,54 +231,77 @@ public class MainEditorController {
         return OptionalInt.empty();
     }
 
-    private String getStyleValue(InlineCssTextArea area, String styleKey){
-        String styleValue = "";
-        String currentStyle = area.getStyleOfChar(area.getSelection().getStart());
-
-        String[] styles = currentStyle.split(";");
-        for (String style : styles){
-            if (style.contains(styleKey)){
-                styleValue = style.split(":")[1];
-                break;
-            }
-        }
-        return styleValue;  // if return empty then style is not set
-    }
-
 
     private void addStyle(InlineCssTextArea area, String styleKey, String valueToToggle) {
         int start = area.getSelection().getStart();
         int end = area.getSelection().getEnd();
 
+        boolean styleFullyApplied = true;
+
+        // First pass: check if the style is fully applied
         for (int i = start; i < end; i++) {
             String currentStyle = area.getStyleOfChar(i);
-            String updatedStyle = updateStyle(currentStyle, styleKey, valueToToggle);
-            area.setStyle(i, i + 1, updatedStyle);
-        }
-    }
-
-    private String updateStyle(String currentStyle, String key, String value) {
-        Map<String, String> styleMap = new HashMap<>();
-
-        for (String style : currentStyle.split(";")) {
-            if (style.contains(":")) {
-                String[] parts = style.trim().split(":");
-                styleMap.put(parts[0].trim(), parts[1].trim());
+            String value = getStyleValue(currentStyle, styleKey);
+            if (!value.equals(valueToToggle)) {
+                styleFullyApplied = false;
+                break;
             }
         }
 
-        if (value.equals(styleMap.get(key))) {
-            styleMap.remove(key);
-        } else {
-            styleMap.remove(key);
-            styleMap.put(key, value);
-        }
+        // Second pass: apply or remove the style while preserving others
+        for (int i = start; i < end; i++) {
+            String currentStyle = area.getStyleOfChar(i);
+            Map<String, String> styles = parseStyle(currentStyle);
 
-        return styleMap.entrySet()
-                .stream()
-                .map(e -> e.getKey() + ": " + e.getValue())
-                .collect(Collectors.joining("; "));
+            if (styleFullyApplied) {
+                // Remove the styleKey if value matches
+                styles.remove(styleKey);
+            } else {
+                styles.put(styleKey, valueToToggle);
+            }
+
+            // Rebuild and apply the new style
+            StringBuilder newStyle = new StringBuilder();
+            for (Map.Entry<String, String> entry : styles.entrySet()) {
+                newStyle.append(entry.getKey()).append(": ").append(entry.getValue()).append("; ");
+            }
+
+            area.setStyle(i, i + 1, newStyle.toString().trim());
+        }
     }
 
+    private Map<String, String> parseStyle(String styleString) {
+        Map<String, String> styles = new HashMap<>();
+        if (styleString == null || styleString.isEmpty()) return styles;
+
+        String[] declarations = styleString.split(";");
+        for (String decl : declarations) {
+            String[] parts = decl.trim().split(":", 2);
+            if (parts.length == 2) {
+                styles.put(parts[0].trim(), parts[1].trim());
+            }
+        }
+        return styles;
+    }
+
+    private String getStyleValue(String styleString, String key) {
+        Map<String, String> styles = parseStyle(styleString);
+        return styles.getOrDefault(key, "");
+    }
+
+
+    @FXML
+    private void closeTab(ActionEvent event) {
+        Node source = (Node) event.getSource();
+
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab.getGraphic() instanceof HBox hbox) {
+                if (hbox.getChildren().contains(source)) {
+                    tabPane.getTabs().remove(tab);
+                    break;
+                }
+            }
+        }
+    }
 
 }
