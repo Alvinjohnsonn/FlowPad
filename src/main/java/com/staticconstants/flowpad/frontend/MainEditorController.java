@@ -14,7 +14,6 @@ import org.fxmisc.richtext.InlineCssTextArea;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class MainEditorController {
     @FXML private TreeView<String> folderTree;
@@ -29,14 +28,16 @@ public class MainEditorController {
     @FXML private VBox editorContainer;
     @FXML private TabPane tabPane;
     @FXML private ComboBox fontComboBox;
-
-
-
+    @FXML private Button btnBold;
+    @FXML private Button btnItalic;
+    @FXML private Button btnUnderline;
 
     private InlineCssTextArea richTextArea;
     private boolean isProgrammaticFontUpdate = false;
-    private int fontSize = 12;
+    private HashMap<String, String> desiredStyle = new HashMap<>();
 
+
+    private int defaultFontSize = 12;
 
     @FXML
     private void showDocuments() {
@@ -86,10 +87,28 @@ public class MainEditorController {
             zoomLabel.setText(zoomPercent + "%");
         });
 
+        desiredStyle.put("-fx-font-size", defaultFontSize+"px");
+        desiredStyle.put("-fx-font-family", "Arial");
+
+        String fontSize = desiredStyle.get("-fx-font-size");
+        textFieldFontSize.setText(defaultFontSize+"");
 
         richTextArea = new InlineCssTextArea();
         richTextArea.setWrapText(true);
-        richTextArea.setStyle("-fx-font-size: 12px; -fx-font-family: Arial");
+        richTextArea.setStyle(hashMapStyleToString(desiredStyle));
+
+        richTextArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
+            updateFontSizeFieldFromSelection();
+            updateFormattingFieldFromSelection();
+            updateFontFamilyFromSelection();
+//            TODO: Do more testing, doesn't always work
+        });
+
+        richTextArea.plainTextChanges().subscribe(change -> {
+            int from = change.getPosition();
+            int length = change.getInserted().length();
+            richTextArea.setStyle(from, from+length, hashMapStyleToString(desiredStyle));
+        });
 
         VBox.setVgrow(richTextArea, Priority.ALWAYS);
         editorContainer.getChildren().add(richTextArea);
@@ -108,23 +127,26 @@ public class MainEditorController {
             handleFontSizeChange(textFieldFontSize.getText());
         });
 
-        richTextArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
-            updateFontSizeFieldFromSelection();
-
-//            TODO: Do more testing, doesn't always work
-        });
-
 //        TODO: Change background color and text color when richtextarea is selected
-
 
         fontComboBox.getItems().addAll(Font.getFamilies());
         fontComboBox.setOnAction(event -> {
-            changeFontFamily();
+            if (isProgrammaticFontUpdate) return;
+            String selectedFont = (String)fontComboBox.getValue();
+            if (selectedFont != null) {
+                addStyle(richTextArea, "-fx-font-family","'"+ selectedFont + "';");
+                desiredStyle.put("-fx-font-family", "'"+ selectedFont + "'");
+            }
         });
     }
 
-
-//    TODO: Add active and inactive formatting button states like bold, italic, etc
+    private String hashMapStyleToString(HashMap<String, String> styles){
+        String styleString = "";
+        for (String style : styles.keySet()){
+            styleString += style + ":" + styles.get(style) + ";";
+        }
+        return styleString;
+    }
 
     private void setActiveButton(Button active, Button inactive) {
         if (!active.getStyleClass().contains("selected")) active.getStyleClass().add("selected");
@@ -132,70 +154,88 @@ public class MainEditorController {
         inactive.getStyleClass().remove("selected");
     }
 
+    private void setSelectedButton(Button btn, boolean isSelected) {
+        if (isSelected && !btn.getStyleClass().contains("selected")) btn.getStyleClass().add("selected");
+
+        else if (!isSelected) btn.getStyleClass().remove("selected");
+    }
+
+    private void clickSetSelectedButton(Button btn, boolean isSelected) {
+        if (isSelected && !btn.getStyleClass().contains("selected")) btn.getStyleClass().add("selected");
+
+        else btn.getStyleClass().remove("selected");
+    }
+
     @FXML
     private void increaseFontSize() {
+        int fontSize = Integer.parseInt(textFieldFontSize.getText());
         fontSize++;
         textFieldFontSize.setText(fontSize + "");
+
+        desiredStyle.put("-fx-font-size", fontSize+"px");
     }
 
     @FXML
     private void decreaseFontSize() {
+        int fontSize = Integer.parseInt(textFieldFontSize.getText());
         if (fontSize > 1) {
             fontSize--;
             textFieldFontSize.setText(fontSize + "");
+
+            desiredStyle.put("-fx-font-size", fontSize+"px");
         }
     }
 
     @FXML
     private void bold(){
         addStyle(richTextArea, "-fx-font-weight", "bold");
-        applyStyleAtCaret("-fx-font-weight: bold");
+        switchOnOffDesiredStyle("-fx-font-weight", "bold");
+        clickSetSelectedButton(btnBold, true);
     }
     @FXML
     private void italic(){
         addStyle(richTextArea, "-fx-font-style", "italic");
-        applyStyleAtCaret("-fx-font-style: italic");
+        switchOnOffDesiredStyle("-fx-font-style", "italic");
+        clickSetSelectedButton(btnItalic, true);
     }
     @FXML
     private void underline(){
         addStyle(richTextArea, "-fx-underline", "true");
-        applyStyleAtCaret ("-fx-underline: true");
+        switchOnOffDesiredStyle("-fx-underline", "true");
+        clickSetSelectedButton(btnUnderline, true);
     }
 
-    @FXML
-    private void changeFontFamily(){
-        fontComboBox.getItems().addAll(Font.getFamilies());
-        fontComboBox.setOnAction(event -> {
-            String selectedFont = (String)fontComboBox.getValue();
-            if (selectedFont != null) {
-                addStyle(richTextArea, "-fx-font-family","'"+ selectedFont + "';");
-            }
-        });
+    private void switchOnOffDesiredStyle(String key, String value){
+        if (desiredStyle.getOrDefault(key,"").equals(value)){
+            desiredStyle.remove(key);
+        }
+        else desiredStyle.put(key, value);
     }
+
+
     @FXML
     private void handleFontSizeChange(String size){
         addStyle(richTextArea, "-fx-font-size", size+"px");
-        applyStyleAtCaret("-fx-font-size: "+size+"px;");
+        desiredStyle.put("-fx-font-size", size+"px");
     }
 
-    private void applyStyleAtCaret(String style) {
-        int caretPos = richTextArea.getCaretPosition();
-        if (caretPos != richTextArea.getLength()) return;
-
-        Platform.runLater(() -> {
-            // Restore focus just in case
-            richTextArea.requestFocus();
-            // Apply style at the caret
-            richTextArea.setStyle(caretPos, caretPos, style);
-
-//            TODO: Fix last caret position formatting, doesn't apply to the next text written
-        });
-    }
 
     private void updateFontSizeFieldFromSelection() {
         IndexRange selection = richTextArea.getSelection();
 
         if (selection.getLength() == 0) {
+            if (richTextArea.getCaretPosition()>0) {
+                String sizeValue = getStyleValue(richTextArea.getStyleOfChar(richTextArea.getCaretPosition() - 1),"-fx-font-size");
+                desiredStyle.put("-fx-font-size", sizeValue);
+                textFieldFontSize.setText(sizeValue.substring(0, sizeValue.length()-2));
+            }
+            else{
+                String sizeValue = getStyleValue(richTextArea.getStyleOfChar(richTextArea.getCaretPosition()),"-fx-font-size");
+                desiredStyle.put("-fx-font-size", sizeValue);
+                textFieldFontSize.setText(sizeValue);
+                textFieldFontSize.setText(sizeValue.substring(0, sizeValue.length()-2));
+            }
+
             return;
         }
 
@@ -213,8 +253,46 @@ public class MainEditorController {
                 .max();
 
         isProgrammaticFontUpdate = true;
-        maxFontSize.ifPresent(size ->
-                textFieldFontSize.setText(String.valueOf(size)));
+        maxFontSize.ifPresent(size -> {
+            textFieldFontSize.setText(String.valueOf(size));
+            desiredStyle.put("-fx-font-size", size + "px");
+        });
+        isProgrammaticFontUpdate = false;
+    }
+
+    private void updateFormattingFieldFromSelection(){
+        if (isStyleFullyApplied("-fx-font-weight", "bold")){
+            setSelectedButton(btnBold, true);
+        }
+        else setSelectedButton(btnBold, false);
+
+        if (isStyleFullyApplied("-fx-font-style", "italic")){
+            setSelectedButton(btnItalic, true);
+        }
+        else setSelectedButton(btnItalic, false);
+
+        if (isStyleFullyApplied("-fx-underline", "true")){
+            setSelectedButton(btnUnderline, true);
+        }
+        else setSelectedButton(btnUnderline, false);
+    }
+
+
+    private void updateFontFamilyFromSelection(){
+        String currentStyle = "";
+        if (richTextArea.getCaretPosition()>0) {
+            currentStyle = richTextArea.getStyleOfChar(richTextArea.getCaretPosition() - 1);
+        }
+        else{
+            currentStyle = richTextArea.getStyleOfChar(richTextArea.getCaretPosition());
+        }
+        String value = getStyleValue(currentStyle, "-fx-font-family");
+        desiredStyle.put("-fx-font-family", value);
+        if (value != null && value.length() >= 2 && value.startsWith("'") && value.endsWith("'")) {
+            value = value.substring(1, value.length() - 1);
+        }
+        isProgrammaticFontUpdate = true;
+        fontComboBox.getSelectionModel().select(value);
         isProgrammaticFontUpdate = false;
     }
 
@@ -231,30 +309,51 @@ public class MainEditorController {
         return OptionalInt.empty();
     }
 
+    // Check if all selection has the same style applied
+    // If there are no selection then it will check the style applied on the char before
+    // the caret position, however, if the caret position is at 0 it will compare it with the char
+    // after the caret position. The function will return true if the styles parameter given matches
+    // with the conditions stated above.
+    private boolean isStyleFullyApplied(String styleKey, String valueToToggle){
+        if (richTextArea.getSelection().getLength() == 0){
+            String currentStyle = "";
+            if (richTextArea.getCaretPosition()>0) {
+                currentStyle = richTextArea.getStyleOfChar(richTextArea.getCaretPosition() - 1);
+            }
+            else{
+                currentStyle = richTextArea.getStyleOfChar(richTextArea.getCaretPosition());
+            }
+            String value = getStyleValue(currentStyle, styleKey);
+            return value.equals(valueToToggle);
+        }
 
-    private void addStyle(InlineCssTextArea area, String styleKey, String valueToToggle) {
-        int start = area.getSelection().getStart();
-        int end = area.getSelection().getEnd();
-
+        int start = richTextArea.getSelection().getStart();
+        int end = richTextArea.getSelection().getEnd();
         boolean styleFullyApplied = true;
 
-        // First pass: check if the style is fully applied
         for (int i = start; i < end; i++) {
-            String currentStyle = area.getStyleOfChar(i);
+            String currentStyle = richTextArea.getStyleOfChar(i);
             String value = getStyleValue(currentStyle, styleKey);
             if (!value.equals(valueToToggle)) {
                 styleFullyApplied = false;
                 break;
             }
         }
+        return styleFullyApplied;
+    }
 
-        // Second pass: apply or remove the style while preserving others
+    private void addStyle(InlineCssTextArea area, String styleKey, String valueToToggle) {
+        if (area.getSelection().getLength() == 0) return;
+        int start = area.getSelection().getStart();
+        int end = area.getSelection().getEnd();
+
+        boolean styleFullyApplied = isStyleFullyApplied(styleKey, valueToToggle);
+
         for (int i = start; i < end; i++) {
             String currentStyle = area.getStyleOfChar(i);
             Map<String, String> styles = parseStyle(currentStyle);
 
             if (styleFullyApplied) {
-                // Remove the styleKey if value matches
                 styles.remove(styleKey);
             } else {
                 styles.put(styleKey, valueToToggle);

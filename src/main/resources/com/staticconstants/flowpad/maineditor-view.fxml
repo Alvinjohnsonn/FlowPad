@@ -114,6 +114,8 @@
             <!-- Folder Tree / AI Options -->
             <VBox maxWidth="300" prefWidth="200.0">
                 <StackPane fx:id="switchablePane" prefHeight="419.0" prefWidth="64.0" VBox.vgrow="ALWAYS" styleClass="feature-bar" >
+<!--                    TODO: Add functionality to open folder and display on tree view-->
+<!--                    TODO: Make the tree view more aesthetic-->
                     <TreeView fx:id="folderTree" maxWidth="1.7976931348623157E308" prefHeight="409.0" prefWidth="58.0" />
 
                     <VBox fx:id="aiOptions" managed="false" maxWidth="1.7976931348623157E308" prefHeight="419.0" prefWidth="98.0" styleClass="feature-bar" visible="false">
@@ -197,7 +199,7 @@
                                                 </ImageView>
                                             </graphic>
                                         </Button>
-                                        <TextField fx:id="textFieldFontSize" prefWidth="30.0" text="12" />
+                                        <TextField fx:id="textFieldFontSize" prefWidth="30.0" text="12" focusTraversable="false" />
                                         <Button fx:id="btnPlus" focusTraversable="false" onAction="#increaseFontSize">
                                             <graphic>
                                                 <ImageView fitHeight="12.0" fitWidth="12.0" pickOnBounds="true" preserveRatio="true">
@@ -305,6 +307,7 @@
         </items>
     </SplitPane>
 
+<!--    TODO: Add page number count char, word functionality-->
     <HBox prefHeight="24.0" styleClass="bottom-bar">
         <Label text="Page 1 of 10" textFill="WHITE" />
         <Label text="0 words" textFill="WHITE" />

@@ -87,6 +87,10 @@
     -fx-background-color: -secondary-color;
 }
 
+.tool-bar .button.selected{
+    -fx-background-color: -secondary-hover-color;
+}
+
 .tool-bar .button:hover {
     -fx-background-color: -secondary-hover-color;
     -fx-background-radius: 4 4 4 4;
@@ -127,7 +131,7 @@
     -fx-background-color: -secondary-color;
 }
 
-.tab-pane .tab.tab:selected {
+.tab-pane .tab:selected {
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
@@ -149,7 +153,6 @@
     -fx-min-width: 1;
 }
 
-/* Visible and styled divider for inner split */
 .inner-split > .split-pane-divider {
     -fx-background-color: -dark-color;
     -fx-max-width: 4;

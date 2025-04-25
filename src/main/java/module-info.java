@@ -8,6 +8,7 @@ module com.staticconstants.flowpad.flowpad {
     requires java.sql;
     requires org.fxmisc.richtext;
     requires java.desktop;
+    requires reactfx;
 
     opens com.staticconstants.flowpad to javafx.fxml;
     exports com.staticconstants.flowpad;
