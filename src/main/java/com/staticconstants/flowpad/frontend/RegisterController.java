@@ -1,11 +1,12 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.db.users.User;
+import com.staticconstants.flowpad.backend.db.users.UserDAO;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
@@ -25,7 +26,11 @@ public class RegisterController {
     @FXML
     private Button SubmitButton;
 
+    @FXML
+    private TextField txtUsername;
 
+    @FXML
+    private PasswordField txtPassword;
 
     @FXML
     protected void onHelloButtonClick() {
@@ -46,11 +51,30 @@ public class RegisterController {
     // When the Submit Button is clicked, could lead to the Home Page.
     @FXML
     protected void onSubmitButtonClick() throws IOException {
-        Stage stage = (Stage) SubmitButton.getScene().getWindow();
-        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Submit-Page.fxml"));
-        Scene scene = new Scene(fxmlLoader.load());
-        stage.setTitle("Home Page");
-        stage.setScene(scene);
+        try {
+            String username = txtUsername.getText();
+            char[] password = txtPassword.getText().toCharArray();
+            String firstName = "";
+            String lastName = "";
+
+            User user = new User(firstName, lastName, username, password);
+            UserDAO userDAO = new UserDAO();
+
+            //create code to check db if login is correct
+
+            
+            // Success
+            Stage stage = (Stage) SubmitButton.getScene().getWindow();
+            FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Submit-Page.fxml"));
+            Scene scene = new Scene(fxmlLoader.load());
+            stage.setTitle("Home Page");
+            stage.setScene(scene);
+
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Login failed: " + e.getMessage());
+            alert.show();
+        }
     }
 
 
