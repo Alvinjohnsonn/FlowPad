@@ -1,6 +1,5 @@
 package com.staticconstants.flowpad.frontend;
 
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -140,7 +139,7 @@ public class MainEditorController {
         });
     }
 
-    private String hashMapStyleToString(HashMap<String, String> styles){
+    public static String hashMapStyleToString(HashMap<String, String> styles){
         String styleString = "";
         for (String style : styles.keySet()){
             styleString += style + ":" + styles.get(style) + ";";
@@ -148,22 +147,21 @@ public class MainEditorController {
         return styleString;
     }
 
-    private void setActiveButton(Button active, Button inactive) {
+    public static void setActiveButton(Button active, Button inactive) {
         if (!active.getStyleClass().contains("selected")) active.getStyleClass().add("selected");
 
-        inactive.getStyleClass().remove("selected");
+        inactive.getStyleClass().removeAll("selected");
     }
 
-    private void setSelectedButton(Button btn, boolean isSelected) {
+    public static void setSelectedButton(Button btn, boolean isSelected) {
         if (isSelected && !btn.getStyleClass().contains("selected")) btn.getStyleClass().add("selected");
 
-        else if (!isSelected) btn.getStyleClass().remove("selected");
+        else if (!isSelected) btn.getStyleClass().removeAll("selected");
     }
 
-    private void clickSetSelectedButton(Button btn, boolean isSelected) {
-        if (isSelected && !btn.getStyleClass().contains("selected")) btn.getStyleClass().add("selected");
-
-        else btn.getStyleClass().remove("selected");
+    public static void toggleSelectedButton(Button btn) {
+        if (!btn.getStyleClass().contains("selected")) btn.getStyleClass().add("selected");
+        else btn.getStyleClass().removeAll("selected");
     }
 
     @FXML
@@ -190,19 +188,19 @@ public class MainEditorController {
     private void bold(){
         addStyle(richTextArea, "-fx-font-weight", "bold");
         switchOnOffDesiredStyle("-fx-font-weight", "bold");
-        clickSetSelectedButton(btnBold, true);
+        toggleSelectedButton(btnBold);
     }
     @FXML
     private void italic(){
         addStyle(richTextArea, "-fx-font-style", "italic");
         switchOnOffDesiredStyle("-fx-font-style", "italic");
-        clickSetSelectedButton(btnItalic, true);
+        toggleSelectedButton(btnItalic);
     }
     @FXML
     private void underline(){
         addStyle(richTextArea, "-fx-underline", "true");
         switchOnOffDesiredStyle("-fx-underline", "true");
-        clickSetSelectedButton(btnUnderline, true);
+        toggleSelectedButton(btnUnderline);
     }
 
     private void switchOnOffDesiredStyle(String key, String value){
@@ -257,6 +255,7 @@ public class MainEditorController {
             textFieldFontSize.setText(String.valueOf(size));
             desiredStyle.put("-fx-font-size", size + "px");
         });
+
         isProgrammaticFontUpdate = false;
     }
 
