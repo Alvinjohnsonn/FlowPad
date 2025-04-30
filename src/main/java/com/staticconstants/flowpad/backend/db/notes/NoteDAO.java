@@ -20,7 +20,7 @@ public class NoteDAO extends DAO<Note> {
     }
 
     @Override
-    protected Void insertImpl(Connection connection, Note obj) throws SQLException {
+    protected Boolean insertImpl(Connection connection, Note obj) throws SQLException {
         return null;
     }
 

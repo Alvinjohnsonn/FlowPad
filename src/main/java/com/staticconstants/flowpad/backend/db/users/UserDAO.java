@@ -20,7 +20,7 @@ public class UserDAO extends DAO<User> {
                 + "firstName VARCHAR(30) NOT NULL, "
                 + "lastName VARCHAR(30) NOT NULL, "
                 + "username VARCHAR(30) NOT NULL UNIQUE, "
-                + "hashedPassword VARCHAR(255) NOT NULL"
+                + "hashedPassword VARCHAR(255) NOT NULL, "
                 + "encodedSalt VARCHAR(24) NOT NULL"
                 + ")"
         );
@@ -38,9 +38,9 @@ public class UserDAO extends DAO<User> {
     }
 
     @Override
-    protected Void insertImpl(Connection connection, User obj) throws SQLException {
+    protected Boolean insertImpl(Connection connection, User obj) throws SQLException {
         PreparedStatement insertUser = connection.prepareStatement(
-          "INSERT INTO Users (id, firstName, lastName, username, hashedPassword) VALUES (?,?,?,?,?)"
+          "INSERT INTO Users (id, firstName, lastName, username, hashedPassword, encodedSalt) VALUES (?,?,?,?,?,?)"
         );
         insertUser.setString(1, obj.getId().toString());
         insertUser.setString(2, obj.getFirstName());
@@ -48,8 +48,9 @@ public class UserDAO extends DAO<User> {
         insertUser.setString(4, obj.getUsername());
         insertUser.setString(5, obj.getHashedPassword().hashBase64);
         insertUser.setString(6, obj.getHashedPassword().saltBase64);
-        insertUser.execute();
-        return null;
+
+        int rowsInserted = insertUser.executeUpdate();
+        return rowsInserted > 0;
     }
 
     @Override

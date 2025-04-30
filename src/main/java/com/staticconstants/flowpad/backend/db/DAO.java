@@ -15,7 +15,7 @@ public abstract class DAO<T extends DbRecord> {
     }
 
 
-    public CompletableFuture<Void> insert(T obj) {
+    public CompletableFuture<Boolean> insert(T obj) {
         return dbHandler.dbOperation(dbConnection -> insertImpl(dbConnection, obj));
     }
 
@@ -43,7 +43,7 @@ public abstract class DAO<T extends DbRecord> {
 
     protected abstract Void createTableImpl(Connection connection) throws SQLException;
     protected abstract Void deleteImpl(Connection connection, UUID id) throws SQLException;
-    protected abstract Void insertImpl(Connection connection, T obj) throws SQLException;
+    protected abstract Boolean insertImpl(Connection connection, T obj) throws SQLException;
     protected abstract Void updateImpl(Connection connection, T obj) throws SQLException;
     protected abstract T getByIdImpl(Connection connection, UUID id) throws SQLException;
     protected abstract List<T> getAllImpl(Connection connection) throws SQLException;
