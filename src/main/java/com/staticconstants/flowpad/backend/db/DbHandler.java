@@ -32,6 +32,10 @@ public final class DbHandler {
         return INSTANCE;
     }
 
+    public Connection getConnection(){
+        return this.dbConnection;
+    }
+
     public <T> CompletableFuture<T> dbOperation(DbOperation<T> callback) {
         CompletableFuture<T> f = new CompletableFuture<>();
         try {

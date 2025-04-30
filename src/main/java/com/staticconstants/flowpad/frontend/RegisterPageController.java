@@ -3,6 +3,7 @@ package com.staticconstants.flowpad.frontend;
 import com.staticconstants.flowpad.FlowPadApplication;
 import com.staticconstants.flowpad.backend.db.users.User;
 import com.staticconstants.flowpad.backend.db.users.UserDAO;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -14,7 +15,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 public class RegisterPageController {
-
     @FXML
     private Button btnBack;
 
@@ -33,6 +33,18 @@ public class RegisterPageController {
     @FXML
     private PasswordField txtPassword;
 
+    @FXML
+    public void initialize(){
+        UserDAO userDAO = new UserDAO();
+
+        userDAO.createTable().thenRun(() -> {
+            System.out.println("Users table created or already exists.");
+        }).exceptionally(ex -> {
+            System.err.println("Failed to create Users table:");
+            ex.printStackTrace();
+            return null;
+        });
+    }
 
     @FXML
     protected void onBackButtonClick() throws IOException {
@@ -53,15 +65,36 @@ public class RegisterPageController {
 
             UserDAO userDAO = new UserDAO();
             User user = new User(firstName, lastName, username, password);
-            userDAO.insert(user);
+
+            userDAO.insert(user).thenAccept(success -> {
+                Platform.runLater(() -> {  // Ensure this runs on the JavaFX Application Thread
+                    if (success) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setContentText("Registration successful!");
+                        alert.show();
+                    } else {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setContentText("Registration failed.");
+                        alert.show();
+                        return;
+                    }
+                });
 
 
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setContentText("Registration successful!");
-            alert.show();
+            }).exceptionally(ex -> {
+                ex.printStackTrace(); // Log or show error
+                Platform.runLater(() -> {  // Ensure this runs on the JavaFX Application Thread
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setContentText("An error occurred: " + ex.getMessage());
+                    alert.show();
+                });
+
+
+                return null;
+            });
 
             Stage stage = (Stage) btnRegister.getScene().getWindow();
-            FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("register-view.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Submit-Page.fxml"));
             Scene scene = new Scene(fxmlLoader.load());
             stage.setScene(scene);
             stage.show();

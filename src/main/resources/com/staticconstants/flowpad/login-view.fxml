@@ -9,7 +9,7 @@
 <?import javafx.scene.paint.*?>
 <?import javafx.scene.text.*?>
 
-<VBox alignment="CENTER" spacing="20.0" style="-fx-background-color: #8abffe;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.frontend.RegisterController">
+<VBox alignment="CENTER" spacing="20.0" style="-fx-background-color: #8abffe;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.frontend.LoginController">
     <HBox spacing="300">
         <ImageView fx:id="Logo" fitHeight="300" fitWidth="300">
             <VBox.margin>
@@ -34,7 +34,7 @@
                     </font>
                 </Label>
 
-                <TextField id="txtUsername" layoutX="58.0" layoutY="128.0" prefWidth="275.0" promptText="Username">
+                <TextField fx:id="txtUsername" layoutX="58.0" layoutY="128.0" prefWidth="275.0" promptText="Username">
                     <font>
                         <Font size="20.0" />
                     </font>
@@ -45,7 +45,7 @@
                         <DropShadow height="9.28" radius="4.14" width="9.28" />
                     </effect>
                 </TextField>
-                <PasswordField id="txtPassword" layoutX="58.0" layoutY="195.0" prefWidth="275.0" promptText="Password">
+                <PasswordField fx:id="txtPassword" layoutX="58.0" layoutY="195.0" prefWidth="275.0" promptText="Password">
                     <font>
                         <Font size="20.0" />
                     </font>
@@ -53,7 +53,7 @@
                         <DropShadow height="9.28" radius="4.14" width="9.28" />
                     </effect>
                 </PasswordField>
-                <Button id="btnSubmit" fx:id="SubmitButton" defaultButton="true" layoutX="134.0" layoutY="262.0" onAction="#onSubmitButtonClick" style="-fx-background-color: #a8e5e8;" text="Submit">
+                <Button fx:id="btnSubmit" defaultButton="true" layoutX="134.0" layoutY="262.0" onAction="#onSubmitButtonClick" style="-fx-background-color: #a8e5e8;" text="Submit">
                     <font>
                         <Font size="18.0" />
                     </font>

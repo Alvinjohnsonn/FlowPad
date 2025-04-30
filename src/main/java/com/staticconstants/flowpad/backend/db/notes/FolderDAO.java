@@ -19,7 +19,7 @@ public class FolderDAO extends DAO<Folder> {
     }
 
     @Override
-    protected Void insertImpl(Connection connection, Folder obj) throws SQLException {
+    protected Boolean insertImpl(Connection connection, Folder obj) throws SQLException {
         return null;
     }
 

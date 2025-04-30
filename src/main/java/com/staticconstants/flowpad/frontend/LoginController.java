@@ -14,17 +14,15 @@ import javafx.scene.image.Image;
 
 import java.io.IOException;
 
-public class RegisterController {
+public class LoginController {
 
     @FXML
     private ImageView Logo;
     @FXML
     private Button RegisterAccountButton;
-    @FXML
-    private Label welcomeText;
 
     @FXML
-    private Button SubmitButton;
+    private Button btnSubmit;
 
     @FXML
     private TextField txtUsername;
@@ -32,10 +30,6 @@ public class RegisterController {
     @FXML
     private PasswordField txtPassword;
 
-    @FXML
-    protected void onHelloButtonClick() {
-        welcomeText.setText("");
-    }
 
     @FXML
     public void initialize() {
@@ -66,7 +60,7 @@ public class RegisterController {
                 // Get user details
 
                 // Success
-                Stage stage = (Stage) SubmitButton.getScene().getWindow();
+                Stage stage = (Stage) btnSubmit.getScene().getWindow();
                 FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
                 Scene scene = new Scene(fxmlLoader.load());
                 stage.setTitle("Home Page");

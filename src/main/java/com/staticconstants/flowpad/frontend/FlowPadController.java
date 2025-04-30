@@ -44,7 +44,7 @@ public class FlowPadController {
     @FXML
     protected void OpenRegisterButton(ActionEvent event) throws IOException {
 
-        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("register-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("login-view.fxml"));
 
         Scene scene = new Scene(fxmlLoader.load());
 
