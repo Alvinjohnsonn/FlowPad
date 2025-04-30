@@ -2,6 +2,7 @@ package com.staticconstants.flowpad.backend.db.users;
 
 import com.staticconstants.flowpad.backend.db.DAO;
 import com.staticconstants.flowpad.backend.security.HashedPassword;
+import com.staticconstants.flowpad.backend.security.PasswordHasher;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -112,4 +113,26 @@ public class UserDAO extends DAO<User> {
         }
         return users;
     }
+
+    public boolean checklogin(String username, char[] password) throws Exception {
+        Connection connection = null;
+
+        PreparedStatement checklogin = connection.prepareStatement(
+                "SELECT username, hashedPassword, encodedSalt FROM Users WHERE username = ?"
+        );
+
+        checklogin.setString(1, username);
+        ResultSet rs = checklogin.executeQuery();
+
+        if (rs.next()){
+            String storedHashBase64 = rs.getString("hashedPassword");
+            String storedSaltBase64 = rs.getString("encodedSalt");
+
+            return PasswordHasher.verifyPassword(password, storedHashBase64, storedSaltBase64);
+        }
+
+        // User not found
+        return false;
+    }
+
 }

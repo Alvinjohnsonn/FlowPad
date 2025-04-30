@@ -61,14 +61,22 @@ public class RegisterController {
             UserDAO userDAO = new UserDAO();
 
             //create code to check db if login is correct
+            //check if the username and password is correct
+            if (userDAO.checklogin(username, password)){
+                // Get user details
 
-            
-            // Success
-            Stage stage = (Stage) SubmitButton.getScene().getWindow();
-            FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Submit-Page.fxml"));
-            Scene scene = new Scene(fxmlLoader.load());
-            stage.setTitle("Home Page");
-            stage.setScene(scene);
+                // Success
+                Stage stage = (Stage) SubmitButton.getScene().getWindow();
+                FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Submit-Page.fxml"));
+                Scene scene = new Scene(fxmlLoader.load());
+                stage.setTitle("Home Page");
+                stage.setScene(scene);
+            }else{
+                Alert loginalert = new Alert(Alert.AlertType.INFORMATION);
+                loginalert.setContentText("Login failed!");
+                loginalert.show();
+            }
+
 
         } catch (Exception e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);

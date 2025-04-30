@@ -55,6 +55,7 @@ public class RegisterPageController {
             User user = new User(firstName, lastName, username, password);
             userDAO.insert(user);
 
+
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setContentText("Registration successful!");
             alert.show();
