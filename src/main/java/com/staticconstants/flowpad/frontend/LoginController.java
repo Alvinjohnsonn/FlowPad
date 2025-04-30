@@ -14,7 +14,7 @@ import javafx.scene.image.Image;
 
 import java.io.IOException;
 
-public class RegisterController {
+public class LoginController {
 
     @FXML
     private ImageView Logo;

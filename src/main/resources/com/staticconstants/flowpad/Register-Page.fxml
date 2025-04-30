@@ -17,22 +17,22 @@
                     </font>
                 </Label>
 
-                <TextField id="txtFirstName" alignment="CENTER" maxWidth="400" promptText="First Name">
+                <TextField fx:id="txtFirstName" alignment="CENTER" maxWidth="400" promptText="First Name">
                     <font>
                         <Font size="18.0" />
                     </font>
                 </TextField>
-                <TextField id="txtLastName" alignment="CENTER" maxWidth="400" promptText="Last Name">
+                <TextField fx:id="txtLastName" alignment="CENTER" maxWidth="400" promptText="Last Name">
                     <font>
                         <Font size="18.0" />
                     </font>
                 </TextField>
-                <TextField id="txtUsername" alignment="CENTER" maxWidth="400" promptText="Username">
+                <TextField fx:id="txtUsername" alignment="CENTER" maxWidth="400" promptText="Username">
                     <font>
                         <Font size="18.0" />
                     </font>
                 </TextField>
-                <PasswordField id="txtPassword" alignment="CENTER" maxWidth="400" promptText="Password">
+                <PasswordField fx:id="txtPassword" alignment="CENTER" maxWidth="400" promptText="Password">
                     <font>
                         <Font size="18.0" />
                     </font>
@@ -40,14 +40,14 @@
 
                 <HBox spacing="20.0">
             <children>
-                      <Button id="btnBack" fx:id="BackButton" alignment="CENTER" onAction="#onBackButtonClick" text="Back">
+                      <Button fx:id="btnBack" alignment="CENTER" onAction="#onBackButtonClick" text="Back">
                <effect>
                   <DropShadow />
                </effect>
                   <HBox.margin>
                      <Insets right="30.0" top="20.0" />
                   </HBox.margin></Button>
-                      <Button id="btnRegister" fx:id="Register" alignment="CENTER" defaultButton="true" onAction="#onRegisterButtonClick" style="-fx-background-color: #a8e5e8;" text="Register">
+                      <Button fx:id="btnRegister" alignment="CENTER" defaultButton="true" onAction="#onRegisterButtonClick" style="-fx-background-color: #a8e5e8;" text="Register">
                           <font>
                               <Font size="17.0" />
                           </font>

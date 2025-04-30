@@ -9,7 +9,7 @@
 <?import javafx.scene.paint.*?>
 <?import javafx.scene.text.*?>
 
-<VBox alignment="CENTER" spacing="20.0" style="-fx-background-color: #8abffe;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.frontend.RegisterController">
+<VBox alignment="CENTER" spacing="20.0" style="-fx-background-color: #8abffe;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.staticconstants.flowpad.frontend.LoginController">
     <HBox spacing="300">
         <ImageView fx:id="Logo" fitHeight="300" fitWidth="300">
             <VBox.margin>
