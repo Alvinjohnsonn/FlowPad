@@ -61,7 +61,7 @@ public class RegisterPageController {
             alert.show();
 
             Stage stage = (Stage) btnRegister.getScene().getWindow();
-            FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("register-view.fxml"));
             Scene scene = new Scene(fxmlLoader.load());
             stage.setScene(scene);
             stage.show();
