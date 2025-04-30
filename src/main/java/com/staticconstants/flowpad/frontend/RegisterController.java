@@ -67,7 +67,7 @@ public class RegisterController {
 
                 // Success
                 Stage stage = (Stage) SubmitButton.getScene().getWindow();
-                FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Submit-Page.fxml"));
+                FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
                 Scene scene = new Scene(fxmlLoader.load());
                 stage.setTitle("Home Page");
                 stage.setScene(scene);
