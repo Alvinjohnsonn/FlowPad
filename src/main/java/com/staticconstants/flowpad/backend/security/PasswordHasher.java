@@ -7,12 +7,12 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Arrays;
 
-public class PasswordHasher {
+public final class PasswordHasher {
 
-    private static final int SALT_LENGTH = 16;
-    private static final int ITERATIONS = 65536;
-    private static final int KEY_LENGTH = 256;
-    private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
+    static final int SALT_LENGTH = 16;
+    static final int ITERATIONS = 65536;
+    static final int KEY_LENGTH = 256;
+    static final String ALGORITHM = "PBKDF2WithHmacSHA256";
 
     public static HashedPassword hashPassword(char[] password) throws Exception
     {
@@ -32,7 +32,7 @@ public class PasswordHasher {
         return MessageDigest.isEqual(inputHash, storedHash);
     }
 
-    private static String hashPassword(char[] password, byte[] salt) throws Exception
+    static String hashPassword(char[] password, byte[] salt) throws Exception
     {
         PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH);
         SecretKeyFactory skf = SecretKeyFactory.getInstance(ALGORITHM);
@@ -40,7 +40,7 @@ public class PasswordHasher {
         return Base64.getEncoder().encodeToString(hash);
     }
 
-    private static byte[] generateSalt()
+    static byte[] generateSalt()
     {
         SecureRandom sr = new SecureRandom();
         byte[] salt = new byte[SALT_LENGTH];

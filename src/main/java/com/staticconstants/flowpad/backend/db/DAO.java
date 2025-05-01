@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class DAO<T extends DbRecord> {
 
-    private static final DbHandler dbHandler = DbHandler.getInstance();
+    protected static final DbHandler dbHandler = DbHandler.getInstance();
 
     public CompletableFuture<Void> createTable() {
         return dbHandler.dbOperation(this::createTableImpl);

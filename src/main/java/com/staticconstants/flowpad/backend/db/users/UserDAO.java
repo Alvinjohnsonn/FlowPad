@@ -1,7 +1,6 @@
 package com.staticconstants.flowpad.backend.db.users;
 
 import com.staticconstants.flowpad.backend.db.DAO;
-import com.staticconstants.flowpad.backend.db.DbHandler;
 import com.staticconstants.flowpad.backend.security.HashedPassword;
 import com.staticconstants.flowpad.backend.security.PasswordHasher;
 
@@ -117,7 +116,7 @@ public class UserDAO extends DAO<User> {
     }
 
     public boolean checklogin(String username, char[] password) throws Exception {
-        PreparedStatement checklogin = DbHandler.getInstance().getConnection().prepareStatement(
+        PreparedStatement checklogin = dbHandler.getConnection().prepareStatement(
                 "SELECT username, hashedPassword, encodedSalt FROM Users WHERE username = ?"
         );
 

@@ -13,6 +13,7 @@ import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public class LoginController {
 
@@ -48,15 +49,12 @@ public class LoginController {
         try {
             String username = txtUsername.getText();
             char[] password = txtPassword.getText().toCharArray();
-            String firstName = "";
-            String lastName = "";
 
-            User user = new User(firstName, lastName, username, password);
             UserDAO userDAO = new UserDAO();
 
             //create code to check db if login is correct
             //check if the username and password is correct
-            if (userDAO.checklogin(username, password) || true){
+            if (userDAO.checklogin(username, password)){
                 // Get user details
 
                 // Success
