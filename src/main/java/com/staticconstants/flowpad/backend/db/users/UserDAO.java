@@ -118,6 +118,7 @@ public class UserDAO extends DAO<User> {
     }
 
     public boolean checklogin(String username, char[] password) throws Exception {
+
         PreparedStatement checklogin = dbHandler.getConnection().prepareStatement(
                 "SELECT username, hashedPassword, encodedSalt FROM Users WHERE username = ?"
         );

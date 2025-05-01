@@ -1,16 +1,20 @@
 package com.staticconstants.flowpad.frontend;
 
+import com.staticconstants.flowpad.FlowPadApplication;
 import com.staticconstants.flowpad.backend.db.notes.Note;
 import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
 import com.staticconstants.flowpad.backend.notes.StyledTextCodecs;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.stage.Stage;
 import org.fxmisc.richtext.InlineCssTextArea;
 
 import java.io.IOException;
@@ -20,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainEditorController {
+
     @FXML private TreeView<String> folderTree;
     @FXML private VBox aiOptions;
     @FXML private Button btnDocuments;
@@ -35,6 +40,7 @@ public class MainEditorController {
     @FXML private Button btnBold;
     @FXML private Button btnItalic;
     @FXML private Button btnUnderline;
+    @FXML private Button btnBack;
 
     private InlineCssTextArea richTextArea;
     private boolean isProgrammaticFontUpdate = false;
@@ -424,4 +430,15 @@ public class MainEditorController {
         }
     }
 
+    @FXML
+    protected void onBackButtonClick() throws IOException {
+        Stage stage = (Stage) btnBack.getScene().getWindow();
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("flowpad-view.fxml"));
+
+        Scene scene = new Scene(fxmlLoader.load());
+        stage.setTitle("FlowPad");
+        stage.setScene(scene);
+        stage.setMaximized(true);
+        stage.show();
+    }
 }

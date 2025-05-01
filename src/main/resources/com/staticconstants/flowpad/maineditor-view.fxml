@@ -52,7 +52,10 @@
                   </Menu>
               </menus>
           </MenuBar>
-         <Pane prefHeight="0.0" prefWidth="100.0" HBox.hgrow="ALWAYS" />
+         <Pane prefHeight="0.0" prefWidth="100.0" HBox.hgrow="ALWAYS">
+            <children>
+               <Button fx:id="btnBack"  onAction="#onBackButtonClick" layoutX="385.0" layoutY="1.0" mnemonicParsing="false" text="Back" />
+            </children></Pane>
                    <Button>
                        <graphic>
                            <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
@@ -86,7 +89,7 @@
       </padding>
    </HBox>
 
-    <SplitPane dividerPositions="0.089, 0.18" VBox.vgrow="ALWAYS" styleClass="outer-split">
+    <SplitPane dividerPositions="0.089, 0.18" styleClass="outer-split" VBox.vgrow="ALWAYS">
         <items>
             <!-- Navigation Sidebar -->
             <VBox maxWidth="60" minWidth="60" prefWidth="60" styleClass="sidebar">
@@ -113,7 +116,7 @@
 
             <!-- Folder Tree / AI Options -->
             <VBox maxWidth="300" prefWidth="200.0">
-                <StackPane fx:id="switchablePane" prefHeight="419.0" prefWidth="64.0" VBox.vgrow="ALWAYS" styleClass="feature-bar" >
+                <StackPane fx:id="switchablePane" prefHeight="419.0" prefWidth="64.0" styleClass="feature-bar" VBox.vgrow="ALWAYS">
 <!--                    TODO: Add functionality to open folder and display on tree view-->
 <!--                    TODO: Make the tree view more aesthetic-->
                     <TreeView fx:id="folderTree" maxWidth="1.7976931348623157E308" prefHeight="409.0" prefWidth="58.0" />
@@ -199,7 +202,7 @@
                                                 </ImageView>
                                             </graphic>
                                         </Button>
-                                        <TextField fx:id="textFieldFontSize" prefWidth="30.0" text="12" focusTraversable="false" />
+                                        <TextField fx:id="textFieldFontSize" focusTraversable="false" prefWidth="30.0" text="12" />
                                         <Button fx:id="btnPlus" focusTraversable="false" onAction="#increaseFontSize">
                                             <graphic>
                                                 <ImageView fitHeight="12.0" fitWidth="12.0" pickOnBounds="true" preserveRatio="true">
