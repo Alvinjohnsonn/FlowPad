@@ -1,5 +1,7 @@
 package com.staticconstants.flowpad;
 
+import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
+import com.staticconstants.flowpad.backend.db.users.UserDAO;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -23,6 +25,11 @@ public class FlowPadApplication extends Application {
     }
 
     public static void main(String[] args) {
+        UserDAO users = new UserDAO();
+        users.createTable();
+
+        NoteDAO notes = new NoteDAO();
+        notes.createTable();
         launch();
     }
 }

@@ -14,17 +14,19 @@ public class UserDAO extends DAO<User> {
 
     @Override
     protected Void createTableImpl(Connection connection) throws SQLException {
-        Statement createUsers = connection.createStatement();
-        createUsers.execute(
-        "CREATE TABLE IF NOT EXISTS Users ("
-                + "id VARCHAR(36) PRIMARY KEY, "
-                + "firstName VARCHAR(30) NOT NULL, "
-                + "lastName VARCHAR(30) NOT NULL, "
-                + "username VARCHAR(30) NOT NULL UNIQUE, "
-                + "hashedPassword VARCHAR(255) NOT NULL, "
-                + "encodedSalt VARCHAR(24) NOT NULL"
-                + ")"
-        );
+        String sql = """
+        CREATE TABLE IF NOT EXISTS Users (
+            id VARCHAR(36) PRIMARY KEY,
+            firstName VARCHAR(30) NOT NULL,
+            lastName VARCHAR(30) NOT NULL,
+            username VARCHAR(30) NOT NULL UNIQUE,
+            hashedPassword VARCHAR(255) NOT NULL,
+            encodedSalt VARCHAR(24) NOT NULL
+        )
+        """;
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(sql);
+        }
         return null;
     }
 

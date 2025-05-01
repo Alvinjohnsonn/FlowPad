@@ -1,5 +1,8 @@
 package com.staticconstants.flowpad.frontend;
 
+import com.staticconstants.flowpad.backend.db.notes.Note;
+import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
+import com.staticconstants.flowpad.backend.notes.StyledTextCodecs;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -10,6 +13,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import org.fxmisc.richtext.InlineCssTextArea;
 
+import java.io.IOException;
+import java.sql.Array;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -201,6 +206,23 @@ public class MainEditorController {
         addStyle(richTextArea, "-fx-underline", "true");
         switchOnOffDesiredStyle("-fx-underline", "true");
         toggleSelectedButton(btnUnderline);
+    }
+
+    @FXML
+    private void save(){
+
+        try {
+            byte[] serializedText = StyledTextCodecs.serializeStyledText(richTextArea);
+
+            Note note = new Note("test", serializedText, new String[]{});
+            NoteDAO dao = new NoteDAO();
+            dao.insert(note);
+
+        } catch (IOException ex) {
+            // TODO: Add better exception handling
+            System.err.println("Failed to serialize text");
+        }
+
     }
 
     private void switchOnOffDesiredStyle(String key, String value){
