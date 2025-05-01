@@ -9,11 +9,10 @@ import java.io.IOException;
 public class FlowPadApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("flowpad-view.fxml"));
-        String flowpadStylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
 
+
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("login-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
-        scene.getStylesheets().add(flowpadStylesheet);
 
 
 
