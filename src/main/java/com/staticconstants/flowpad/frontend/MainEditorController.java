@@ -138,7 +138,7 @@ public class MainEditorController {
             if (isProgrammaticFontUpdate) return;
             String selectedFont = (String)fontComboBox.getValue();
             if (selectedFont != null) {
-                addStyle(richTextArea, "-fx-font-family","'"+ selectedFont + "';");
+                addOrRemoveStyle(richTextArea, "-fx-font-family","'"+ selectedFont + "';");
                 desiredStyle.put("-fx-font-family", "'"+ selectedFont + "'");
             }
         });
@@ -191,19 +191,19 @@ public class MainEditorController {
 
     @FXML
     private void bold(){
-        addStyle(richTextArea, "-fx-font-weight", "bold");
+        addOrRemoveStyle(richTextArea, "-fx-font-weight", "bold");
         switchOnOffDesiredStyle("-fx-font-weight", "bold");
         toggleSelectedButton(btnBold);
     }
     @FXML
     private void italic(){
-        addStyle(richTextArea, "-fx-font-style", "italic");
+        addOrRemoveStyle(richTextArea, "-fx-font-style", "italic");
         switchOnOffDesiredStyle("-fx-font-style", "italic");
         toggleSelectedButton(btnItalic);
     }
     @FXML
     private void underline(){
-        addStyle(richTextArea, "-fx-underline", "true");
+        addOrRemoveStyle(richTextArea, "-fx-underline", "true");
         switchOnOffDesiredStyle("-fx-underline", "true");
         toggleSelectedButton(btnUnderline);
     }
@@ -235,7 +235,7 @@ public class MainEditorController {
 
     @FXML
     private void handleFontSizeChange(String size){
-        addStyle(richTextArea, "-fx-font-size", size+"px");
+        addOrRemoveStyle(richTextArea, "-fx-font-size", size+"px");
         desiredStyle.put("-fx-font-size", size+"px");
     }
 
@@ -282,17 +282,17 @@ public class MainEditorController {
     }
 
     private void updateFormattingFieldFromSelection(){
-        if (isStyleFullyApplied("-fx-font-weight", "bold")){
+        if (isStyleFullyApplied(richTextArea,"-fx-font-weight", "bold")){
             setSelectedButton(btnBold, true);
         }
         else setSelectedButton(btnBold, false);
 
-        if (isStyleFullyApplied("-fx-font-style", "italic")){
+        if (isStyleFullyApplied(richTextArea,"-fx-font-style", "italic")){
             setSelectedButton(btnItalic, true);
         }
         else setSelectedButton(btnItalic, false);
 
-        if (isStyleFullyApplied("-fx-underline", "true")){
+        if (isStyleFullyApplied(richTextArea,"-fx-underline", "true")){
             setSelectedButton(btnUnderline, true);
         }
         else setSelectedButton(btnUnderline, false);
@@ -335,25 +335,25 @@ public class MainEditorController {
     // the caret position, however, if the caret position is at 0 it will compare it with the char
     // after the caret position. The function will return true if the styles parameter given matches
     // with the conditions stated above.
-    private boolean isStyleFullyApplied(String styleKey, String valueToToggle){
-        if (richTextArea.getSelection().getLength() == 0){
+    public static boolean isStyleFullyApplied(InlineCssTextArea area, String styleKey, String valueToToggle){
+        if (area.getSelection().getLength() == 0){
             String currentStyle = "";
-            if (richTextArea.getCaretPosition()>0) {
-                currentStyle = richTextArea.getStyleOfChar(richTextArea.getCaretPosition() - 1);
+            if (area.getCaretPosition()>0) {
+                currentStyle = area.getStyleOfChar(area.getCaretPosition() - 1);
             }
             else{
-                currentStyle = richTextArea.getStyleOfChar(richTextArea.getCaretPosition());
+                currentStyle = area.getStyleOfChar(area.getCaretPosition());
             }
             String value = getStyleValue(currentStyle, styleKey);
             return value.equals(valueToToggle);
         }
 
-        int start = richTextArea.getSelection().getStart();
-        int end = richTextArea.getSelection().getEnd();
+        int start = area.getSelection().getStart();
+        int end = area.getSelection().getEnd();
         boolean styleFullyApplied = true;
 
         for (int i = start; i < end; i++) {
-            String currentStyle = richTextArea.getStyleOfChar(i);
+            String currentStyle = area.getStyleOfChar(i);
             String value = getStyleValue(currentStyle, styleKey);
             if (!value.equals(valueToToggle)) {
                 styleFullyApplied = false;
@@ -363,12 +363,12 @@ public class MainEditorController {
         return styleFullyApplied;
     }
 
-    private void addStyle(InlineCssTextArea area, String styleKey, String valueToToggle) {
+    public static void addOrRemoveStyle(InlineCssTextArea area, String styleKey, String valueToToggle) {
         if (area.getSelection().getLength() == 0) return;
         int start = area.getSelection().getStart();
         int end = area.getSelection().getEnd();
 
-        boolean styleFullyApplied = isStyleFullyApplied(styleKey, valueToToggle);
+        boolean styleFullyApplied = isStyleFullyApplied(area, styleKey, valueToToggle);
 
         for (int i = start; i < end; i++) {
             String currentStyle = area.getStyleOfChar(i);
@@ -390,13 +390,13 @@ public class MainEditorController {
         }
     }
 
-    private Map<String, String> parseStyle(String styleString) {
-        Map<String, String> styles = new HashMap<>();
+    public static HashMap<String, String> parseStyle(String styleString) {
+        HashMap<String, String> styles = new HashMap<>();
         if (styleString == null || styleString.isEmpty()) return styles;
 
-        String[] declarations = styleString.split(";");
-        for (String decl : declarations) {
-            String[] parts = decl.trim().split(":", 2);
+        String[] styleArray = styleString.split(";");
+        for (String style : styleArray) {
+            String[] parts = style.trim().split(":", 2);
             if (parts.length == 2) {
                 styles.put(parts[0].trim(), parts[1].trim());
             }
@@ -404,7 +404,7 @@ public class MainEditorController {
         return styles;
     }
 
-    private String getStyleValue(String styleString, String key) {
+    public static String getStyleValue(String styleString, String key) {
         Map<String, String> styles = parseStyle(styleString);
         return styles.getOrDefault(key, "");
     }
