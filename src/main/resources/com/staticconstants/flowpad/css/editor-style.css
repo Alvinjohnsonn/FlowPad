@@ -1,6 +1,13 @@
 .root {
     -fx-font-family: "Segoe UI", sans-serif;
     -fx-background-color: white;
+
+    -primary-color: #ABD9E8;
+    -primary-active-color: #99C2CF;
+    -secondary-color: #E0EDEC;
+    -secondary-hover-color: #CAD5D4;
+    -semi-dark-color: #285F80;
+    -dark-color: #1F475E;
 }
 
 
@@ -15,7 +22,7 @@
 }
 
 .sidebar {
-    -fx-background-color: #C5C5C5;
+    -fx-background-color: -primary-color;
 }
 
 .sidebar .button {
@@ -25,11 +32,12 @@
 }
 
 .sidebar .button.selected {
-    -fx-background-color: #B5B5B5;
+    -fx-background-color: -primary-active-color;
     -fx-opacity: 1.0;
 }
 
 .button {
+    -fx-background-color: #EAEAEA;
     -fx-background-radius: 4;
     -fx-font-size: 14px;
     -fx-cursor: hand;
@@ -40,35 +48,59 @@
 }
 
 .button:focused {
-    -fx-border-color: #0078D7;
-    -fx-border-width: 1;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
-.tree-view {
-    -fx-background-color: #ffffff;
+.feature-bar {
+    -fx-background-color: -secondary-color;
     -fx-border-color: #dcdcdc;
     -fx-padding: 5;
 }
 
+.feature-bar .button:hover{
+    -fx-background-color: -secondary-hover-color;
+}
+
 .combo-box {
+    -fx-background-color: -secondary-color;
     -fx-background-radius: 4;
     -fx-font-size: 13px;
 }
 
+.combo-box:hover {
+    -fx-background-color: -secondary-hover-color;
+    -fx-background-radius: 4 4 4 4;
+}
+
 .tool-bar {
-    -fx-background-color: #f8f8f8;
-    -fx-border-color: #cccccc;
-    -fx-border-width: 0 0 1px 0;
+    -fx-background-color: -secondary-color;
+    -fx-background-radius: 0 0 18 18;
+    -fx-border-radius: 0 0 18 18;
+    -fx-border-color: -semi-dark-color;
+    -fx-border-width: 0 1px 1px 1px;
     -fx-padding: 4 8 4 8;
     -fx-spacing: 6;
 }
 
+.tool-bar .button {
+    -fx-background-color: -secondary-color;
+}
+
+.tool-bar .button.selected{
+    -fx-background-color: -secondary-hover-color;
+}
+
+.tool-bar .button:hover {
+    -fx-background-color: -secondary-hover-color;
+    -fx-background-radius: 4 4 4 4;
+}
 
 
 .text-area {
     -fx-background-insets: 0;
     -fx-background-color: white;
-    -fx-padding: 0;
+    -fx-padding: 8;
     -fx-border-width: 0;
     -fx-effect: none;
     -fx-font-size: 12px;
@@ -91,10 +123,52 @@
     -fx-tab-background-color: #eaeaea;
 }
 
-.tab {
+.tab-pane .tab:selected .label {
     -fx-font-weight: bold;
-    -fx-font-size: 12px;
 }
+
+.tab-pane .tab {
+    -fx-background-color: -secondary-color;
+}
+
+.tab-pane .tab:selected {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.tab-pane .tab .label {
+    -fx-font-weight: normal;
+}
+
+.tab-close {
+    -fx-padding: 0 0 0 0;
+    -fx-background-color: transparent;
+}
+
+.outer-split > .split-pane-divider {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-max-width: 1;
+    -fx-min-width: 1;
+}
+
+.inner-split > .split-pane-divider {
+    -fx-background-color: -dark-color;
+    -fx-max-width: 4;
+    -fx-min-width: 4;
+}
+
+/* TODO: Does not show yet! */
+.inner-split > .split-pane-divider .horizontal-grip {
+    -fx-background-color: derive(-fx-base, -30%);
+    -fx-background-radius: 3;
+    -fx-min-height: 30;
+    -fx-min-width: 2;
+    -fx-max-width: 2;
+    -fx-alignment: center;
+}
+
 
 .scroll-pane {
     -fx-background: #f9f9f9;
@@ -113,9 +187,16 @@
     -fx-font-size: 10px;
     -fx-text-alignment: left;
     -fx-alignment: "BASELINE_LEFT";
+    -fx-background-color: -secondary-color;
 }
 
 .bottom-bar {
+    -fx-background-color: -semi-dark-color;
     -fx-padding: 10px;
     -fx-spacing: 20px;
+}
+
+.bottom-bar label {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-weight: 400;
 }

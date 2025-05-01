@@ -86,8 +86,7 @@
       </padding>
    </HBox>
 
-<!--    TODO: Adjust the size of the main editor pane to occupy most of the frame, currently the tree view/ai options occupy more-->
-    <SplitPane dividerPositions="0.08953817153628653, 0.21960414703110276" VBox.vgrow="ALWAYS">
+    <SplitPane dividerPositions="0.089, 0.18" VBox.vgrow="ALWAYS" styleClass="outer-split">
         <items>
             <!-- Navigation Sidebar -->
             <VBox maxWidth="60" minWidth="60" prefWidth="60" styleClass="sidebar">
@@ -113,29 +112,45 @@
             </VBox>
 
             <!-- Folder Tree / AI Options -->
-            <VBox>
-                <StackPane fx:id="switchablePane" prefHeight="419.0" prefWidth="64.0" VBox.vgrow="ALWAYS">
-                    <TreeView fx:id="folderTree" maxWidth="1.7976931348623157E308" minWidth="58.0" prefHeight="409.0" prefWidth="58.0" />
+            <VBox maxWidth="300" prefWidth="200.0">
+                <StackPane fx:id="switchablePane" prefHeight="419.0" prefWidth="64.0" VBox.vgrow="ALWAYS" styleClass="feature-bar" >
+<!--                    TODO: Add functionality to open folder and display on tree view-->
+<!--                    TODO: Make the tree view more aesthetic-->
+                    <TreeView fx:id="folderTree" maxWidth="1.7976931348623157E308" prefHeight="409.0" prefWidth="58.0" />
 
-                    <VBox fx:id="aiOptions" managed="false" maxWidth="1.7976931348623157E308" prefHeight="419.0" prefWidth="98.0" visible="false">
+                    <VBox fx:id="aiOptions" managed="false" maxWidth="1.7976931348623157E308" prefHeight="419.0" prefWidth="98.0" styleClass="feature-bar" visible="false">
                         <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Generate Summary" />
-                        <Button maxWidth="1.7976931348623157E308" prefWidth="99.0" styleClass="button-ai" text="Highlight" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Highlight" />
                         <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Auto-Correct" />
                         <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Refactor Content" />
                         <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Generate Outlines" />
                         <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Format Writing" />
-                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Convert Abbreviation to Full Text" textAlignment="CENTER" wrapText="true" />
+                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Convert Abbreviation to Full Text" />
                     </VBox>
                 </StackPane>
             </VBox>
 
 
-            <TabPane prefHeight="419.0" prefWidth="510.0" tabClosingPolicy="UNAVAILABLE">
+            <TabPane fx:id="tabPane" prefHeight="419.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
                 <tabs>
-<!--                    TODO: Add "cancel" for each tab if possible-->
-                    <Tab text="Note 1">
+                    <Tab>
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="40.0">
+                                <Label text="Note 1" />
+                                <Button onAction="#closeTab" style="-fx-padding: 0 0 0 0; -fx-background-color: transparent;" styleClass="tab-close">
+                                    <graphic>
+                                        <ImageView fitHeight="8.0" fitWidth="8.0" pickOnBounds="true" preserveRatio="true">
+                                            <image>
+                                                <Image url="@icons/close.png" />
+                                            </image>
+                                        </ImageView>
+                                    </graphic>
+                                </Button>
+                            </HBox>
+                        </graphic>
+
                         <content>
-                            <SplitPane dividerPositions="0.8317132442284326">
+                            <SplitPane dividerPositions="0.8317132442284326" styleClass="inner-split">
                                 <VBox prefHeight="379.0" prefWidth="501.0" spacing="5.0" VBox.vgrow="ALWAYS">
                                     <ToolBar>
                                         <Button text="🔍">
@@ -175,13 +190,53 @@
                                                 </FXCollections>
                                             </items>
                                         </ComboBox>
-                                        <Button fx:id="btnMinus" focusTraversable="false" onAction="#decreaseFontSize" text="-" />
-                                        <TextField fx:id="textFieldFontSize" prefWidth="30.0" text="12" />
-                                        <Button fx:id="btnPlus" focusTraversable="false" onAction="#increaseFontSize" text="+" />
+                                        <Button fx:id="btnMinus" focusTraversable="false" onAction="#decreaseFontSize">
+                                            <graphic>
+                                                <ImageView fitHeight="12.0" fitWidth="12.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/minus.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <TextField fx:id="textFieldFontSize" prefWidth="30.0" text="12" focusTraversable="false" />
+                                        <Button fx:id="btnPlus" focusTraversable="false" onAction="#increaseFontSize">
+                                            <graphic>
+                                                <ImageView fitHeight="12.0" fitWidth="12.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/plus.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
 
-                                        <Button fx:id="btnBold" focusTraversable="false" onAction="#bold" text="B" />
-                                        <Button fx:id="btnItalic" focusTraversable="false" onAction="#italic" text="I" />
-                                        <Button fx:id="btnUnderline" focusTraversable="false" onAction="#underline" text="U" />
+                                        <Button fx:id="btnBold" focusTraversable="false" onAction="#bold">
+                                            <graphic>
+                                                <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/bold.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <Button fx:id="btnItalic" focusTraversable="false" onAction="#italic">
+                                            <graphic>
+                                                <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/italic.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <Button fx:id="btnUnderline" focusTraversable="false" onAction="#underline">
+                                            <graphic>
+                                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/underline.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
                                     </ToolBar>
 
                                     <VBox fx:id="editorContainer" prefWidth="500.0" VBox.vgrow="ALWAYS">
@@ -205,7 +260,42 @@
                     </Tab>
 
 
-                    <Tab text="Note 2">
+                    <Tab>
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="40.0">
+                                <Label text="Note 2" />
+                                <Button onAction="#closeTab" style="-fx-padding: 0 0 0 0; -fx-background-color: transparent;" styleClass="tab-close">
+                                    <graphic>
+                                        <ImageView fitHeight="8.0" fitWidth="8.0" pickOnBounds="true" preserveRatio="true">
+                                            <image>
+                                                <Image url="@icons/close.png" />
+                                            </image>
+                                        </ImageView>
+                                    </graphic>
+                                </Button>
+                            </HBox>
+                        </graphic>
+
+                        <content>
+                            <AnchorPane />
+                        </content>
+                    </Tab>
+                    <Tab>
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="40.0">
+                                <Label text="Note 3" />
+                                <Button onAction="#closeTab" style="-fx-padding: 0 0 0 0; -fx-background-color: transparent;" styleClass="tab-close">
+                                    <graphic>
+                                        <ImageView fitHeight="8.0" fitWidth="8.0" pickOnBounds="true" preserveRatio="true">
+                                            <image>
+                                                <Image url="@icons/close.png" />
+                                            </image>
+                                        </ImageView>
+                                    </graphic>
+                                </Button>
+                            </HBox>
+                        </graphic>
+
                         <content>
                             <AnchorPane />
                         </content>
@@ -217,12 +307,13 @@
         </items>
     </SplitPane>
 
+<!--    TODO: Add page number count char, word functionality-->
     <HBox prefHeight="24.0" styleClass="bottom-bar">
-        <Label text="Page 1 of 10" />
-        <Label text="0 words" />
-        <Label text="0 characters" />
+        <Label text="Page 1 of 10" textFill="WHITE" />
+        <Label text="0 words" textFill="WHITE" />
+        <Label text="0 characters" textFill="WHITE" />
         <Region HBox.hgrow="ALWAYS" />
         <Slider fx:id="zoomSlider" prefWidth="150" value="100.0" />
-        <Label fx:id="zoomLabel" alignment="CENTER" prefHeight="15.0" prefWidth="40.0" text="100%" />
+        <Label fx:id="zoomLabel" alignment="CENTER" prefHeight="15.0" prefWidth="40.0" text="100%" textFill="WHITE" />
     </HBox>
 </VBox>
