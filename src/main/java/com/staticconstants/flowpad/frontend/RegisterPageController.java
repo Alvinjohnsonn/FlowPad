@@ -49,9 +49,12 @@ public class RegisterPageController {
     @FXML
     protected void onBackButtonClick() throws IOException {
         Stage stage = (Stage) btnBack.getScene().getWindow();
-        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("flowpad-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("login-view.fxml"));
+
         Scene scene = new Scene(fxmlLoader.load());
+        stage.setTitle("FlowPad");
         stage.setScene(scene);
+        stage.setMaximized(true);
         stage.show();
     }
 
@@ -72,11 +75,26 @@ public class RegisterPageController {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
                         alert.setContentText("Registration successful!");
                         alert.show();
+
+                        Stage stage = (Stage) btnRegister.getScene().getWindow();
+                        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("flowpad-view.fxml"));
+                        String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
+
+                        Scene scene = null;
+                        try {
+                            scene = new Scene(fxmlLoader.load());
+                            scene.getStylesheets().add(stylesheet);
+                            stage.setScene(scene);
+                            stage.setMaximized(true);
+                            stage.show();
+
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     } else {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setContentText("Registration failed.");
                         alert.show();
-                        return;
                     }
                 });
 
@@ -93,11 +111,7 @@ public class RegisterPageController {
                 return null;
             });
 
-            Stage stage = (Stage) btnRegister.getScene().getWindow();
-            FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("Submit-Page.fxml"));
-            Scene scene = new Scene(fxmlLoader.load());
-            stage.setScene(scene);
-            stage.show();
+
 
         } catch (Exception e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);

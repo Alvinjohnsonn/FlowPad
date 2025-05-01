@@ -10,7 +10,8 @@
     </padding>
 
     <Label fx:id="welcomeText" />
-    <Button onAction="#OpenMainPageButton" text="Main Page" />
-    <Button onAction="#OpenRegisterButton" text="Login" />
+    <Button onAction="#OpenMainPageButton" text="New Note" />
+<!--    <Button onAction="#OpenRegisterButton" text="Login" />-->
     <Button onAction="#OpenSettingsButton" text="Settings" />
+    <Button onAction="#Exit" text="Exit" />
 </VBox>
