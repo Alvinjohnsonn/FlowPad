@@ -63,12 +63,15 @@ public class SettingsController {
         Stage stage = (Stage) backButton.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("settings-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), stage.getWidth(), stage.getHeight());
-        stage.setScene(scene);
-        String css = Objects.requireNonNull(getClass().getResource("flowpad-stylesheet.css")).toExternalForm();
-        scene.getStylesheets().add(css);
+
+        String css = Objects.requireNonNull(
+                getClass().getResource("/com/staticconstants/flowpad/flowpad-stylesheet.css")
+        ).toExternalForm();
+
 
         stage.setScene(scene);
     }
+
 
 
 }
