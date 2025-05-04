@@ -25,6 +25,9 @@ public class SettingsController {
     public Button Highlight;
 
     @FXML
+    public Button btnGoBack;
+
+    @FXML
     private Label welcomeText;
 
     @FXML
@@ -70,6 +73,19 @@ public class SettingsController {
         stage.setScene(scene);
     }
 
+    @FXML
+    private void goBack() throws IOException {
 
+        Stage stage = (Stage) btnGoBack.getScene().getWindow();
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("flowpad-view.fxml"));
+        String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
+
+        Scene scene = new Scene(fxmlLoader.load());
+        scene.getStylesheets().add(stylesheet);
+        stage.setTitle("Home Page");
+
+        stage.setScene(scene);
+        stage.setMaximized(true);
+    }
 }
 

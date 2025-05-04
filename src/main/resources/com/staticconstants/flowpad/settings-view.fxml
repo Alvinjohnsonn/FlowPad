@@ -30,7 +30,7 @@
         <Button fx:id="Highlight" text="Highlight Options" onAction="#onHighlight"/>
         <Button text="Theme"/>
         <Button text="Review History"/>
-
+        <Button fx:id="btnGoBack" text="Back" onAction="#goBack" />
     </VBox>
 
     <Label fx:id="welcomeText"/>

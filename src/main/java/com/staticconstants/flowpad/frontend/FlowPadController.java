@@ -1,6 +1,7 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -52,5 +53,10 @@ public class FlowPadController {
         stage.setTitle("Register");
         stage.setScene(scene);
         stage.show();
+    }
+
+    @FXML
+    protected void Exit() throws IOException {
+        Platform.exit();
     }
 }

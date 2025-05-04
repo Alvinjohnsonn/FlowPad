@@ -434,11 +434,13 @@ public class MainEditorController {
     protected void onBackButtonClick() throws IOException {
         Stage stage = (Stage) btnBack.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("flowpad-view.fxml"));
+        String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
 
         Scene scene = new Scene(fxmlLoader.load());
-        stage.setTitle("FlowPad");
+        scene.getStylesheets().add(stylesheet);
+        stage.setTitle("Home Page");
+
         stage.setScene(scene);
         stage.setMaximized(true);
-        stage.show();
     }
 }
