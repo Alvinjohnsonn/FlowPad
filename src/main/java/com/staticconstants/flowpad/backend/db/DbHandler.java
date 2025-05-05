@@ -5,10 +5,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public final class DbHandler {
 
-    static DbHandler INSTANCE = null;
+    private static DbHandler INSTANCE = null;
     private DbHandlerThread runner;
     private LinkedBlockingQueue<DbTask<?>> opQueue;
     private Connection dbConnection;
+
 
     private DbHandler()
     {
@@ -20,18 +21,17 @@ public final class DbHandler {
         runner.start();
     }
 
-//    Removed this and made the INSTANCE package private so that only extensions of the DAO can access it
-//    public static DbHandler getInstance()
-//    {
-//        if (INSTANCE == null) {
-//            synchronized (DbHandler.class) {
-//                if (INSTANCE == null) {
-//                    INSTANCE = new DbHandler();
-//                }
-//            }
-//        }
-//        return INSTANCE;
-//    }
+    static DbHandler getInstance()
+    {
+        if (INSTANCE == null) {
+            synchronized (DbHandler.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new DbHandler();
+                }
+            }
+        }
+        return INSTANCE;
+    }
 
     public <T> CompletableFuture<T> dbOperation(DbOperation<T> callback) {
         CompletableFuture<T> f = new CompletableFuture<>();
