@@ -4,22 +4,32 @@ import com.staticconstants.flowpad.FlowPadApplication;
 import com.staticconstants.flowpad.backend.db.notes.Note;
 import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
 import com.staticconstants.flowpad.backend.notes.StyledTextCodecs;
+import com.staticconstants.flowpad.frontend.textareaclasses.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
+import javafx.scene.text.*;
 import javafx.stage.Stage;
+import org.fxmisc.richtext.GenericStyledArea;
 import org.fxmisc.richtext.InlineCssTextArea;
+import org.fxmisc.richtext.TextExt;
+import org.fxmisc.richtext.model.SegmentOps;
+import org.fxmisc.richtext.model.StyledSegment;
+import org.fxmisc.richtext.model.TextOps;
 
 import java.io.IOException;
 import java.sql.Array;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,12 +52,9 @@ public class MainEditorController {
     @FXML private Button btnUnderline;
     @FXML private Button btnBack;
 
-    private InlineCssTextArea richTextArea;
+    private GenericStyledArea<ParStyle, RichSegment, TextStyle> richTextArea;
     private boolean isProgrammaticFontUpdate = false;
-    private HashMap<String, String> desiredStyle = new HashMap<>();
-
-
-    private int defaultFontSize = 12;
+    private TextStyle desiredStyle;
 
     @FXML
     private void showDocuments() {
@@ -97,15 +104,55 @@ public class MainEditorController {
             zoomLabel.setText(zoomPercent + "%");
         });
 
-        desiredStyle.put("-fx-font-size", defaultFontSize+"px");
-        desiredStyle.put("-fx-font-family", "Arial");
 
-        String fontSize = desiredStyle.get("-fx-font-size");
-        textFieldFontSize.setText(defaultFontSize+"");
+        ParStyle initialParStyle = ParStyle.EMPTY;
+        desiredStyle = TextStyle.EMPTY;
+        TextStyle initialTextStyle = TextStyle.EMPTY;
 
-        richTextArea = new InlineCssTextArea();
+        textFieldFontSize.setText(initialTextStyle.getFontSize()+"");
+        // Apply paragraph style (optional for now)
+        BiConsumer<TextFlow, ParStyle> paragraphStyler = (tf, p) -> {};
+
+        // Render each segment with its style
+        Function<StyledSegment<RichSegment, TextStyle>, Node> nodeFactory = seg -> {
+            RichSegment s = seg.getSegment();
+            TextStyle style = seg.getStyle();
+
+            if (s instanceof TextSegment textSeg) {
+                TextExt text = new TextExt(textSeg.getText());
+                FontWeight weight = style.isBold() ? FontWeight.BOLD : FontWeight.NORMAL;
+                FontPosture posture = style.isItalic() ? FontPosture.ITALIC : FontPosture.REGULAR;
+                text.setFont(Font.font(style.getFontFamily(), weight, posture, style.getFontSize()));
+                text.setUnderline(style.isUnderline());
+
+                // Add later
+//                style.getTextColor().ifPresent(text::setFill); // assuming getTextColor() returns Optional<Paint>
+
+                return text;
+
+            } else if (s instanceof ImageSegment imgSeg) {
+                Image img = new Image(imgSeg.getImage().getUrl());
+                ImageView view = new ImageView(img);
+                view.setFitWidth(100);
+                view.setPreserveRatio(true);
+                return view;
+            }
+
+            return new Text("?");
+        };
+
+        // Create the GenericStyledArea
+
+        RichTextOps segmentOps = new RichTextOps();
+
+        richTextArea =  new GenericStyledArea<ParStyle, RichSegment, TextStyle>(
+                initialParStyle,
+                paragraphStyler,
+                initialTextStyle,
+                segmentOps,
+                nodeFactory
+        );
         richTextArea.setWrapText(true);
-        richTextArea.setStyle(hashMapStyleToString(desiredStyle));
 
         richTextArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
             updateFontSizeFieldFromSelection();
@@ -114,10 +161,18 @@ public class MainEditorController {
 //            TODO: Do more testing, doesn't always work
         });
 
-        richTextArea.plainTextChanges().subscribe(change -> {
-            int from = change.getPosition();
-            int length = change.getInserted().length();
-            richTextArea.setStyle(from, from+length, hashMapStyleToString(desiredStyle));
+//        richTextArea.plainTextChanges().subscribe(change -> {
+//            int from = change.getPosition();
+//            int length = change.getInserted().length();
+//            richTextArea.setStyle(from, from+length, desiredStyle);
+//        });
+
+        richTextArea.setOnKeyTyped(event -> {
+            int caretPosition = richTextArea.getCaretPosition();
+            if (caretPosition > 0) {
+                // Apply desiredStyle to the most recently typed character
+                richTextArea.setStyle(caretPosition - 1, caretPosition, desiredStyle);
+            }
         });
 
         VBox.setVgrow(richTextArea, Priority.ALWAYS);
@@ -144,8 +199,8 @@ public class MainEditorController {
             if (isProgrammaticFontUpdate) return;
             String selectedFont = (String)fontComboBox.getValue();
             if (selectedFont != null) {
-                addOrRemoveStyle(richTextArea, "-fx-font-family","'"+ selectedFont + "';");
-                desiredStyle.put("-fx-font-family", "'"+ selectedFont + "'");
+                desiredStyle = desiredStyle.setFontFamily(selectedFont);
+                TextStyle.toggleStyle(richTextArea, TextAttribute.FONT_FAMILY, desiredStyle);
             }
         });
     }
@@ -181,7 +236,9 @@ public class MainEditorController {
         fontSize++;
         textFieldFontSize.setText(fontSize + "");
 
-        desiredStyle.put("-fx-font-size", fontSize+"px");
+//        desiredStyle.put("-fx-font-size", fontSize+"px");
+
+        desiredStyle = desiredStyle.setFontSize(fontSize);
     }
 
     @FXML
@@ -191,58 +248,65 @@ public class MainEditorController {
             fontSize--;
             textFieldFontSize.setText(fontSize + "");
 
-            desiredStyle.put("-fx-font-size", fontSize+"px");
+//            desiredStyle.put("-fx-font-size", fontSize+"px");
+            desiredStyle = desiredStyle.setFontSize(fontSize);
         }
     }
 
     @FXML
     private void bold(){
-        addOrRemoveStyle(richTextArea, "-fx-font-weight", "bold");
-        switchOnOffDesiredStyle("-fx-font-weight", "bold");
+//        addOrRemoveStyle(richTextArea, "-fx-font-weight", "bold");
+//        switchOnOffDesiredStyle("-fx-font-weight", "bold");
+
+        desiredStyle = desiredStyle.toggleBold();
+        TextStyle.toggleStyle(richTextArea, TextAttribute.BOLD, desiredStyle);
         toggleSelectedButton(btnBold);
     }
     @FXML
     private void italic(){
-        addOrRemoveStyle(richTextArea, "-fx-font-style", "italic");
-        switchOnOffDesiredStyle("-fx-font-style", "italic");
+//        addOrRemoveStyle(richTextArea, "-fx-font-style", "italic");
+//        switchOnOffDesiredStyle("-fx-font-style", "italic");
+
+        desiredStyle = desiredStyle.toggleItalic();
+        TextStyle.toggleStyle(richTextArea, TextAttribute.ITALIC, desiredStyle);
         toggleSelectedButton(btnItalic);
     }
     @FXML
     private void underline(){
-        addOrRemoveStyle(richTextArea, "-fx-underline", "true");
-        switchOnOffDesiredStyle("-fx-underline", "true");
+//        addOrRemoveStyle(richTextArea, "-fx-underline", "true");
+//        switchOnOffDesiredStyle("-fx-underline", "true");
+
+        desiredStyle = desiredStyle.toggleUnderline();
+        TextStyle.toggleStyle(richTextArea, TextAttribute.UNDERLINE, desiredStyle);
         toggleSelectedButton(btnUnderline);
     }
 
     @FXML
     private void save(){
 
-        try {
-            byte[] serializedText = StyledTextCodecs.serializeStyledText(richTextArea);
-
-            Note note = new Note("test", serializedText, new String[]{});
-            NoteDAO dao = new NoteDAO();
-            dao.insert(note);
-
-        } catch (IOException ex) {
-            // TODO: Add better exception handling
-            System.err.println("Failed to serialize text");
-        }
+//        try {
+//            byte[] serializedText = StyledTextCodecs.serializeStyledText(richTextArea);
+//
+//            Note note = new Note("test", serializedText, new String[]{});
+//            NoteDAO dao = new NoteDAO();
+//            dao.insert(note);
+//
+//        } catch (IOException ex) {
+//            // TODO: Add better exception handling
+//            System.err.println("Failed to serialize text");
+//        }
 
     }
 
-    private void switchOnOffDesiredStyle(String key, String value){
-        if (desiredStyle.getOrDefault(key,"").equals(value)){
-            desiredStyle.remove(key);
-        }
-        else desiredStyle.put(key, value);
-    }
 
 
     @FXML
     private void handleFontSizeChange(String size){
-        addOrRemoveStyle(richTextArea, "-fx-font-size", size+"px");
-        desiredStyle.put("-fx-font-size", size+"px");
+//        addOrRemoveStyle(richTextArea, "-fx-font-size", size+"px");
+//        desiredStyle.put("-fx-font-size", size+"px");
+
+        desiredStyle = desiredStyle.setFontSize(Integer.parseInt(size));
+        TextStyle.toggleStyle(richTextArea, TextAttribute.FONT_SIZE, desiredStyle);
     }
 
 
@@ -251,54 +315,50 @@ public class MainEditorController {
 
         if (selection.getLength() == 0) {
             if (richTextArea.getCaretPosition()>0) {
-                String sizeValue = getStyleValue(richTextArea.getStyleOfChar(richTextArea.getCaretPosition() - 1),"-fx-font-size");
-                desiredStyle.put("-fx-font-size", sizeValue);
-                textFieldFontSize.setText(sizeValue.substring(0, sizeValue.length()-2));
+                int size = richTextArea.getStyleAtPosition(richTextArea.getCaretPosition() - 1).getFontSize();
+                desiredStyle = desiredStyle.setFontSize(size);
+                textFieldFontSize.setText(String.valueOf(size));
             }
             else{
-                String sizeValue = getStyleValue(richTextArea.getStyleOfChar(richTextArea.getCaretPosition()),"-fx-font-size");
-                desiredStyle.put("-fx-font-size", sizeValue);
-                textFieldFontSize.setText(sizeValue);
-                textFieldFontSize.setText(sizeValue.substring(0, sizeValue.length()-2));
+                int size = richTextArea.getStyleAtPosition(richTextArea.getCaretPosition()).getFontSize();
+                desiredStyle = desiredStyle.setFontSize(size);
+                textFieldFontSize.setText(String.valueOf(size));
             }
 
             return;
         }
 
-        List<String> styles = new ArrayList<>();
+        List<Integer> sizes = new ArrayList<>(List.of());
 
         for (int i = selection.getStart(); i < selection.getEnd(); i++) {
-            String style = richTextArea.getStyleOfChar(i);
-            styles.add(style);
+            int size = richTextArea.getStyleAtPosition(i).getFontSize();
+            sizes.add(size);
         }
-
-        OptionalInt maxFontSize = styles.stream()
-                .map(this::extractFontSize)
-                .filter(OptionalInt::isPresent)
-                .mapToInt(OptionalInt::getAsInt)
-                .max();
+        int maxFontSize= Collections.max(sizes);
 
         isProgrammaticFontUpdate = true;
-        maxFontSize.ifPresent(size -> {
-            textFieldFontSize.setText(String.valueOf(size));
-            desiredStyle.put("-fx-font-size", size + "px");
-        });
+
+        textFieldFontSize.setText(String.valueOf(maxFontSize));
+        desiredStyle = desiredStyle.setFontSize(maxFontSize);
 
         isProgrammaticFontUpdate = false;
     }
 
     private void updateFormattingFieldFromSelection(){
-        if (isStyleFullyApplied(richTextArea,"-fx-font-weight", "bold")){
+        int start = richTextArea.getSelection().getStart();
+        int end = richTextArea.getSelection().getEnd();
+
+        if (TextStyle.isStyleFullyApplied(richTextArea, start, end, TextAttribute.BOLD, desiredStyle) && desiredStyle.isBold()){
             setSelectedButton(btnBold, true);
         }
         else setSelectedButton(btnBold, false);
 
-        if (isStyleFullyApplied(richTextArea,"-fx-font-style", "italic")){
+        if (TextStyle.isStyleFullyApplied(richTextArea,start, end, TextAttribute.ITALIC, desiredStyle) && desiredStyle.isItalic()){
             setSelectedButton(btnItalic, true);
         }
         else setSelectedButton(btnItalic, false);
 
-        if (isStyleFullyApplied(richTextArea,"-fx-underline", "true")){
+        if (TextStyle.isStyleFullyApplied(richTextArea,start, end, TextAttribute.UNDERLINE, desiredStyle) && desiredStyle.isUnderline()){
             setSelectedButton(btnUnderline, true);
         }
         else setSelectedButton(btnUnderline, false);
@@ -306,35 +366,25 @@ public class MainEditorController {
 
 
     private void updateFontFamilyFromSelection(){
-        String currentStyle = "";
+        String currentFontFamily = "";
         if (richTextArea.getCaretPosition()>0) {
-            currentStyle = richTextArea.getStyleOfChar(richTextArea.getCaretPosition() - 1);
+            currentFontFamily = richTextArea.getStyleAtPosition(richTextArea.getCaretPosition() - 1).getFontFamily();
         }
         else{
-            currentStyle = richTextArea.getStyleOfChar(richTextArea.getCaretPosition());
+            currentFontFamily = richTextArea.getStyleAtPosition(richTextArea.getCaretPosition()).getFontFamily();
         }
-        String value = getStyleValue(currentStyle, "-fx-font-family");
-        desiredStyle.put("-fx-font-family", value);
-        if (value != null && value.length() >= 2 && value.startsWith("'") && value.endsWith("'")) {
-            value = value.substring(1, value.length() - 1);
-        }
+//        String value = getStyleValue(currentStyle, "-fx-font-family");
+//        desiredStyle.put("-fx-font-family", value);
+
+        desiredStyle = desiredStyle.setFontFamily(currentFontFamily);
+//        if (value != null && value.length() >= 2 && value.startsWith("'") && value.endsWith("'")) {
+//            value = value.substring(1, value.length() - 1);
+//        }
         isProgrammaticFontUpdate = true;
-        fontComboBox.getSelectionModel().select(value);
+        fontComboBox.getSelectionModel().select(currentFontFamily);
         isProgrammaticFontUpdate = false;
     }
 
-    private OptionalInt extractFontSize(String style) {
-        try {
-            Pattern pattern = Pattern.compile("-fx-font-size\\s*:\\s*(\\d+)px");
-            Matcher matcher = pattern.matcher(style);
-            if (matcher.find()) {
-                return OptionalInt.of(Integer.parseInt(matcher.group(1)));
-            }
-        } catch (Exception e) {
-            // ignore
-        }
-        return OptionalInt.empty();
-    }
 
     // Check if all selection has the same style applied
     // If there are no selection then it will check the style applied on the char before
