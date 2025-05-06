@@ -5,6 +5,7 @@ import com.staticconstants.flowpad.backend.db.notes.Note;
 import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
 import com.staticconstants.flowpad.backend.notes.StyledTextCodecs;
 import com.staticconstants.flowpad.frontend.textareaclasses.*;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,6 +14,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -54,6 +57,7 @@ public class MainEditorController {
 
     private GenericStyledArea<ParStyle, RichSegment, TextStyle> richTextArea;
     private boolean isProgrammaticFontUpdate = false;
+    private boolean isDesiredStyleChanged = false;
     private TextStyle desiredStyle;
 
     @FXML
@@ -120,9 +124,14 @@ public class MainEditorController {
 
             if (s instanceof TextSegment textSeg) {
                 TextExt text = new TextExt(textSeg.getText());
+                String fontFamily = style.getFontFamily();
+
                 FontWeight weight = style.isBold() ? FontWeight.BOLD : FontWeight.NORMAL;
                 FontPosture posture = style.isItalic() ? FontPosture.ITALIC : FontPosture.REGULAR;
-                text.setFont(Font.font(style.getFontFamily(), weight, posture, style.getFontSize()));
+
+                Font font = Font.font(fontFamily, weight, posture, style.getFontSize());
+                text.setFont(font);
+
                 text.setUnderline(style.isUnderline());
 
                 // Add later
@@ -131,9 +140,8 @@ public class MainEditorController {
                 return text;
 
             } else if (s instanceof ImageSegment imgSeg) {
-                Image img = new Image(imgSeg.getImage().getUrl());
-                ImageView view = new ImageView(img);
-                view.setFitWidth(100);
+                ImageView view = new ImageView(imgSeg.getImage());
+                view.setFitWidth(200);
                 view.setPreserveRatio(true);
                 return view;
             }
@@ -155,23 +163,29 @@ public class MainEditorController {
         richTextArea.setWrapText(true);
 
         richTextArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
+
             updateFontSizeFieldFromSelection();
             updateFormattingFieldFromSelection();
             updateFontFamilyFromSelection();
+            isDesiredStyleChanged = false;
 //            TODO: Do more testing, doesn't always work
         });
 
-//        richTextArea.plainTextChanges().subscribe(change -> {
-//            int from = change.getPosition();
-//            int length = change.getInserted().length();
-//            richTextArea.setStyle(from, from+length, desiredStyle);
-//        });
 
         richTextArea.setOnKeyTyped(event -> {
             int caretPosition = richTextArea.getCaretPosition();
             if (caretPosition > 0) {
-                // Apply desiredStyle to the most recently typed character
                 richTextArea.setStyle(caretPosition - 1, caretPosition, desiredStyle);
+            }
+        });
+
+        richTextArea.setOnKeyPressed(event -> {
+            if (event.isControlDown() && event.getCode() == KeyCode.V) {
+                Clipboard clipboard = Clipboard.getSystemClipboard();
+                if (clipboard.hasImage()) {
+                    insertImage(clipboard.getImage());
+                    event.consume();
+                }
             }
         });
 
@@ -201,6 +215,14 @@ public class MainEditorController {
             if (selectedFont != null) {
                 desiredStyle = desiredStyle.setFontFamily(selectedFont);
                 TextStyle.toggleStyle(richTextArea, TextAttribute.FONT_FAMILY, desiredStyle);
+
+                isDesiredStyleChanged = true;
+            }
+        });
+
+        fontComboBox.showingProperty().addListener((obs, wasShowing, isNowShowing) -> {
+            if (!isNowShowing) {
+                Platform.runLater(() -> richTextArea.requestFocus());
             }
         });
     }
@@ -230,15 +252,15 @@ public class MainEditorController {
         else btn.getStyleClass().removeAll("selected");
     }
 
+
     @FXML
     private void increaseFontSize() {
         int fontSize = Integer.parseInt(textFieldFontSize.getText());
         fontSize++;
         textFieldFontSize.setText(fontSize + "");
-
-//        desiredStyle.put("-fx-font-size", fontSize+"px");
-
         desiredStyle = desiredStyle.setFontSize(fontSize);
+
+        isDesiredStyleChanged = true;
     }
 
     @FXML
@@ -247,38 +269,35 @@ public class MainEditorController {
         if (fontSize > 1) {
             fontSize--;
             textFieldFontSize.setText(fontSize + "");
-
-//            desiredStyle.put("-fx-font-size", fontSize+"px");
             desiredStyle = desiredStyle.setFontSize(fontSize);
+
+            isDesiredStyleChanged = true;
         }
     }
 
     @FXML
     private void bold(){
-//        addOrRemoveStyle(richTextArea, "-fx-font-weight", "bold");
-//        switchOnOffDesiredStyle("-fx-font-weight", "bold");
-
         desiredStyle = desiredStyle.toggleBold();
         TextStyle.toggleStyle(richTextArea, TextAttribute.BOLD, desiredStyle);
         toggleSelectedButton(btnBold);
+
+        isDesiredStyleChanged = true;
     }
     @FXML
     private void italic(){
-//        addOrRemoveStyle(richTextArea, "-fx-font-style", "italic");
-//        switchOnOffDesiredStyle("-fx-font-style", "italic");
-
         desiredStyle = desiredStyle.toggleItalic();
         TextStyle.toggleStyle(richTextArea, TextAttribute.ITALIC, desiredStyle);
         toggleSelectedButton(btnItalic);
+
+        isDesiredStyleChanged = true;
     }
     @FXML
     private void underline(){
-//        addOrRemoveStyle(richTextArea, "-fx-underline", "true");
-//        switchOnOffDesiredStyle("-fx-underline", "true");
-
         desiredStyle = desiredStyle.toggleUnderline();
         TextStyle.toggleStyle(richTextArea, TextAttribute.UNDERLINE, desiredStyle);
         toggleSelectedButton(btnUnderline);
+
+        isDesiredStyleChanged = true;
     }
 
     @FXML
@@ -302,167 +321,67 @@ public class MainEditorController {
 
     @FXML
     private void handleFontSizeChange(String size){
-//        addOrRemoveStyle(richTextArea, "-fx-font-size", size+"px");
-//        desiredStyle.put("-fx-font-size", size+"px");
-
         desiredStyle = desiredStyle.setFontSize(Integer.parseInt(size));
         TextStyle.toggleStyle(richTextArea, TextAttribute.FONT_SIZE, desiredStyle);
+
+        isDesiredStyleChanged = true;
     }
 
 
     private void updateFontSizeFieldFromSelection() {
         IndexRange selection = richTextArea.getSelection();
+        int fontSize = 0;
 
         if (selection.getLength() == 0) {
-            if (richTextArea.getCaretPosition()>0) {
-                int size = richTextArea.getStyleAtPosition(richTextArea.getCaretPosition() - 1).getFontSize();
-                desiredStyle = desiredStyle.setFontSize(size);
-                textFieldFontSize.setText(String.valueOf(size));
+            int caretPosition = richTextArea.getCaretPosition();
+            fontSize = richTextArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition + 1).getFontSize();
+        } else {
+            List<Integer> sizes = new ArrayList<>();
+            for (int i = selection.getStart(); i < selection.getEnd(); i++) {
+                sizes.add(richTextArea.getStyleAtPosition(i).getFontSize());
             }
-            else{
-                int size = richTextArea.getStyleAtPosition(richTextArea.getCaretPosition()).getFontSize();
-                desiredStyle = desiredStyle.setFontSize(size);
-                textFieldFontSize.setText(String.valueOf(size));
-            }
-
-            return;
+            fontSize = Collections.max(sizes);
         }
-
-        List<Integer> sizes = new ArrayList<>(List.of());
-
-        for (int i = selection.getStart(); i < selection.getEnd(); i++) {
-            int size = richTextArea.getStyleAtPosition(i).getFontSize();
-            sizes.add(size);
-        }
-        int maxFontSize= Collections.max(sizes);
 
         isProgrammaticFontUpdate = true;
-
-        textFieldFontSize.setText(String.valueOf(maxFontSize));
-        desiredStyle = desiredStyle.setFontSize(maxFontSize);
-
+        textFieldFontSize.setText(String.valueOf(fontSize));
+        if (!isDesiredStyleChanged) desiredStyle = desiredStyle.setFontSize(fontSize);
         isProgrammaticFontUpdate = false;
     }
 
     private void updateFormattingFieldFromSelection(){
-        int start = richTextArea.getSelection().getStart();
-        int end = richTextArea.getSelection().getEnd();
+        IndexRange selection = richTextArea.getSelection();
+        int start = selection.getStart();
+        int end = selection.getEnd();
 
-        if (TextStyle.isStyleFullyApplied(richTextArea, start, end, TextAttribute.BOLD, desiredStyle) && desiredStyle.isBold()){
-            setSelectedButton(btnBold, true);
-        }
-        else setSelectedButton(btnBold, false);
+        int posToCheck = (start > 0) ? start : start+1;
 
-        if (TextStyle.isStyleFullyApplied(richTextArea,start, end, TextAttribute.ITALIC, desiredStyle) && desiredStyle.isItalic()){
-            setSelectedButton(btnItalic, true);
+        TextStyle referenceStyle;
+        if (start == end) {
+            referenceStyle = richTextArea.getStyleAtPosition(posToCheck);
+        } else {
+            referenceStyle = TextStyle.getStyleSelection(richTextArea, start, end);
         }
-        else setSelectedButton(btnItalic, false);
+        isProgrammaticFontUpdate = true;
+        if (!isDesiredStyleChanged) desiredStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), desiredStyle.getFontSize(), desiredStyle.getFontFamily());
 
-        if (TextStyle.isStyleFullyApplied(richTextArea,start, end, TextAttribute.UNDERLINE, desiredStyle) && desiredStyle.isUnderline()){
-            setSelectedButton(btnUnderline, true);
-        }
-        else setSelectedButton(btnUnderline, false);
+        isProgrammaticFontUpdate = false;
+
+        setSelectedButton(btnBold, referenceStyle.isBold());
+        setSelectedButton(btnItalic, referenceStyle.isItalic());
+        setSelectedButton(btnUnderline, referenceStyle.isUnderline());
     }
 
 
     private void updateFontFamilyFromSelection(){
-        String currentFontFamily = "";
-        if (richTextArea.getCaretPosition()>0) {
-            currentFontFamily = richTextArea.getStyleAtPosition(richTextArea.getCaretPosition() - 1).getFontFamily();
-        }
-        else{
-            currentFontFamily = richTextArea.getStyleAtPosition(richTextArea.getCaretPosition()).getFontFamily();
-        }
-//        String value = getStyleValue(currentStyle, "-fx-font-family");
-//        desiredStyle.put("-fx-font-family", value);
+        int caretPosition = richTextArea.getCaretPosition();
+        String fontFamily = richTextArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition+1).getFontFamily();
 
-        desiredStyle = desiredStyle.setFontFamily(currentFontFamily);
-//        if (value != null && value.length() >= 2 && value.startsWith("'") && value.endsWith("'")) {
-//            value = value.substring(1, value.length() - 1);
-//        }
         isProgrammaticFontUpdate = true;
-        fontComboBox.getSelectionModel().select(currentFontFamily);
+        fontComboBox.getSelectionModel().select(fontFamily);
         isProgrammaticFontUpdate = false;
-    }
 
-
-    // Check if all selection has the same style applied
-    // If there are no selection then it will check the style applied on the char before
-    // the caret position, however, if the caret position is at 0 it will compare it with the char
-    // after the caret position. The function will return true if the styles parameter given matches
-    // with the conditions stated above.
-    public static boolean isStyleFullyApplied(InlineCssTextArea area, String styleKey, String valueToToggle){
-        if (area.getSelection().getLength() == 0){
-            String currentStyle = "";
-            if (area.getCaretPosition()>0) {
-                currentStyle = area.getStyleOfChar(area.getCaretPosition() - 1);
-            }
-            else{
-                currentStyle = area.getStyleOfChar(area.getCaretPosition());
-            }
-            String value = getStyleValue(currentStyle, styleKey);
-            return value.equals(valueToToggle);
-        }
-
-        int start = area.getSelection().getStart();
-        int end = area.getSelection().getEnd();
-        boolean styleFullyApplied = true;
-
-        for (int i = start; i < end; i++) {
-            String currentStyle = area.getStyleOfChar(i);
-            String value = getStyleValue(currentStyle, styleKey);
-            if (!value.equals(valueToToggle)) {
-                styleFullyApplied = false;
-                break;
-            }
-        }
-        return styleFullyApplied;
-    }
-
-    public static void addOrRemoveStyle(InlineCssTextArea area, String styleKey, String valueToToggle) {
-        if (area.getSelection().getLength() == 0) return;
-        int start = area.getSelection().getStart();
-        int end = area.getSelection().getEnd();
-
-        boolean styleFullyApplied = isStyleFullyApplied(area, styleKey, valueToToggle);
-
-        for (int i = start; i < end; i++) {
-            String currentStyle = area.getStyleOfChar(i);
-            Map<String, String> styles = parseStyle(currentStyle);
-
-            if (styleFullyApplied) {
-                styles.remove(styleKey);
-            } else {
-                styles.put(styleKey, valueToToggle);
-            }
-
-            // Rebuild and apply the new style
-            StringBuilder newStyle = new StringBuilder();
-            for (Map.Entry<String, String> entry : styles.entrySet()) {
-                newStyle.append(entry.getKey()).append(": ").append(entry.getValue()).append("; ");
-            }
-
-            area.setStyle(i, i + 1, newStyle.toString().trim());
-        }
-    }
-
-    public static HashMap<String, String> parseStyle(String styleString) {
-        HashMap<String, String> styles = new HashMap<>();
-        if (styleString == null || styleString.isEmpty()) return styles;
-
-        String[] styleArray = styleString.split(";");
-        for (String style : styleArray) {
-            String[] parts = style.trim().split(":", 2);
-            if (parts.length == 2) {
-                styles.put(parts[0].trim(), parts[1].trim());
-            }
-        }
-        return styles;
-    }
-
-    public static String getStyleValue(String styleString, String key) {
-        Map<String, String> styles = parseStyle(styleString);
-        return styles.getOrDefault(key, "");
+        if (!isDesiredStyleChanged) desiredStyle = desiredStyle.setFontFamily(fontFamily);
     }
 
 
@@ -492,5 +411,14 @@ public class MainEditorController {
 
         stage.setScene(scene);
         stage.setMaximized(true);
+    }
+
+    private void insertImage(Image image) {
+        if (image != null) {
+            RichSegment imgSeg = new ImageSegment(image);
+            int pos = richTextArea.getCaretPosition();
+            TextStyle style = richTextArea.getStyleAtPosition(pos);
+            richTextArea.insert(pos, imgSeg, style);
+        }
     }
 }

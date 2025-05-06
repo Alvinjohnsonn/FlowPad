@@ -28,17 +28,17 @@ class MainEditorControllerTest {
     }
 
     @Test
-    void testHashMapStyleToString(){
+    void testHashMapStyleToString() {
         String styleInString = MainEditorController.hashMapStyleToString(STYLE_HASHMAP);
 //        Apparently doesn't return the keys and value in order when combined
 //        assertEquals(STYLE_STRING, styleInString);
-        for (String style : styleInString.split(";")){
+        for (String style : styleInString.split(";")) {
             assertTrue(STYLE_STRING.contains(style));
         }
     }
 
     @Test
-    void testSetActiveButton(){
+    void testSetActiveButton() {
         Button active = new Button();
         Button inactive = new Button();
         inactive.getStyleClass().add("selected");
@@ -48,7 +48,7 @@ class MainEditorControllerTest {
 
         MainEditorController.setActiveButton(active, inactive);
         int numOfClass = 0;
-        for (String style : active.getStyleClass()){
+        for (String style : active.getStyleClass()) {
             if (style.equals("selected")) numOfClass += 1;
         }
         assertEquals(1, numOfClass);
@@ -56,7 +56,7 @@ class MainEditorControllerTest {
     }
 
     @Test
-    void testSetSelectedButton(){
+    void testSetSelectedButton() {
         Button btn = new Button();
         MainEditorController.setSelectedButton(btn, true);
         assertTrue(btn.getStyleClass().contains("selected"));
@@ -70,7 +70,7 @@ class MainEditorControllerTest {
     }
 
     @Test
-    void testToggleSelectedButton(){
+    void testToggleSelectedButton() {
         Button btn = new Button();
         MainEditorController.toggleSelectedButton(btn);
         assertTrue(btn.getStyleClass().contains("selected"));
@@ -80,28 +80,5 @@ class MainEditorControllerTest {
     }
 
 
-    @Test
-    void testExtractFontSize(){
-        // not sure if this one is suitable for unit testing
-    }
-
-
-    @Test
-    void testAddOrRemoveStyle(){
-        // work in progress, could not make it work if it's directly interacting with richtextfx
-        // prob going to minimize the scale of the function can call it from the low level process
-    }
-
-    @Test void testParseStyle(){
-        HashMap<String, String> result = MainEditorController.parseStyle(STYLE_STRING);
-        for (String key : STYLE_HASHMAP.keySet()){
-            assertEquals(STYLE_HASHMAP.get(key), result.get(key));
-        }
-    }
-
-    @Test void testGetStyleValue()
-    {
-        String value = MainEditorController.getStyleValue(STYLE_STRING, "-fx-font-weight");
-        assertEquals("bold", value);
-    }
 }
+

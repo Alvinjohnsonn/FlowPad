@@ -14,8 +14,8 @@ import java.util.Objects;
 
 public class TextStyle {
 
-    private final boolean bold;
-    private final boolean italic;
+    private boolean bold;
+    private boolean italic;
     private final boolean underline;
     private final int fontSize;
     private final String fontFamily;
@@ -110,7 +110,7 @@ public class TextStyle {
 
         boolean applied = isStyleFullyApplied(area, start, end, attribute, desiredStyle);
 
-        for (int i = start; i < end; i++) {
+        for (int i = start+1; i <= end; i++) {
             TextStyle current = area.getStyleAtPosition(i);
             TextStyle updated;
 
@@ -119,8 +119,7 @@ public class TextStyle {
             } else {
                 updated = current.apply(attribute, desiredStyle);
             }
-
-            area.setStyle(i, i + 1, updated);
+            area.setStyle(i-1, i, updated);
         }
     }
 
@@ -132,10 +131,10 @@ public class TextStyle {
         if (area.getSelection().getLength() == 0){
             TextStyle currentStyle;
             if (area.getCaretPosition()>0) {
-                currentStyle = area.getStyleAtPosition(area.getCaretPosition() - 1);
+                currentStyle = area.getStyleAtPosition(area.getCaretPosition());
             }
             else{
-                currentStyle = area.getStyleOfChar(area.getCaretPosition());
+                currentStyle = area.getStyleAtPosition(area.getCaretPosition()+1);
             }
 
             return currentStyle.matches(attribute, desiredStyle);
@@ -150,10 +149,24 @@ public class TextStyle {
         return true;
     }
 
+    public static TextStyle getStyleSelection(GenericStyledArea<ParStyle, RichSegment, TextStyle> area,
+                                              int start, int end) {
+        TextStyle result = area.getStyleAtPosition(start+1);
+        for (int i = start+2; i <= end; i++) {
+            TextStyle currentStyle = area.getStyleAtPosition(i);
+
+            if (!result.isBold()) result = result.setBold(result.bold || currentStyle.isBold());
+            if (!result.isItalic()) result = result.setItalic(result.italic || currentStyle.isItalic());
+            if (!result.isUnderline()) result = result.setUnderline(result.underline || currentStyle.isUnderline());
+            if (result.getFontSize()<currentStyle.getFontSize()) result = result.setFontSize(currentStyle.getFontSize());
+        }
+        return result;
+    }
+
 
     public TextStyle apply(TextAttribute attr, TextStyle desiredStyle) {
         return switch (attr) {
-            case BOLD -> new TextStyle(desiredStyle.bold, italic, underline, fontSize, fontFamily);
+            case BOLD -> new TextStyle(desiredStyle.bold, isItalic(), underline, fontSize, fontFamily);
             case ITALIC -> new TextStyle(bold, desiredStyle.italic, underline, fontSize, fontFamily);
             case UNDERLINE -> new TextStyle(bold, italic, desiredStyle.underline, fontSize, fontFamily);
             case FONT_SIZE -> new TextStyle(bold, italic, underline, desiredStyle.fontSize, fontFamily);
@@ -182,6 +195,10 @@ public class TextStyle {
         };
     }
 
-
-
+    @Override
+    public String toString() {
+        return "Bold: " + (isBold() ? "true" : "false") +
+                "\nItalic: " + (isItalic() ? "true" : "false") +
+                "\nUnderline: " + (isUnderline() ? "true" : "false") + "\n";
+    }
 }

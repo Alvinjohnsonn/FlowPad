@@ -23,7 +23,7 @@ public class RichTextOps implements TextOps<RichSegment, TextStyle> {
         if (seg instanceof TextSegment textSegment) {
             return styledTextOps.charAt(textSegment.getText(), index);
         }
-        return '?';
+        return '\ufffc';
     }
 
     @Override
@@ -31,7 +31,7 @@ public class RichTextOps implements TextOps<RichSegment, TextStyle> {
         if (seg instanceof TextSegment textSegment) {
             return textSegment.getText();
         }
-        return "?";
+        return "\ufffc";
     }
 
     @Override
@@ -45,10 +45,8 @@ public class RichTextOps implements TextOps<RichSegment, TextStyle> {
     public RichSegment subSequence(RichSegment seg, int start, int end) {
         if (seg instanceof TextSegment t)
             return new TextSegment(styledTextOps.subSequence(t.getText(), start, end));
-        return seg; // images can't be split
+        return seg;
     }
-
-
 
     @Override
     public Optional<RichSegment> joinSeg(RichSegment currentSeg, RichSegment nextSeg) {
