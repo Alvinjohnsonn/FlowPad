@@ -4,7 +4,7 @@ import org.fxmisc.richtext.model.*;
 
 import java.util.Optional;
 
-public class RichTextOps implements TextOps<RichSegment, TextStyle> {
+public class RichTextOps<R, T> implements TextOps<RichSegment, TextStyle> {
 
     private final TextOps<String, TextStyle> styledTextOps = SegmentOps.styledTextOps();
 
@@ -66,4 +66,6 @@ public class RichTextOps implements TextOps<RichSegment, TextStyle> {
     public RichSegment create(String text) {
         return new TextSegment(text);
     }
+
+
 }

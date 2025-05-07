@@ -32,4 +32,8 @@ public final class TextSegment implements RichSegment{
     public int hashCode() {
         return text.hashCode();
     }
+    @Override
+    public int length() {
+        return text.length();
+    }
 }

@@ -1,9 +1,6 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
-import com.staticconstants.flowpad.backend.db.notes.Note;
-import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
-import com.staticconstants.flowpad.backend.notes.StyledTextCodecs;
 import com.staticconstants.flowpad.frontend.textareaclasses.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -22,19 +19,15 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.*;
 import javafx.stage.Stage;
 import org.fxmisc.richtext.GenericStyledArea;
-import org.fxmisc.richtext.InlineCssTextArea;
 import org.fxmisc.richtext.TextExt;
-import org.fxmisc.richtext.model.SegmentOps;
-import org.fxmisc.richtext.model.StyledSegment;
-import org.fxmisc.richtext.model.TextOps;
+import org.fxmisc.richtext.model.*;
 
 import java.io.IOException;
-import java.sql.Array;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
 
 public class MainEditorController {
 
@@ -55,7 +48,7 @@ public class MainEditorController {
     @FXML private Button btnUnderline;
     @FXML private Button btnBack;
 
-    private GenericStyledArea<ParStyle, RichSegment, TextStyle> richTextArea;
+    private CustomStyledArea<ParStyle, RichSegment, TextStyle> richTextArea;
     private boolean isProgrammaticFontUpdate = false;
     private boolean isDesiredStyleChanged = false;
     private TextStyle desiredStyle;
@@ -149,11 +142,9 @@ public class MainEditorController {
             return new Text("?");
         };
 
-        // Create the GenericStyledArea
+        RichTextOps<RichSegment, TextStyle> segmentOps = new RichTextOps<RichSegment, TextStyle>();
 
-        RichTextOps segmentOps = new RichTextOps();
-
-        richTextArea =  new GenericStyledArea<ParStyle, RichSegment, TextStyle>(
+        richTextArea =  new CustomStyledArea<ParStyle, RichSegment, TextStyle>(
                 initialParStyle,
                 paragraphStyler,
                 initialTextStyle,
@@ -163,16 +154,22 @@ public class MainEditorController {
         richTextArea.setWrapText(true);
 
         richTextArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
-
             updateFontSizeFieldFromSelection();
             updateFormattingFieldFromSelection();
             updateFontFamilyFromSelection();
             isDesiredStyleChanged = false;
 //            TODO: Do more testing, doesn't always work
         });
-
+        richTextArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
+            System.out.println("Caret moved: " + newPos);
+            System.out.println("Current segment: " + getSegmentAt(newPos-1));
+        });
 
         richTextArea.setOnKeyTyped(event -> {
+            if (event.isControlDown() && event.getCode() == KeyCode.V) {
+                return;
+            }
+
             int caretPosition = richTextArea.getCaretPosition();
             if (caretPosition > 0) {
                 richTextArea.setStyle(caretPosition - 1, caretPosition, desiredStyle);
@@ -187,7 +184,28 @@ public class MainEditorController {
                     event.consume();
                 }
             }
+
+            if (event.getCode() == KeyCode.BACK_SPACE) {
+                event.consume();
+                int caretPos = richTextArea.getCaretPosition();
+
+                if (caretPos < 1) return;
+
+                var segBefore = getSegmentAt(caretPos);
+
+                if (segBefore instanceof ImageSegment) {
+                    System.out.println("Its a image segment");
+                    if (caretPos == 1) {
+                        System.out.println("Replaced");
+                        richTextArea.replace(0, caretPos, new TextSegment(""), richTextArea.getStyleAtPosition(caretPos));
+                    } else {
+                        richTextArea.deleteText(caretPos - 1, caretPos);
+                    }
+
+                }
+            }
         });
+
 
         VBox.setVgrow(richTextArea, Priority.ALWAYS);
         editorContainer.getChildren().add(richTextArea);
@@ -334,7 +352,14 @@ public class MainEditorController {
 
         if (selection.getLength() == 0) {
             int caretPosition = richTextArea.getCaretPosition();
-            fontSize = richTextArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition + 1).getFontSize();
+            TextStyle style = richTextArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition + 1);
+
+//            RichSegment seg = getSegmentAt(caretPosition > 0 ? caretPosition : caretPosition + 1);
+//            if (seg instanceof TextSegment) {
+                fontSize = style.getFontSize();
+//            } else {
+//                return;
+//            }
         } else {
             List<Integer> sizes = new ArrayList<>();
             for (int i = selection.getStart(); i < selection.getEnd(); i++) {
@@ -355,6 +380,8 @@ public class MainEditorController {
         int end = selection.getEnd();
 
         int posToCheck = (start > 0) ? start : start+1;
+//        RichSegment seg = getSegmentAt(posToCheck);
+//        if (!(seg instanceof TextSegment)) return;
 
         TextStyle referenceStyle;
         if (start == end) {
@@ -362,9 +389,9 @@ public class MainEditorController {
         } else {
             referenceStyle = TextStyle.getStyleSelection(richTextArea, start, end);
         }
+
         isProgrammaticFontUpdate = true;
         if (!isDesiredStyleChanged) desiredStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), desiredStyle.getFontSize(), desiredStyle.getFontFamily());
-
         isProgrammaticFontUpdate = false;
 
         setSelectedButton(btnBold, referenceStyle.isBold());
@@ -375,7 +402,11 @@ public class MainEditorController {
 
     private void updateFontFamilyFromSelection(){
         int caretPosition = richTextArea.getCaretPosition();
-        String fontFamily = richTextArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition+1).getFontFamily();
+        TextStyle style = richTextArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition+1);
+        String fontFamily = style.getFontFamily();
+
+//        RichSegment seg = getSegmentAt(caretPosition > 0 ? caretPosition : caretPosition + 1);
+//        if (!(seg instanceof TextSegment)) return;
 
         isProgrammaticFontUpdate = true;
         fontComboBox.getSelectionModel().select(fontFamily);
@@ -414,11 +445,40 @@ public class MainEditorController {
     }
 
     private void insertImage(Image image) {
-        if (image != null) {
-            RichSegment imgSeg = new ImageSegment(image);
-            int pos = richTextArea.getCaretPosition();
-            TextStyle style = richTextArea.getStyleAtPosition(pos);
-            richTextArea.insert(pos, imgSeg, style);
+        if (image == null) return;
+
+        int pos = richTextArea.getCaretPosition();
+
+        // Ensure we get a non-null style
+        TextStyle style = Optional.ofNullable(richTextArea.getStyleAtPosition(pos))
+                .orElse(TextStyle.EMPTY);
+
+        richTextArea.insert(pos, new ImageSegment(image), style);
+
+        richTextArea.insert(pos + 1, new TextSegment(""), style);
+        richTextArea.moveTo(pos + 1);
+    }
+
+    private RichSegment getSegmentAt(int position) {
+        if (position < 0 || position >= richTextArea.getLength()) {
+            return null;
         }
+
+        TwoDimensional.Position twoDimPos = richTextArea.offsetToPosition(position, Forward);
+        int paragraphIndex = twoDimPos.getMajor();
+        int column = twoDimPos.getMinor();
+
+        Paragraph<ParStyle, RichSegment, TextStyle> paragraph = richTextArea.getParagraph(paragraphIndex);
+        int offset = 0;
+
+        for (StyledSegment<RichSegment, TextStyle> seg : paragraph.getStyledSegments()) {
+            int segLength = seg.getSegment().length();
+            if (column >= offset && column < offset + segLength) {
+                return seg.getSegment();
+            }
+            offset += segLength;
+        }
+
+        return null;
     }
 }

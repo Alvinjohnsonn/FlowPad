@@ -23,4 +23,9 @@ public final class ImageSegment implements RichSegment {
     public int hashCode() {
         return image.hashCode();
     }
+
+    @Override
+    public int length() {
+        return 1; // one unit for image
+    }
 }
