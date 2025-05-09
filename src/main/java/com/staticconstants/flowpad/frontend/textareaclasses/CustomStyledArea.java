@@ -3,8 +3,7 @@ package com.staticconstants.flowpad.frontend.textareaclasses;
 import javafx.scene.Node;
 import javafx.scene.text.TextFlow;
 import org.fxmisc.richtext.GenericStyledArea;
-import org.fxmisc.richtext.model.Paragraph;
-import org.fxmisc.richtext.model.StyledSegment;
+import org.fxmisc.richtext.model.*;
 
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -31,7 +30,6 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
     @Override
     public void deletePreviousChar() {
         int caretPosition = getCaretPosition();
-        System.out.print(caretPosition);
 
         if (caretPosition == 0) {
             return;
@@ -52,12 +50,11 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
 
             if (charCount + segLength >= columnPosition) {
                 if (richSegment instanceof ImageSegment) {
-                    System.out.print("Deleted!");
 
-                    if (caretPosition == 1){
-                        deleteText(0, caretPosition);
-                    }
-                    else deleteText(caretPosition - 1, caretPosition);
+//                    TODO: Fix runtime error when deleting image located on the first line
+
+                    deleteText(caretPosition - 1, caretPosition);
+
                     return;
                 } else {
                     break;
@@ -66,8 +63,8 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
             charCount += segLength;
         }
 
-        // Default behavior
         super.deletePreviousChar();
     }
+
 }
 

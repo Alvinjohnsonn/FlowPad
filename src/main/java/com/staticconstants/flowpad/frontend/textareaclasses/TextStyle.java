@@ -55,14 +55,6 @@ public class TextStyle {
         return new TextStyle(this.bold, this.italic, this.underline, this.fontSize, fontFamily);
     }
 
-    public void applyTo(Text text) {
-        text.setFont(javafx.scene.text.Font.font(fontFamily,
-                bold ? FontWeight.BOLD : FontWeight.NORMAL,
-                italic ? FontPosture.ITALIC : FontPosture.REGULAR,
-                fontSize));
-        text.setUnderline(underline);
-    }
-
     public boolean isBold() {
         return bold;
     }

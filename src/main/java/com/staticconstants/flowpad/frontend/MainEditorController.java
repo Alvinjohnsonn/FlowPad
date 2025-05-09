@@ -1,11 +1,16 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.db.notes.Note;
 import com.staticconstants.flowpad.frontend.textareaclasses.*;
 import javafx.application.Platform;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -13,14 +18,16 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.*;
 import javafx.stage.Stage;
-import org.fxmisc.richtext.GenericStyledArea;
 import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.*;
+
 
 import java.io.IOException;
 import java.util.*;
@@ -47,11 +54,15 @@ public class MainEditorController {
     @FXML private Button btnItalic;
     @FXML private Button btnUnderline;
     @FXML private Button btnBack;
-
-    private CustomStyledArea<ParStyle, RichSegment, TextStyle> richTextArea;
+    @FXML private TextField test;
+    @FXML private ToolBar toolBar;
+    
     private boolean isProgrammaticFontUpdate = false;
     private boolean isDesiredStyleChanged = false;
-    private TextStyle desiredStyle;
+    
+    private HashMap<String, CustomStyledArea<ParStyle, RichSegment, TextStyle>> textAreas;
+    private HashMap<String, TextStyle> activeStyles;
+    private String activeNote;
 
     @FXML
     private void showDocuments() {
@@ -77,6 +88,9 @@ public class MainEditorController {
 
     @FXML
     public void initialize() {
+        textAreas = new HashMap<>();
+        activeStyles = new HashMap<>();
+
         TreeItem<String> rootItem = new TreeItem<>("Notes");
         rootItem.setExpanded(true);
 
@@ -101,16 +115,109 @@ public class MainEditorController {
             zoomLabel.setText(zoomPercent + "%");
         });
 
+        TextStyle desiredStyle = TextStyle.EMPTY;
+        textFieldFontSize.setText(desiredStyle.getFontSize()+"");
 
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea = null;
+        initializeTextArea(textArea, editorContainer, "note1");
+
+        textFieldFontSize.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getText();
+            return newText.matches("[0-9]*") ? change : null;
+        }));
+
+        textFieldFontSize.textProperty().addListener((obs, oldText, newText) -> {
+            if (isProgrammaticFontUpdate) return;
+            handleFontSizeChange(newText);
+        });
+
+        textFieldFontSize.setOnAction(e -> {
+            handleFontSizeChange(textFieldFontSize.getText());
+        });
+
+        fontComboBox.getItems().addAll(Font.getFamilies());
+        fontComboBox.setOnAction(event -> {
+            if (isProgrammaticFontUpdate) return;
+            String selectedFont = (String)fontComboBox.getValue();
+            if (selectedFont != null) {
+                TextStyle newStyle = getActiveDesiredStyle().setFontFamily(selectedFont);
+                setActiveDesiredStyle(newStyle);
+                TextStyle.toggleStyle(getActiveTextArea(), TextAttribute.FONT_FAMILY, getActiveDesiredStyle());
+
+                isDesiredStyleChanged = true;
+            }
+        });
+
+        fontComboBox.showingProperty().addListener((obs, wasShowing, isNowShowing) -> {
+            if (!isNowShowing) {
+                Platform.runLater(() -> getActiveTextArea().requestFocus());
+            }
+        });
+
+
+//        Tab Setup
+        test.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                    if(mouseEvent.getClickCount() == 2){
+                        TextField tf = (TextField)mouseEvent.getSource();
+                        tf.setEditable(true);
+                        tf.selectAll();
+
+                    }
+                }
+            }
+        });
+        test.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            Object tag = ((TextField)event.getSource()).getUserData();
+            Tab tab = null;
+
+            for (Tab t : tabPane.getTabs()){
+                if (t.getUserData().equals(tag)){
+                    tab = t;
+                    break;
+                }
+            }
+
+            if (tab!=null) {
+                tabPane.getSelectionModel().select(tab);
+
+            }
+        });
+        test.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.ESCAPE){
+                ((TextField)event.getSource()).setEditable(false);
+            }
+        });
+        test.focusedProperty().addListener((obs,old,current) -> {
+            if (!current) test.setEditable(false);
+        });
+        test.textProperty().addListener((obs, oldS, newS) -> {
+            test.setPrefWidth(newS.length() * 7);
+        });
+
+        tabPane.getSelectionModel().selectedItemProperty().addListener(
+                (obs,oldTab, newTab) -> {
+                    if (oldTab == newTab) return;
+                    SplitPane sp = (SplitPane)newTab.getContent();
+                    VBox vb = (VBox)sp.getItems().getFirst();
+
+                    if (!vb.getChildren().contains(toolBar)) vb.getChildren().addFirst(toolBar);
+                    
+                    activeNote = (String)newTab.getUserData();
+                });
+
+        newNote();
+    }
+
+    private void initializeTextArea(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, VBox editorContainer, String userData) {
         ParStyle initialParStyle = ParStyle.EMPTY;
-        desiredStyle = TextStyle.EMPTY;
+        TextStyle desiredStyle = TextStyle.EMPTY;
         TextStyle initialTextStyle = TextStyle.EMPTY;
 
-        textFieldFontSize.setText(initialTextStyle.getFontSize()+"");
-        // Apply paragraph style (optional for now)
         BiConsumer<TextFlow, ParStyle> paragraphStyler = (tf, p) -> {};
 
-        // Render each segment with its style
         Function<StyledSegment<RichSegment, TextStyle>, Node> nodeFactory = seg -> {
             RichSegment s = seg.getSegment();
             TextStyle style = seg.getStyle();
@@ -144,39 +251,41 @@ public class MainEditorController {
 
         RichTextOps<RichSegment, TextStyle> segmentOps = new RichTextOps<RichSegment, TextStyle>();
 
-        richTextArea =  new CustomStyledArea<ParStyle, RichSegment, TextStyle>(
+
+        textArea =  new CustomStyledArea<ParStyle, RichSegment, TextStyle>(
                 initialParStyle,
                 paragraphStyler,
                 initialTextStyle,
                 segmentOps,
                 nodeFactory
         );
-        richTextArea.setWrapText(true);
+        textArea.setWrapText(true);
 
-        richTextArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
+        textArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
             updateFontSizeFieldFromSelection();
             updateFormattingFieldFromSelection();
             updateFontFamilyFromSelection();
             isDesiredStyleChanged = false;
 //            TODO: Do more testing, doesn't always work
         });
-        richTextArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
+        textArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
             System.out.println("Caret moved: " + newPos);
             System.out.println("Current segment: " + getSegmentAt(newPos-1));
         });
 
-        richTextArea.setOnKeyTyped(event -> {
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> finaltextArea = textArea;
+        textArea.setOnKeyTyped(event -> {
             if (event.isControlDown() && event.getCode() == KeyCode.V) {
                 return;
             }
 
-            int caretPosition = richTextArea.getCaretPosition();
+            int caretPosition = finaltextArea.getCaretPosition();
             if (caretPosition > 0) {
-                richTextArea.setStyle(caretPosition - 1, caretPosition, desiredStyle);
+                finaltextArea.setStyle(caretPosition - 1, caretPosition, desiredStyle);
             }
         });
 
-        richTextArea.setOnKeyPressed(event -> {
+        textArea.setOnKeyPressed(event -> {
             if (event.isControlDown() && event.getCode() == KeyCode.V) {
                 Clipboard clipboard = Clipboard.getSystemClipboard();
                 if (clipboard.hasImage()) {
@@ -185,64 +294,13 @@ public class MainEditorController {
                 }
             }
 
-            if (event.getCode() == KeyCode.BACK_SPACE) {
-                event.consume();
-                int caretPos = richTextArea.getCaretPosition();
-
-                if (caretPos < 1) return;
-
-                var segBefore = getSegmentAt(caretPos);
-
-                if (segBefore instanceof ImageSegment) {
-                    System.out.println("Its a image segment");
-                    if (caretPos == 1) {
-                        System.out.println("Replaced");
-                        richTextArea.replace(0, caretPos, new TextSegment(""), richTextArea.getStyleAtPosition(caretPos));
-                    } else {
-                        richTextArea.deleteText(caretPos - 1, caretPos);
-                    }
-
-                }
-            }
         });
 
+        VBox.setVgrow(textArea, Priority.ALWAYS);
+        editorContainer.getChildren().add(textArea);
 
-        VBox.setVgrow(richTextArea, Priority.ALWAYS);
-        editorContainer.getChildren().add(richTextArea);
-
-        textFieldFontSize.setTextFormatter(new TextFormatter<>(change -> {
-            String newText = change.getText();
-            return newText.matches("[0-9]*") ? change : null;
-        }));
-
-        textFieldFontSize.textProperty().addListener((obs, oldText, newText) -> {
-            if (isProgrammaticFontUpdate) return;
-            handleFontSizeChange(newText);
-        });
-
-        textFieldFontSize.setOnAction(e -> {
-            handleFontSizeChange(textFieldFontSize.getText());
-        });
-
-//        TODO: Change background color and text color when richtextarea is selected
-
-        fontComboBox.getItems().addAll(Font.getFamilies());
-        fontComboBox.setOnAction(event -> {
-            if (isProgrammaticFontUpdate) return;
-            String selectedFont = (String)fontComboBox.getValue();
-            if (selectedFont != null) {
-                desiredStyle = desiredStyle.setFontFamily(selectedFont);
-                TextStyle.toggleStyle(richTextArea, TextAttribute.FONT_FAMILY, desiredStyle);
-
-                isDesiredStyleChanged = true;
-            }
-        });
-
-        fontComboBox.showingProperty().addListener((obs, wasShowing, isNowShowing) -> {
-            if (!isNowShowing) {
-                Platform.runLater(() -> richTextArea.requestFocus());
-            }
-        });
+        activeStyles.put(userData, desiredStyle);
+        textAreas.put(userData, textArea);
     }
 
     public static String hashMapStyleToString(HashMap<String, String> styles){
@@ -276,7 +334,8 @@ public class MainEditorController {
         int fontSize = Integer.parseInt(textFieldFontSize.getText());
         fontSize++;
         textFieldFontSize.setText(fontSize + "");
-        desiredStyle = desiredStyle.setFontSize(fontSize);
+        TextStyle newStyle = getActiveDesiredStyle().setFontSize(fontSize);
+        setActiveDesiredStyle(newStyle);
 
         isDesiredStyleChanged = true;
     }
@@ -287,7 +346,8 @@ public class MainEditorController {
         if (fontSize > 1) {
             fontSize--;
             textFieldFontSize.setText(fontSize + "");
-            desiredStyle = desiredStyle.setFontSize(fontSize);
+            TextStyle newStyle = getActiveDesiredStyle().setFontSize(fontSize);
+            setActiveDesiredStyle(newStyle);
 
             isDesiredStyleChanged = true;
         }
@@ -295,24 +355,28 @@ public class MainEditorController {
 
     @FXML
     private void bold(){
-        desiredStyle = desiredStyle.toggleBold();
-        TextStyle.toggleStyle(richTextArea, TextAttribute.BOLD, desiredStyle);
+        TextStyle newStyle = getActiveDesiredStyle().toggleBold();
+        setActiveDesiredStyle(newStyle);
+
+        TextStyle.toggleStyle(getActiveTextArea(), TextAttribute.BOLD, getActiveDesiredStyle());
         toggleSelectedButton(btnBold);
 
         isDesiredStyleChanged = true;
     }
     @FXML
     private void italic(){
-        desiredStyle = desiredStyle.toggleItalic();
-        TextStyle.toggleStyle(richTextArea, TextAttribute.ITALIC, desiredStyle);
+        TextStyle newStyle = getActiveDesiredStyle().toggleItalic();
+        setActiveDesiredStyle(newStyle);
+        TextStyle.toggleStyle(getActiveTextArea(), TextAttribute.ITALIC, getActiveDesiredStyle());
         toggleSelectedButton(btnItalic);
 
         isDesiredStyleChanged = true;
     }
     @FXML
     private void underline(){
-        desiredStyle = desiredStyle.toggleUnderline();
-        TextStyle.toggleStyle(richTextArea, TextAttribute.UNDERLINE, desiredStyle);
+        TextStyle newStyle = getActiveDesiredStyle().toggleUnderline();
+        setActiveDesiredStyle(newStyle);
+        TextStyle.toggleStyle(getActiveTextArea(), TextAttribute.UNDERLINE, getActiveDesiredStyle());
         toggleSelectedButton(btnUnderline);
 
         isDesiredStyleChanged = true;
@@ -339,20 +403,22 @@ public class MainEditorController {
 
     @FXML
     private void handleFontSizeChange(String size){
-        desiredStyle = desiredStyle.setFontSize(Integer.parseInt(size));
-        TextStyle.toggleStyle(richTextArea, TextAttribute.FONT_SIZE, desiredStyle);
+        TextStyle newStyle = getActiveDesiredStyle().setFontSize(Integer.parseInt(size));
+        setActiveDesiredStyle(newStyle);
+
+        TextStyle.toggleStyle(getActiveTextArea(), TextAttribute.FONT_SIZE, getActiveDesiredStyle());
 
         isDesiredStyleChanged = true;
     }
 
 
     private void updateFontSizeFieldFromSelection() {
-        IndexRange selection = richTextArea.getSelection();
+        IndexRange selection = getActiveTextArea().getSelection();
         int fontSize = 0;
 
         if (selection.getLength() == 0) {
-            int caretPosition = richTextArea.getCaretPosition();
-            TextStyle style = richTextArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition + 1);
+            int caretPosition = getActiveTextArea().getCaretPosition();
+            TextStyle style = getActiveTextArea().getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition + 1);
 
 //            RichSegment seg = getSegmentAt(caretPosition > 0 ? caretPosition : caretPosition + 1);
 //            if (seg instanceof TextSegment) {
@@ -363,19 +429,22 @@ public class MainEditorController {
         } else {
             List<Integer> sizes = new ArrayList<>();
             for (int i = selection.getStart(); i < selection.getEnd(); i++) {
-                sizes.add(richTextArea.getStyleAtPosition(i).getFontSize());
+                sizes.add(getActiveTextArea().getStyleAtPosition(i).getFontSize());
             }
             fontSize = Collections.max(sizes);
         }
 
         isProgrammaticFontUpdate = true;
         textFieldFontSize.setText(String.valueOf(fontSize));
-        if (!isDesiredStyleChanged) desiredStyle = desiredStyle.setFontSize(fontSize);
+        if (!isDesiredStyleChanged) {
+            TextStyle newStyle = getActiveDesiredStyle().setFontSize(fontSize);
+            setActiveDesiredStyle(newStyle);
+        }
         isProgrammaticFontUpdate = false;
     }
 
     private void updateFormattingFieldFromSelection(){
-        IndexRange selection = richTextArea.getSelection();
+        IndexRange selection = getActiveTextArea().getSelection();
         int start = selection.getStart();
         int end = selection.getEnd();
 
@@ -385,13 +454,16 @@ public class MainEditorController {
 
         TextStyle referenceStyle;
         if (start == end) {
-            referenceStyle = richTextArea.getStyleAtPosition(posToCheck);
+            referenceStyle = getActiveTextArea().getStyleAtPosition(posToCheck);
         } else {
-            referenceStyle = TextStyle.getStyleSelection(richTextArea, start, end);
+            referenceStyle = TextStyle.getStyleSelection(getActiveTextArea(), start, end);
         }
 
         isProgrammaticFontUpdate = true;
-        if (!isDesiredStyleChanged) desiredStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), desiredStyle.getFontSize(), desiredStyle.getFontFamily());
+        if (!isDesiredStyleChanged) {
+            TextStyle newStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), getActiveDesiredStyle().getFontSize(), getActiveDesiredStyle().getFontFamily());
+            setActiveDesiredStyle(newStyle);
+        }
         isProgrammaticFontUpdate = false;
 
         setSelectedButton(btnBold, referenceStyle.isBold());
@@ -401,8 +473,8 @@ public class MainEditorController {
 
 
     private void updateFontFamilyFromSelection(){
-        int caretPosition = richTextArea.getCaretPosition();
-        TextStyle style = richTextArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition+1);
+        int caretPosition = getActiveTextArea().getCaretPosition();
+        TextStyle style = getActiveTextArea().getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition+1);
         String fontFamily = style.getFontFamily();
 
 //        RichSegment seg = getSegmentAt(caretPosition > 0 ? caretPosition : caretPosition + 1);
@@ -412,7 +484,10 @@ public class MainEditorController {
         fontComboBox.getSelectionModel().select(fontFamily);
         isProgrammaticFontUpdate = false;
 
-        if (!isDesiredStyleChanged) desiredStyle = desiredStyle.setFontFamily(fontFamily);
+        if (!isDesiredStyleChanged) {
+            TextStyle newStyle = getActiveDesiredStyle().setFontFamily(fontFamily);
+            setActiveDesiredStyle(newStyle);
+        }
     }
 
 
@@ -423,12 +498,184 @@ public class MainEditorController {
         for (Tab tab : tabPane.getTabs()) {
             if (tab.getGraphic() instanceof HBox hbox) {
                 if (hbox.getChildren().contains(source)) {
+//                    TODO: Check if code is safe, prone to errors
+                    textAreas.remove(tab.getUserData());
+                    activeStyles.remove(tab.getUserData());
                     tabPane.getTabs().remove(tab);
+
+                    activeNote = (String)tabPane.getTabs().getFirst().getUserData();
                     break;
                 }
             }
         }
     }
+
+    private static int numOfNewNote = 0;
+    @FXML
+    private void newNote(){
+//        TODO: Create Note object
+
+        String fileName = "New Note" + (numOfNewNote>0 ? " "+numOfNewNote : "") ;
+        numOfNewNote++;
+
+//        Initialize Tab
+        Tab newTab = new Tab();
+        newTab.setUserData(fileName);
+
+//        Initialize HBox Tab Title
+        HBox hbox = new HBox();
+        hbox.setAlignment(Pos.CENTER_LEFT);
+        hbox.setSpacing(12.0);
+        hbox.setPadding(new Insets(0 ,8 ,0, 8));
+
+//        Initialize Label Title
+        TextField title = new TextField(fileName);
+        title.setPrefWidth(80);
+        title.setMaxWidth(90);
+        title.setMinWidth(50);
+        title.setEditable(false);
+        title.setUserData(fileName);
+        title.getStyleClass().add("bg-transparent");
+        title.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                    if(mouseEvent.getClickCount() == 2){
+                        TextField tf = (TextField)mouseEvent.getSource();
+                        tf.setEditable(true);
+                        tf.selectAll();
+
+                    }
+                }
+            }
+        });
+
+        title.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            Object tag = ((TextField)event.getSource()).getUserData()==null ? "" : ((TextField)event.getSource()).getUserData();
+            Tab tab = null;
+
+            for (Tab t : tabPane.getTabs()){
+                if (t.getUserData()!=null && t.getUserData().equals(tag)){
+                    tab = t;
+                    break;
+                }
+            }
+
+            if (tab!=null) {
+                tabPane.getSelectionModel().select(tab);
+
+            }
+        });
+
+        title.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.ESCAPE){
+                ((TextField)event.getSource()).setEditable(false);
+
+//                TODO: Rename Note object
+            }
+        });
+
+        title.focusedProperty().addListener((obs,old,current) -> {
+            if (!current) title.setEditable(false);
+
+//            TODO: Rename Note object
+        });
+
+        title.textProperty().addListener((obs, oldS, newS) -> {
+            title.setPrefWidth(newS.length() * 7);
+        });
+
+//        Initialize X image
+        Image img = new Image(FlowPadApplication.class.getResource("icons/close.png").toExternalForm());
+        ImageView x = new ImageView();
+        x.setImage(img);
+        x.setFitHeight(8.0);
+        x.setFitWidth(8.0);
+        x.setPickOnBounds(true);
+        x.setPreserveRatio(true);
+
+//        Initialize Close Button
+        Button btnClose = new Button("");
+        btnClose.setOnAction(event -> closeTab(event));
+        btnClose.getStyleClass().add("tab-close");
+        btnClose.setGraphic(x);
+
+//        Combine Title and Button
+        hbox.getChildren().add(title);
+        hbox.getChildren().add(btnClose);
+        newTab.setGraphic(hbox);
+
+//        Initialize Content, starting with SplitPane
+        SplitPane splitPane = new SplitPane();
+        splitPane.getStyleClass().add("inner-split");
+
+//        Initialize Main Container
+        VBox mainContainer = new VBox();
+        mainContainer.setPrefWidth(501);
+        mainContainer.setPrefHeight(379);
+        mainContainer.setSpacing(5);
+        VBox.setVgrow(mainContainer, Priority.ALWAYS);
+        mainContainer.getChildren().add(toolBar);
+
+//        Initialize GenericStyledArea
+
+
+
+//        Initialize Editor Container
+        VBox editor = new VBox();
+        editor.prefWidth(500);
+        VBox.setVgrow(editor,Priority.ALWAYS);
+        editor.setPadding(new Insets(10,10,10,10));
+
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea = null;
+        initializeTextArea(textArea, editor, fileName);
+
+//        Complete All Setup
+        mainContainer.getChildren().add(editor);
+        splitPane.getItems().add(mainContainer);
+        newTab.setContent(splitPane);
+
+        tabPane.getTabs().add(newTab);
+        tabPane.getSelectionModel().select(newTab);
+    }
+
+    @FXML
+    private void undo(){
+
+    }
+
+    @FXML
+    private void redo(){
+
+    }
+    @FXML
+    private void cut(){
+
+    }
+    @FXML
+    private void copy(){
+
+    }
+
+    @FXML
+    private void paste(){
+
+    }
+
+    @FXML
+    private void selectAll(){
+
+    }
+    @FXML
+    private void find(){
+
+    }
+
+    @FXML
+    private void renameFile(Label fileName){
+
+    }
+
 
     @FXML
     protected void onBackButtonClick() throws IOException {
@@ -447,28 +694,26 @@ public class MainEditorController {
     private void insertImage(Image image) {
         if (image == null) return;
 
-        int pos = richTextArea.getCaretPosition();
+        int pos = getActiveTextArea().getCaretPosition();
 
-        // Ensure we get a non-null style
-        TextStyle style = Optional.ofNullable(richTextArea.getStyleAtPosition(pos))
+        TextStyle style = Optional.ofNullable(getActiveTextArea().getStyleAtPosition(pos))
                 .orElse(TextStyle.EMPTY);
 
-        richTextArea.insert(pos, new ImageSegment(image), style);
-
-        richTextArea.insert(pos + 1, new TextSegment(""), style);
-        richTextArea.moveTo(pos + 1);
+        getActiveTextArea().insert(pos, new ImageSegment(image), style);
+        getActiveTextArea().insert(pos + 1, new TextSegment(""), style);
+        getActiveTextArea().moveTo(pos+1);
     }
 
     private RichSegment getSegmentAt(int position) {
-        if (position < 0 || position >= richTextArea.getLength()) {
+        if (position < 0 || position >= getActiveTextArea().getLength()) {
             return null;
         }
 
-        TwoDimensional.Position twoDimPos = richTextArea.offsetToPosition(position, Forward);
+        TwoDimensional.Position twoDimPos = getActiveTextArea().offsetToPosition(position, Forward);
         int paragraphIndex = twoDimPos.getMajor();
         int column = twoDimPos.getMinor();
 
-        Paragraph<ParStyle, RichSegment, TextStyle> paragraph = richTextArea.getParagraph(paragraphIndex);
+        Paragraph<ParStyle, RichSegment, TextStyle> paragraph = getActiveTextArea().getParagraph(paragraphIndex);
         int offset = 0;
 
         for (StyledSegment<RichSegment, TextStyle> seg : paragraph.getStyledSegments()) {
@@ -481,4 +726,15 @@ public class MainEditorController {
 
         return null;
     }
+    
+    private CustomStyledArea<ParStyle, RichSegment, TextStyle> getActiveTextArea(){
+        return textAreas.get(activeNote);
+    }
+    private TextStyle getActiveDesiredStyle(){
+        return activeStyles.get(activeNote);
+    }
+    private void setActiveDesiredStyle(TextStyle newStyle){
+        activeStyles.put(activeNote, newStyle);
+    }
+
 }

@@ -24,23 +24,23 @@
               <menus>
                   <Menu text="File">
                       <items>
-                          <MenuItem text="New" />
+                          <MenuItem onAction="#newNote" text="New" />
                           <MenuItem text="Open" />
                           <MenuItem text="Recent Notes" />
-                          <MenuItem text="Save" />
+                          <MenuItem onAction="#save" text="Save" />
                           <MenuItem text="Save As" />
                           <MenuItem text="Save All" />
                       </items>
                   </Menu>
                   <Menu text="Edit">
                       <items>
-                          <MenuItem text="Undo" />
-                          <MenuItem text="Redo" />
-                          <MenuItem text="Cut" />
-                          <MenuItem text="Copy" />
-                          <MenuItem text="Paste" />
-                          <MenuItem text="Select All" />
-                          <MenuItem text="Find" />
+                          <MenuItem onAction="#undo" text="Undo" />
+                          <MenuItem onAction="#redo" text="Redo" />
+                          <MenuItem onAction="#cut" text="Cut" />
+                          <MenuItem onAction="#copy" text="Copy" />
+                          <MenuItem onAction="#paste" text="Paste" />
+                          <MenuItem onAction="#selectAll" text="Select All" />
+                          <MenuItem onAction="#find" text="Find" />
                       </items>
                   </Menu>
                   <Menu text="Insert">
@@ -130,14 +130,14 @@
                 </StackPane>
             </VBox>
 
-
+            <!-- Main Editor -->
             <TabPane fx:id="tabPane" prefHeight="419.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
                 <tabs>
-                    <Tab>
+                    <Tab userData="note1">
                         <graphic>
-                            <HBox alignment="CENTER_LEFT" spacing="40.0">
-                                <Label text="Note 1" />
-                                <Button onAction="#closeTab" style="-fx-padding: 0 0 0 0; -fx-background-color: transparent;" styleClass="tab-close">
+                            <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                <TextField fx:id="test" editable="false" maxWidth="90" minWidth="50" prefWidth="80" style="-fx-background-color: transparent" text="Note 1" userData="note1" />
+                                <Button onAction="#closeTab" styleClass="tab-close">
                                     <graphic>
                                         <ImageView fitHeight="8.0" fitWidth="8.0" pickOnBounds="true" preserveRatio="true">
                                             <image>
@@ -146,25 +146,28 @@
                                         </ImageView>
                                     </graphic>
                                 </Button>
+                        <padding>
+                           <Insets left="8.0" right="8.0" />
+                        </padding>
                             </HBox>
                         </graphic>
 
                         <content>
                             <SplitPane dividerPositions="0.8317132442284326" styleClass="inner-split">
-                                <VBox prefHeight="379.0" prefWidth="501.0" spacing="5.0" VBox.vgrow="ALWAYS">
-                                    <ToolBar>
-                                        <Button text="🔍">
+                                <VBox prefHeight="379.0" prefWidth="501.0" spacing="5.0" userData="note1" VBox.vgrow="ALWAYS">
+                                    <ToolBar fx:id="toolBar">
+                                        <Button onAction="#find" text="🔍">
                                         </Button>
-                              <Button layoutX="50.0" layoutY="10.0">
-                                 <graphic>
-                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@icons/undo.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
-                                        <Button>
+                                        <Button layoutX="50.0" layoutY="10.0" onAction="#undo">
+                                            <graphic>
+                                                <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                                                   <image>
+                                                      <Image url="@icons/undo.png" />
+                                                   </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <Button onAction="#redo">
                                             <graphic>
                                                 <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
                                                     <image>
@@ -173,7 +176,7 @@
                                                 </ImageView>
                                             </graphic>
                                         </Button>
-                                        <ComboBox fx:id="formatComboBox" prefWidth="109.0" promptText="Normal text">
+                                        <ComboBox fx:id="formatComboBox" prefWidth="120.0" promptText="Normal text">
                                             <items>
                                                 <FXCollections fx:factory="observableArrayList">
                                                     <String fx:value="Normal text" />
@@ -182,7 +185,7 @@
                                                 </FXCollections>
                                             </items>
                                         </ComboBox>
-                                        <ComboBox fx:id="fontComboBox" prefWidth="70.0" promptText="Arial">
+                                        <ComboBox fx:id="fontComboBox" prefWidth="80.0" promptText="Arial">
                                             <items>
                                                 <FXCollections fx:factory="observableArrayList">
                                                     <String fx:value="Arial" />
@@ -209,7 +212,6 @@
                                                 </ImageView>
                                             </graphic>
                                         </Button>
-
                                         <Button fx:id="btnBold" focusTraversable="false" onAction="#bold">
                                             <graphic>
                                                 <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
@@ -243,14 +245,10 @@
                                     </ToolBar>
 
                                     <VBox fx:id="editorContainer" prefWidth="500.0" VBox.vgrow="ALWAYS">
-                              <padding>
-                                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                              </padding></VBox>
-
-<!--                                    <TextArea fx:id="editorTextArea" wrapText="true" VBox.vgrow="ALWAYS">-->
-<!--                              <font>-->
-<!--                                 <Font name="Arial" size="12.0" />-->
-<!--                              </font></TextArea>-->
+                                      <padding>
+                                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                      </padding>
+                                    </VBox>
                                 </VBox>
 
                                 <ScrollPane fitToHeight="true" fitToWidth="true">
@@ -261,52 +259,10 @@
                             </SplitPane>
                         </content>
                     </Tab>
-
-
-                    <Tab>
-                        <graphic>
-                            <HBox alignment="CENTER_LEFT" spacing="40.0">
-                                <Label text="Note 2" />
-                                <Button onAction="#closeTab" style="-fx-padding: 0 0 0 0; -fx-background-color: transparent;" styleClass="tab-close">
-                                    <graphic>
-                                        <ImageView fitHeight="8.0" fitWidth="8.0" pickOnBounds="true" preserveRatio="true">
-                                            <image>
-                                                <Image url="@icons/close.png" />
-                                            </image>
-                                        </ImageView>
-                                    </graphic>
-                                </Button>
-                            </HBox>
-                        </graphic>
-
-                        <content>
-                            <AnchorPane />
-                        </content>
-                    </Tab>
-                    <Tab>
-                        <graphic>
-                            <HBox alignment="CENTER_LEFT" spacing="40.0">
-                                <Label text="Note 3" />
-                                <Button onAction="#closeTab" style="-fx-padding: 0 0 0 0; -fx-background-color: transparent;" styleClass="tab-close">
-                                    <graphic>
-                                        <ImageView fitHeight="8.0" fitWidth="8.0" pickOnBounds="true" preserveRatio="true">
-                                            <image>
-                                                <Image url="@icons/close.png" />
-                                            </image>
-                                        </ImageView>
-                                    </graphic>
-                                </Button>
-                            </HBox>
-                        </graphic>
-
-                        <content>
-                            <AnchorPane />
-                        </content>
-                    </Tab>
                 </tabs>
             </TabPane>
 
-<!--            TODO: Add the remaining buttons on the right side of the tabs-->
+
         </items>
     </SplitPane>
 

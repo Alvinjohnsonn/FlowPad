@@ -26,6 +26,6 @@ public final class ImageSegment implements RichSegment {
 
     @Override
     public int length() {
-        return 1; // one unit for image
+        return 1;
     }
 }

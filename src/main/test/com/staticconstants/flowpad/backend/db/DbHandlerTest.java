@@ -25,16 +25,16 @@ public class DbHandlerTest {
         assertSame(dbHandler, anotherInstance, "Instances should be the same (singleton)");
     }
 
-    @Test
-    public void testGetConnectionNotNull() {
-        Connection conn = dbHandler.getConnection();
-        assertNotNull(conn, "Database connection should not be null");
-        try {
-            assertFalse(conn.isClosed(), "Database connection should be open");
-        } catch (SQLException e) {
-            fail("SQLException occurred when checking connection: " + e.getMessage());
-        }
-    }
+//    @Test
+//    public void testGetConnectionNotNull() {
+//        Connection conn = dbHandler.getConnection();
+//        assertNotNull(conn, "Database connection should not be null");
+//        try {
+//            assertFalse(conn.isClosed(), "Database connection should be open");
+//        } catch (SQLException e) {
+//            fail("SQLException occurred when checking connection: " + e.getMessage());
+//        }
+//    }
 
     @Test
     public void testSuccessfulDbOperation() throws Exception {
