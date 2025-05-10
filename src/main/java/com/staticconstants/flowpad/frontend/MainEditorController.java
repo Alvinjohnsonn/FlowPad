@@ -46,22 +46,18 @@ public class MainEditorController {
     @FXML private Label zoomLabel;
     @FXML private Button btnMinus;
     @FXML private Button btnPlus;
-    @FXML private TextField textFieldFontSize;
+    @FXML public TextField textFieldFontSize;
     @FXML private VBox editorContainer;
     @FXML private TabPane tabPane;
-    @FXML private ComboBox fontComboBox;
+    @FXML public ComboBox fontComboBox;
     @FXML private Button btnBold;
     @FXML private Button btnItalic;
     @FXML private Button btnUnderline;
     @FXML private Button btnBack;
     @FXML private TextField test;
     @FXML private ToolBar toolBar;
-    
-    private boolean isProgrammaticFontUpdate = false;
-    private boolean isDesiredStyleChanged = false;
-    
-    private HashMap<String, CustomStyledArea<ParStyle, RichSegment, TextStyle>> textAreas;
-    private HashMap<String, TextStyle> activeStyles;
+
+    private HashMap<String, TextAreaController> textAreas;
     private String activeNote;
 
     @FXML
@@ -89,7 +85,6 @@ public class MainEditorController {
     @FXML
     public void initialize() {
         textAreas = new HashMap<>();
-        activeStyles = new HashMap<>();
 
         TreeItem<String> rootItem = new TreeItem<>("Notes");
         rootItem.setExpanded(true);
@@ -115,11 +110,11 @@ public class MainEditorController {
             zoomLabel.setText(zoomPercent + "%");
         });
 
-        TextStyle desiredStyle = TextStyle.EMPTY;
-        textFieldFontSize.setText(desiredStyle.getFontSize()+"");
+        textFieldFontSize.setText(TextStyle.EMPTY.getFontSize()+"");
 
-        CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea = null;
-        initializeTextArea(textArea, editorContainer, "note1");
+        TextAreaController tac = new TextAreaController(editorContainer, "note1");
+        tac.initializeUpdateToolbar(this);
+        textAreas.put("note1", tac);
 
         textFieldFontSize.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getText();
@@ -127,7 +122,7 @@ public class MainEditorController {
         }));
 
         textFieldFontSize.textProperty().addListener((obs, oldText, newText) -> {
-            if (isProgrammaticFontUpdate) return;
+            if (textAreas.get(activeNote).isProgrammaticFontUpdate()) return;
             handleFontSizeChange(newText);
         });
 
@@ -137,20 +132,21 @@ public class MainEditorController {
 
         fontComboBox.getItems().addAll(Font.getFamilies());
         fontComboBox.setOnAction(event -> {
-            if (isProgrammaticFontUpdate) return;
+            if (textAreas.get(activeNote).isProgrammaticFontUpdate()) return;
             String selectedFont = (String)fontComboBox.getValue();
             if (selectedFont != null) {
-                TextStyle newStyle = getActiveDesiredStyle().setFontFamily(selectedFont);
-                setActiveDesiredStyle(newStyle);
-                TextStyle.toggleStyle(getActiveTextArea(), TextAttribute.FONT_FAMILY, getActiveDesiredStyle());
+                TextAreaController active = textAreas.get(activeNote);
+                TextStyle newStyle = active.getDesiredStyle().setFontFamily(selectedFont);
+                active.setDesiredStyle(newStyle);
+                TextStyle.toggleStyle(active.getTextArea(), TextAttribute.FONT_FAMILY, active.getDesiredStyle());
 
-                isDesiredStyleChanged = true;
+                textAreas.get(activeNote).setDesiredStyleChanged(true);
             }
         });
 
         fontComboBox.showingProperty().addListener((obs, wasShowing, isNowShowing) -> {
             if (!isNowShowing) {
-                Platform.runLater(() -> getActiveTextArea().requestFocus());
+                Platform.runLater(() -> textAreas.get(activeNote).getTextArea().requestFocus());
             }
         });
 
@@ -187,11 +183,17 @@ public class MainEditorController {
         });
         test.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.ESCAPE){
-                ((TextField)event.getSource()).setEditable(false);
+                test.deselect();
+                test.setEditable(false);
+                renameFile(test);
             }
         });
         test.focusedProperty().addListener((obs,old,current) -> {
-            if (!current) test.setEditable(false);
+            if (!current){
+                test.deselect();
+                test.setEditable(false);
+                renameFile(test);
+            }
         });
         test.textProperty().addListener((obs, oldS, newS) -> {
             test.setPrefWidth(newS.length() * 7);
@@ -199,109 +201,20 @@ public class MainEditorController {
 
         tabPane.getSelectionModel().selectedItemProperty().addListener(
                 (obs,oldTab, newTab) -> {
-                    if (oldTab == newTab) return;
+                    if (oldTab == newTab || newTab==null) return;
                     SplitPane sp = (SplitPane)newTab.getContent();
                     VBox vb = (VBox)sp.getItems().getFirst();
 
                     if (!vb.getChildren().contains(toolBar)) vb.getChildren().addFirst(toolBar);
                     
                     activeNote = (String)newTab.getUserData();
+
+                    textAreas.get(activeNote).reload();
                 });
 
         newNote();
     }
 
-    private void initializeTextArea(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, VBox editorContainer, String userData) {
-        ParStyle initialParStyle = ParStyle.EMPTY;
-        TextStyle desiredStyle = TextStyle.EMPTY;
-        TextStyle initialTextStyle = TextStyle.EMPTY;
-
-        BiConsumer<TextFlow, ParStyle> paragraphStyler = (tf, p) -> {};
-
-        Function<StyledSegment<RichSegment, TextStyle>, Node> nodeFactory = seg -> {
-            RichSegment s = seg.getSegment();
-            TextStyle style = seg.getStyle();
-
-            if (s instanceof TextSegment textSeg) {
-                TextExt text = new TextExt(textSeg.getText());
-                String fontFamily = style.getFontFamily();
-
-                FontWeight weight = style.isBold() ? FontWeight.BOLD : FontWeight.NORMAL;
-                FontPosture posture = style.isItalic() ? FontPosture.ITALIC : FontPosture.REGULAR;
-
-                Font font = Font.font(fontFamily, weight, posture, style.getFontSize());
-                text.setFont(font);
-
-                text.setUnderline(style.isUnderline());
-
-                // Add later
-//                style.getTextColor().ifPresent(text::setFill); // assuming getTextColor() returns Optional<Paint>
-
-                return text;
-
-            } else if (s instanceof ImageSegment imgSeg) {
-                ImageView view = new ImageView(imgSeg.getImage());
-                view.setFitWidth(200);
-                view.setPreserveRatio(true);
-                return view;
-            }
-
-            return new Text("?");
-        };
-
-        RichTextOps<RichSegment, TextStyle> segmentOps = new RichTextOps<RichSegment, TextStyle>();
-
-
-        textArea =  new CustomStyledArea<ParStyle, RichSegment, TextStyle>(
-                initialParStyle,
-                paragraphStyler,
-                initialTextStyle,
-                segmentOps,
-                nodeFactory
-        );
-        textArea.setWrapText(true);
-
-        textArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
-            updateFontSizeFieldFromSelection();
-            updateFormattingFieldFromSelection();
-            updateFontFamilyFromSelection();
-            isDesiredStyleChanged = false;
-//            TODO: Do more testing, doesn't always work
-        });
-        textArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
-            System.out.println("Caret moved: " + newPos);
-            System.out.println("Current segment: " + getSegmentAt(newPos-1));
-        });
-
-        CustomStyledArea<ParStyle, RichSegment, TextStyle> finaltextArea = textArea;
-        textArea.setOnKeyTyped(event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.V) {
-                return;
-            }
-
-            int caretPosition = finaltextArea.getCaretPosition();
-            if (caretPosition > 0) {
-                finaltextArea.setStyle(caretPosition - 1, caretPosition, desiredStyle);
-            }
-        });
-
-        textArea.setOnKeyPressed(event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.V) {
-                Clipboard clipboard = Clipboard.getSystemClipboard();
-                if (clipboard.hasImage()) {
-                    insertImage(clipboard.getImage());
-                    event.consume();
-                }
-            }
-
-        });
-
-        VBox.setVgrow(textArea, Priority.ALWAYS);
-        editorContainer.getChildren().add(textArea);
-
-        activeStyles.put(userData, desiredStyle);
-        textAreas.put(userData, textArea);
-    }
 
     public static String hashMapStyleToString(HashMap<String, String> styles){
         String styleString = "";
@@ -317,7 +230,16 @@ public class MainEditorController {
         inactive.getStyleClass().removeAll("selected");
     }
 
-    public static void setSelectedButton(Button btn, boolean isSelected) {
+    public void setSelectedButton(TextAttribute att, boolean isSelected) {
+        Button btn = null;
+        switch(att){
+            case BOLD -> btn = btnBold;
+            case ITALIC -> btn = btnItalic;
+            case UNDERLINE -> btn = btnUnderline;
+        }
+
+        if (btn==null)return;
+
         if (isSelected && !btn.getStyleClass().contains("selected")) btn.getStyleClass().add("selected");
 
         else if (!isSelected) btn.getStyleClass().removeAll("selected");
@@ -334,10 +256,10 @@ public class MainEditorController {
         int fontSize = Integer.parseInt(textFieldFontSize.getText());
         fontSize++;
         textFieldFontSize.setText(fontSize + "");
-        TextStyle newStyle = getActiveDesiredStyle().setFontSize(fontSize);
-        setActiveDesiredStyle(newStyle);
+        TextStyle newStyle = textAreas.get(activeNote).getDesiredStyle().setFontSize(fontSize);
+        textAreas.get(activeNote).setDesiredStyle(newStyle);
 
-        isDesiredStyleChanged = true;
+        textAreas.get(activeNote).setDesiredStyleChanged(true);
     }
 
     @FXML
@@ -346,40 +268,45 @@ public class MainEditorController {
         if (fontSize > 1) {
             fontSize--;
             textFieldFontSize.setText(fontSize + "");
-            TextStyle newStyle = getActiveDesiredStyle().setFontSize(fontSize);
-            setActiveDesiredStyle(newStyle);
+            TextStyle newStyle = textAreas.get(activeNote).getDesiredStyle().setFontSize(fontSize);
+            textAreas.get(activeNote).setDesiredStyle(newStyle);
 
-            isDesiredStyleChanged = true;
+            textAreas.get(activeNote).setDesiredStyleChanged(true);
         }
     }
 
     @FXML
     private void bold(){
-        TextStyle newStyle = getActiveDesiredStyle().toggleBold();
-        setActiveDesiredStyle(newStyle);
+        TextAreaController active = textAreas.get(activeNote);
+        TextStyle newStyle = active.getDesiredStyle().toggleBold();
+        active.setDesiredStyle(newStyle);
 
-        TextStyle.toggleStyle(getActiveTextArea(), TextAttribute.BOLD, getActiveDesiredStyle());
+        TextStyle.toggleStyle(active.getTextArea(), TextAttribute.BOLD, active.getDesiredStyle());
         toggleSelectedButton(btnBold);
 
-        isDesiredStyleChanged = true;
+        active.setDesiredStyleChanged(true);
     }
     @FXML
     private void italic(){
-        TextStyle newStyle = getActiveDesiredStyle().toggleItalic();
-        setActiveDesiredStyle(newStyle);
-        TextStyle.toggleStyle(getActiveTextArea(), TextAttribute.ITALIC, getActiveDesiredStyle());
+        TextAreaController active = textAreas.get(activeNote);
+        TextStyle newStyle = active.getDesiredStyle().toggleItalic();
+        active.setDesiredStyle(newStyle);
+
+        TextStyle.toggleStyle(active.getTextArea(), TextAttribute.ITALIC, active.getDesiredStyle());
         toggleSelectedButton(btnItalic);
 
-        isDesiredStyleChanged = true;
+        active.setDesiredStyleChanged(true);
     }
     @FXML
     private void underline(){
-        TextStyle newStyle = getActiveDesiredStyle().toggleUnderline();
-        setActiveDesiredStyle(newStyle);
-        TextStyle.toggleStyle(getActiveTextArea(), TextAttribute.UNDERLINE, getActiveDesiredStyle());
+        TextAreaController active = textAreas.get(activeNote);
+        TextStyle newStyle = active.getDesiredStyle().toggleUnderline();
+        active.setDesiredStyle(newStyle);
+
+        TextStyle.toggleStyle(active.getTextArea(), TextAttribute.UNDERLINE, active.getDesiredStyle());
         toggleSelectedButton(btnUnderline);
 
-        isDesiredStyleChanged = true;
+        active.setDesiredStyleChanged(true);
     }
 
     @FXML
@@ -403,91 +330,13 @@ public class MainEditorController {
 
     @FXML
     private void handleFontSizeChange(String size){
-        TextStyle newStyle = getActiveDesiredStyle().setFontSize(Integer.parseInt(size));
-        setActiveDesiredStyle(newStyle);
+        TextAreaController active = textAreas.get(activeNote);
+        TextStyle newStyle = active.getDesiredStyle().setFontSize(Integer.parseInt(size));
+        active.setDesiredStyle(newStyle);
 
-        TextStyle.toggleStyle(getActiveTextArea(), TextAttribute.FONT_SIZE, getActiveDesiredStyle());
+        TextStyle.toggleStyle(active.getTextArea(), TextAttribute.FONT_SIZE, active.getDesiredStyle());
 
-        isDesiredStyleChanged = true;
-    }
-
-
-    private void updateFontSizeFieldFromSelection() {
-        IndexRange selection = getActiveTextArea().getSelection();
-        int fontSize = 0;
-
-        if (selection.getLength() == 0) {
-            int caretPosition = getActiveTextArea().getCaretPosition();
-            TextStyle style = getActiveTextArea().getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition + 1);
-
-//            RichSegment seg = getSegmentAt(caretPosition > 0 ? caretPosition : caretPosition + 1);
-//            if (seg instanceof TextSegment) {
-                fontSize = style.getFontSize();
-//            } else {
-//                return;
-//            }
-        } else {
-            List<Integer> sizes = new ArrayList<>();
-            for (int i = selection.getStart(); i < selection.getEnd(); i++) {
-                sizes.add(getActiveTextArea().getStyleAtPosition(i).getFontSize());
-            }
-            fontSize = Collections.max(sizes);
-        }
-
-        isProgrammaticFontUpdate = true;
-        textFieldFontSize.setText(String.valueOf(fontSize));
-        if (!isDesiredStyleChanged) {
-            TextStyle newStyle = getActiveDesiredStyle().setFontSize(fontSize);
-            setActiveDesiredStyle(newStyle);
-        }
-        isProgrammaticFontUpdate = false;
-    }
-
-    private void updateFormattingFieldFromSelection(){
-        IndexRange selection = getActiveTextArea().getSelection();
-        int start = selection.getStart();
-        int end = selection.getEnd();
-
-        int posToCheck = (start > 0) ? start : start+1;
-//        RichSegment seg = getSegmentAt(posToCheck);
-//        if (!(seg instanceof TextSegment)) return;
-
-        TextStyle referenceStyle;
-        if (start == end) {
-            referenceStyle = getActiveTextArea().getStyleAtPosition(posToCheck);
-        } else {
-            referenceStyle = TextStyle.getStyleSelection(getActiveTextArea(), start, end);
-        }
-
-        isProgrammaticFontUpdate = true;
-        if (!isDesiredStyleChanged) {
-            TextStyle newStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), getActiveDesiredStyle().getFontSize(), getActiveDesiredStyle().getFontFamily());
-            setActiveDesiredStyle(newStyle);
-        }
-        isProgrammaticFontUpdate = false;
-
-        setSelectedButton(btnBold, referenceStyle.isBold());
-        setSelectedButton(btnItalic, referenceStyle.isItalic());
-        setSelectedButton(btnUnderline, referenceStyle.isUnderline());
-    }
-
-
-    private void updateFontFamilyFromSelection(){
-        int caretPosition = getActiveTextArea().getCaretPosition();
-        TextStyle style = getActiveTextArea().getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition+1);
-        String fontFamily = style.getFontFamily();
-
-//        RichSegment seg = getSegmentAt(caretPosition > 0 ? caretPosition : caretPosition + 1);
-//        if (!(seg instanceof TextSegment)) return;
-
-        isProgrammaticFontUpdate = true;
-        fontComboBox.getSelectionModel().select(fontFamily);
-        isProgrammaticFontUpdate = false;
-
-        if (!isDesiredStyleChanged) {
-            TextStyle newStyle = getActiveDesiredStyle().setFontFamily(fontFamily);
-            setActiveDesiredStyle(newStyle);
-        }
+        active.setDesiredStyleChanged(true);
     }
 
 
@@ -500,10 +349,11 @@ public class MainEditorController {
                 if (hbox.getChildren().contains(source)) {
 //                    TODO: Check if code is safe, prone to errors
                     textAreas.remove(tab.getUserData());
-                    activeStyles.remove(tab.getUserData());
                     tabPane.getTabs().remove(tab);
 
-                    activeNote = (String)tabPane.getTabs().getFirst().getUserData();
+
+                    if (!tabPane.getTabs().isEmpty())
+                        activeNote = (String)tabPane.getTabs().getFirst().getUserData();
                     break;
                 }
             }
@@ -526,14 +376,15 @@ public class MainEditorController {
         HBox hbox = new HBox();
         hbox.setAlignment(Pos.CENTER_LEFT);
         hbox.setSpacing(12.0);
-        hbox.setPadding(new Insets(0 ,8 ,0, 8));
+        hbox.setPadding(new Insets(2 ,8,2, 8));
 
 //        Initialize Label Title
         TextField title = new TextField(fileName);
         title.setPrefWidth(80);
-        title.setMaxWidth(90);
-        title.setMinWidth(50);
+        title.setMaxWidth(80);
+        title.setMinWidth(80);
         title.setEditable(false);
+        title.setPadding(new Insets(0,0,0,0));
         title.setUserData(fileName);
         title.getStyleClass().add("bg-transparent");
         title.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -569,14 +420,19 @@ public class MainEditorController {
 
         title.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.ESCAPE){
-                ((TextField)event.getSource()).setEditable(false);
+                title.deselect();
+                title.setEditable(false);
+                renameFile(title);
 
-//                TODO: Rename Note object
             }
         });
 
         title.focusedProperty().addListener((obs,old,current) -> {
-            if (!current) title.setEditable(false);
+            if (!current){
+                title.deselect();
+                title.setEditable(false);
+                renameFile(title);
+            }
 
 //            TODO: Rename Note object
         });
@@ -627,8 +483,9 @@ public class MainEditorController {
         VBox.setVgrow(editor,Priority.ALWAYS);
         editor.setPadding(new Insets(10,10,10,10));
 
-        CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea = null;
-        initializeTextArea(textArea, editor, fileName);
+        TextAreaController newTextArea = new TextAreaController(editor,fileName);
+        newTextArea.initializeUpdateToolbar(this);
+        textAreas.put(fileName, newTextArea);
 
 //        Complete All Setup
         mainContainer.getChildren().add(editor);
@@ -638,6 +495,7 @@ public class MainEditorController {
         tabPane.getTabs().add(newTab);
         tabPane.getSelectionModel().select(newTab);
     }
+
 
     @FXML
     private void undo(){
@@ -672,8 +530,29 @@ public class MainEditorController {
     }
 
     @FXML
-    private void renameFile(Label fileName){
+    private void renameFile(TextField tf){
+        Object tag = tf.getUserData()==null ? "" : tf.getUserData();
 
+        if (tag.equals(tf.getText())) return;
+
+        Tab tab = null;
+
+        for (Tab t : tabPane.getTabs()){
+            if (t.getUserData()!=null && t.getUserData().equals(tag)){
+                tab = t;
+                break;
+            }
+        }
+
+        if (tab==null) return;
+
+        TextAreaController temp = textAreas.get(tab.getUserData());
+        textAreas.remove(tab.getUserData());
+        tf.setUserData(tf.getText());
+        tab.setUserData(tf.getText());
+        textAreas.put(tf.getText(), temp);
+
+//        TODO: Rename Note object
     }
 
 
@@ -691,29 +570,17 @@ public class MainEditorController {
         stage.setMaximized(true);
     }
 
-    private void insertImage(Image image) {
-        if (image == null) return;
-
-        int pos = getActiveTextArea().getCaretPosition();
-
-        TextStyle style = Optional.ofNullable(getActiveTextArea().getStyleAtPosition(pos))
-                .orElse(TextStyle.EMPTY);
-
-        getActiveTextArea().insert(pos, new ImageSegment(image), style);
-        getActiveTextArea().insert(pos + 1, new TextSegment(""), style);
-        getActiveTextArea().moveTo(pos+1);
-    }
 
     private RichSegment getSegmentAt(int position) {
-        if (position < 0 || position >= getActiveTextArea().getLength()) {
+        if (position < 0 || position >= textAreas.get(activeNote).getTextArea().getLength()) {
             return null;
         }
 
-        TwoDimensional.Position twoDimPos = getActiveTextArea().offsetToPosition(position, Forward);
+        TwoDimensional.Position twoDimPos = textAreas.get(activeNote).getTextArea().offsetToPosition(position, Forward);
         int paragraphIndex = twoDimPos.getMajor();
         int column = twoDimPos.getMinor();
 
-        Paragraph<ParStyle, RichSegment, TextStyle> paragraph = getActiveTextArea().getParagraph(paragraphIndex);
+        Paragraph<ParStyle, RichSegment, TextStyle> paragraph = textAreas.get(activeNote).getTextArea().getParagraph(paragraphIndex);
         int offset = 0;
 
         for (StyledSegment<RichSegment, TextStyle> seg : paragraph.getStyledSegments()) {
@@ -726,15 +593,6 @@ public class MainEditorController {
 
         return null;
     }
-    
-    private CustomStyledArea<ParStyle, RichSegment, TextStyle> getActiveTextArea(){
-        return textAreas.get(activeNote);
-    }
-    private TextStyle getActiveDesiredStyle(){
-        return activeStyles.get(activeNote);
-    }
-    private void setActiveDesiredStyle(TextStyle newStyle){
-        activeStyles.put(activeNote, newStyle);
-    }
+
 
 }
