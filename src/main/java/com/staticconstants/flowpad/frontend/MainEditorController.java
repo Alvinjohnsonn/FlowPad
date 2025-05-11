@@ -54,7 +54,6 @@ public class MainEditorController {
     @FXML private Button btnItalic;
     @FXML private Button btnUnderline;
     @FXML private Button btnBack;
-    @FXML private TextField test;
     @FXML private ToolBar toolBar;
 
     private HashMap<String, TextAreaController> textAreas;
@@ -150,55 +149,6 @@ public class MainEditorController {
             }
         });
 
-
-//        Tab Setup
-        test.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent mouseEvent) {
-                if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
-                    if(mouseEvent.getClickCount() == 2){
-                        TextField tf = (TextField)mouseEvent.getSource();
-                        tf.setEditable(true);
-                        tf.selectAll();
-
-                    }
-                }
-            }
-        });
-        test.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
-            Object tag = ((TextField)event.getSource()).getUserData();
-            Tab tab = null;
-
-            for (Tab t : tabPane.getTabs()){
-                if (t.getUserData().equals(tag)){
-                    tab = t;
-                    break;
-                }
-            }
-
-            if (tab!=null) {
-                tabPane.getSelectionModel().select(tab);
-
-            }
-        });
-        test.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.ESCAPE){
-                test.deselect();
-                test.setEditable(false);
-                renameFile(test);
-            }
-        });
-        test.focusedProperty().addListener((obs,old,current) -> {
-            if (!current){
-                test.deselect();
-                test.setEditable(false);
-                renameFile(test);
-            }
-        });
-        test.textProperty().addListener((obs, oldS, newS) -> {
-            test.setPrefWidth(newS.length() * 7);
-        });
-
         tabPane.getSelectionModel().selectedItemProperty().addListener(
                 (obs,oldTab, newTab) -> {
                     if (oldTab == newTab || newTab==null) return;
@@ -211,6 +161,7 @@ public class MainEditorController {
 
                     textAreas.get(activeNote).reload();
                 });
+        tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
 
         newNote();
     }
