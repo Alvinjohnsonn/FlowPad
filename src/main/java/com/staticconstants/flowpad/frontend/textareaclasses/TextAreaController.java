@@ -226,7 +226,7 @@ public class TextAreaController {
 
         programmaticFontUpdate = true;
         if (!desiredStyleChanged) {
-            desiredStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), desiredStyle.getFontSize(), desiredStyle.getFontFamily());
+            desiredStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), desiredStyle.getFontSize(), desiredStyle.getFontFamily(), desiredStyle.getBackgroundColor() );
         }
         programmaticFontUpdate = false;
 

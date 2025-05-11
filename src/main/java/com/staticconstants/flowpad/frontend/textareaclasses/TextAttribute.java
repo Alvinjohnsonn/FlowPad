@@ -5,5 +5,6 @@ public enum TextAttribute {
     ITALIC,
     UNDERLINE,
     FONT_SIZE,
-    FONT_FAMILY
+    FONT_FAMILY,
+    HIGHLIGHT
 }

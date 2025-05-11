@@ -54,6 +54,7 @@ public class MainEditorController {
     @FXML private Button btnItalic;
     @FXML private Button btnUnderline;
     @FXML private Button btnBack;
+    @FXML private Button btnMarker;
     @FXML private ToolBar toolBar;
 
     private HashMap<String, TextAreaController> textAreas;
@@ -261,6 +262,17 @@ public class MainEditorController {
     }
 
     @FXML
+    private void highlight() {
+        TextAreaController active = textAreas.get(activeNote);
+        TextStyle newStyle = active.getDesiredStyle().toggleHighlight();
+        active.setDesiredStyle(newStyle);
+
+        TextStyle.toggleStyle(active.getTextArea(), TextAttribute.HIGHLIGHT, active.getDesiredStyle());
+        toggleSelectedButton(btnMarker);
+        active.setDesiredStyleChanged(true);
+    }
+
+    @FXML
     private void save(){
 
 //        try {
@@ -450,12 +462,18 @@ public class MainEditorController {
 
     @FXML
     private void undo(){
-
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null && active.getTextArea().isUndoAvailable()) {
+            active.getTextArea().undo();
+        }
     }
 
     @FXML
     private void redo(){
-
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null && active.getTextArea().isRedoAvailable()) {
+            active.getTextArea().redo();
+        }
     }
     @FXML
     private void cut(){

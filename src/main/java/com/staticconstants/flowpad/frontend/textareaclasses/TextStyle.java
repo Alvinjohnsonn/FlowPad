@@ -19,41 +19,48 @@ public class TextStyle {
     private final boolean underline;
     private final int fontSize;
     private final String fontFamily;
+    private final String backgroundColor;
 
-    public static final TextStyle EMPTY = new TextStyle(false, false, false,12, "Arial");
+    public static final TextStyle EMPTY = new TextStyle(false, false, false,12, "Arial", null);
 
 
-    public TextStyle(boolean bold, boolean italic, boolean underline, int fontSize, String fontFamily) {
+    public TextStyle(boolean bold, boolean italic, boolean underline, int fontSize, String fontFamily, String backgroundColor) {
         this.bold = bold;
         this.italic = italic;
         this.underline = underline;
         this.fontSize = fontSize;
         this.fontFamily = fontFamily;
+        this.backgroundColor = backgroundColor;
     }
     public TextStyle setBold(boolean bold) {
-        return new TextStyle(bold, this.italic, this.underline, this.fontSize, this.fontFamily);
+        return new TextStyle(bold, this.italic, this.underline, this.fontSize, this.fontFamily, this.backgroundColor);
     }
     public TextStyle toggleBold() {
-        return new TextStyle(!this.bold, this.italic, this.underline, this.fontSize, this.fontFamily);
+        return new TextStyle(!this.bold, this.italic, this.underline, this.fontSize, this.fontFamily, this.backgroundColor);
     }
     public TextStyle setItalic(boolean italic) {
-        return new TextStyle(this.bold, italic, this.underline, this.fontSize, this.fontFamily);
+        return new TextStyle(this.bold, italic, this.underline, this.fontSize, this.fontFamily, this.backgroundColor);
     }
     public TextStyle toggleItalic() {
-        return new TextStyle(this.bold, !this.italic, this.underline, this.fontSize, this.fontFamily);
+        return new TextStyle(this.bold, !this.italic, this.underline, this.fontSize, this.fontFamily, this.backgroundColor);
     }
     public TextStyle setUnderline(boolean underline) {
-        return new TextStyle(this.bold, this.italic, underline, this.fontSize, this.fontFamily);
+        return new TextStyle(this.bold, this.italic, underline, this.fontSize, this.fontFamily, this.backgroundColor);
     }
     public TextStyle toggleUnderline() {
-        return new TextStyle(this.bold, this.italic, !this.underline, this.fontSize, this.fontFamily);
+        return new TextStyle(this.bold, this.italic, !this.underline, this.fontSize, this.fontFamily, this.backgroundColor);
     }
     public TextStyle setFontSize(int size) {
-        return new TextStyle(this.bold, this.italic, this.underline, size, fontFamily);
+        return new TextStyle(this.bold, this.italic, this.underline, size, fontFamily, this.backgroundColor);
     }
     public TextStyle setFontFamily(String fontFamily) {
-        return new TextStyle(this.bold, this.italic, this.underline, this.fontSize, fontFamily);
+        return new TextStyle(this.bold, this.italic, this.underline, this.fontSize, fontFamily, this.backgroundColor);
     }
+
+    public TextStyle setBackgroundColor(String backgroundColor) {
+        return new TextStyle(this.bold, this.italic, this.underline, this.fontSize, this.fontFamily, backgroundColor);
+    }
+
 
     public boolean isBold() {
         return bold;
@@ -73,6 +80,10 @@ public class TextStyle {
 
     public String getFontFamily() {
         return fontFamily;
+    }
+
+    public String getBackgroundColor() {
+        return backgroundColor;
     }
 
     @Override
@@ -113,6 +124,12 @@ public class TextStyle {
             }
             area.setStyle(i-1, i, updated);
         }
+    }
+
+    public TextStyle toggleHighlight() {
+        String newColor = "yellow";
+        return new TextStyle(this.bold, this.italic, this.underline, this.fontSize, this.fontFamily,
+                "yellow".equals(this.backgroundColor) ? null : newColor);
     }
 
 
@@ -158,22 +175,24 @@ public class TextStyle {
 
     public TextStyle apply(TextAttribute attr, TextStyle desiredStyle) {
         return switch (attr) {
-            case BOLD -> new TextStyle(desiredStyle.bold, isItalic(), underline, fontSize, fontFamily);
-            case ITALIC -> new TextStyle(bold, desiredStyle.italic, underline, fontSize, fontFamily);
-            case UNDERLINE -> new TextStyle(bold, italic, desiredStyle.underline, fontSize, fontFamily);
-            case FONT_SIZE -> new TextStyle(bold, italic, underline, desiredStyle.fontSize, fontFamily);
-            case FONT_FAMILY -> new TextStyle(bold, italic, underline, fontSize, desiredStyle.fontFamily);
+            case BOLD -> new TextStyle(desiredStyle.bold, isItalic(), underline, fontSize, fontFamily, backgroundColor);
+            case ITALIC -> new TextStyle(bold, desiredStyle.italic, underline, fontSize, fontFamily, backgroundColor);
+            case UNDERLINE -> new TextStyle(bold, italic, desiredStyle.underline, fontSize, fontFamily, backgroundColor);
+            case FONT_SIZE -> new TextStyle(bold, italic, underline, desiredStyle.fontSize, fontFamily, backgroundColor);
+            case FONT_FAMILY -> new TextStyle(bold, italic, underline, fontSize, desiredStyle.fontFamily, backgroundColor);
+            case HIGHLIGHT -> new TextStyle(bold, italic, underline, fontSize, fontFamily, desiredStyle.backgroundColor);
         };
     }
 
 
     public TextStyle remove(TextAttribute attr) {
         return switch (attr) {
-            case BOLD -> new TextStyle(false, italic, underline, fontSize, fontFamily);
-            case ITALIC -> new TextStyle(bold, false, underline, fontSize, fontFamily);
-            case UNDERLINE -> new TextStyle(bold, italic, false, fontSize, fontFamily);
+            case BOLD -> new TextStyle(false, italic, underline, fontSize, fontFamily, backgroundColor);
+            case ITALIC -> new TextStyle(bold, false, underline, fontSize, fontFamily, backgroundColor);
+            case UNDERLINE -> new TextStyle(bold, italic, false, fontSize, fontFamily, backgroundColor);
             case FONT_SIZE -> this;
             case FONT_FAMILY -> this;
+            case HIGHLIGHT -> new TextStyle(bold, italic, underline, fontSize, fontFamily, null);
         };
     }
 
@@ -184,6 +203,7 @@ public class TextStyle {
             case UNDERLINE -> underline == desiredStyle.underline;
             case FONT_SIZE -> fontSize == desiredStyle.fontSize;
             case FONT_FAMILY -> fontFamily.equals(desiredStyle.fontFamily);
+            case HIGHLIGHT -> Objects.equals(backgroundColor, desiredStyle.backgroundColor);
         };
     }
 

@@ -239,6 +239,15 @@
                                                 </ImageView>
                                             </graphic>
                                         </Button>
+                              <Button id="btnMarker" fx:id="btnMarker" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#highlight">
+                                 <graphic>
+                                    <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icons/marker.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
                                         <Button fx:id="btnSave" onAction="#save">
                                             <String fx:value="Save" />
                                         </Button>
