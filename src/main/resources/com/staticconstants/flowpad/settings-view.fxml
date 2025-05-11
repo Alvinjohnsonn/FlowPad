@@ -31,6 +31,7 @@
         <Button text="Theme"/>
         <Button text="Review History"/>
         <Button fx:id="btnGoBack" text="Back" onAction="#goBack" />
+        <Button fx:id="logoutbtn" text="Log Out" onAction="#onLogOutButtonClick" />
     </VBox>
 
     <Label fx:id="welcomeText"/>

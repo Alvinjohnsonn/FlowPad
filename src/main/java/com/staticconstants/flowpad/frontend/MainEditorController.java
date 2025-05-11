@@ -10,6 +10,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -41,6 +43,7 @@ public class MainEditorController {
     @FXML private Button btnItalic;
     @FXML private Button btnUnderline;
     @FXML private Button btnBack;
+    @FXML private Button profilebtn;
 
     private InlineCssTextArea richTextArea;
     private boolean isProgrammaticFontUpdate = false;
@@ -439,6 +442,21 @@ public class MainEditorController {
         Scene scene = new Scene(fxmlLoader.load());
         scene.getStylesheets().add(stylesheet);
         stage.setTitle("Home Page");
+
+        stage.setScene(scene);
+        stage.setMaximized(true);
+    }
+
+
+    @FXML
+    protected void onProfileButtonClick() throws IOException {
+        Stage stage = (Stage) profilebtn.getScene().getWindow();
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("settings-view.fxml"));
+        String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
+
+        Scene scene = new Scene(fxmlLoader.load());
+        scene.getStylesheets().add(stylesheet);
+        stage.setTitle("Settings Page");
 
         stage.setScene(scene);
         stage.setMaximized(true);
