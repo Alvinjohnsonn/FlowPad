@@ -176,6 +176,33 @@
                                                 </ImageView>
                                             </graphic>
                                         </Button>
+                              <Button layoutX="86.0" layoutY="10.0" onAction="#cut">
+                                 <graphic>
+                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icons/scissors.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                              <Button layoutX="122.0" layoutY="10.0" onAction="#copy">
+                                 <graphic>
+                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icons/copy.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                              <Button layoutX="132.0" layoutY="20.0" onAction="#paste">
+                                 <graphic>
+                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@icons/paste.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
                                         <ComboBox fx:id="formatComboBox" prefWidth="120.0" promptText="Normal text">
                                             <items>
                                                 <FXCollections fx:factory="observableArrayList">

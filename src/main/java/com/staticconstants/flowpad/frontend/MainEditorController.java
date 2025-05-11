@@ -477,21 +477,33 @@ public class MainEditorController {
     }
     @FXML
     private void cut(){
-
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null) {
+            active.getTextArea().cut();
+        }
     }
     @FXML
     private void copy(){
-
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null) {
+            active.getTextArea().copy();
+        }
     }
 
     @FXML
     private void paste(){
-
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null) {
+            active.getTextArea().paste();
+        }
     }
 
     @FXML
     private void selectAll(){
-
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null) {
+            active.getTextArea().selectAll();
+        }
     }
     @FXML
     private void find(){
