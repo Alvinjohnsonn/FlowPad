@@ -203,12 +203,15 @@
                                     </ImageView>
                                  </graphic>
                               </Button>
-                                        <ComboBox fx:id="formatComboBox" prefWidth="120.0" promptText="Normal text">
+                                        <ComboBox fx:id="headingComboBox" prefWidth="120.0" promptText="Normal text">
                                             <items>
                                                 <FXCollections fx:factory="observableArrayList">
-                                                    <String fx:value="Normal text" />
                                                     <String fx:value="Heading 1" />
                                                     <String fx:value="Heading 2" />
+                                                    <String fx:value="Heading 3" />
+                                                    <String fx:value="Heading 4" />
+                                                    <String fx:value="Heading 5" />
+                                                    <String fx:value="Normal text" />
                                                 </FXCollections>
                                             </items>
                                         </ComboBox>

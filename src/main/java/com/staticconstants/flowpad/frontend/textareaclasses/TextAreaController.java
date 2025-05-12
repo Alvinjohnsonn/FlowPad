@@ -15,6 +15,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.*;
 import org.fxmisc.richtext.TextExt;
+import org.fxmisc.richtext.model.Codec;
 import org.fxmisc.richtext.model.StyledSegment;
 
 import java.util.*;
@@ -47,35 +48,19 @@ public class TextAreaController {
             TextStyle style = seg.getStyle();
 
             if (s instanceof TextSegment textSeg) {
-                TextExt text = new TextExt(textSeg.getText());
-                String fontFamily = style.getFontFamily();
-
-                FontWeight weight = style.isBold() ? FontWeight.BOLD : FontWeight.NORMAL;
-                FontPosture posture = style.isItalic() ? FontPosture.ITALIC : FontPosture.REGULAR;
-                Font font = Font.font(fontFamily, weight, posture, style.getFontSize());
-                text.setFont(font);
-
-                text.setUnderline(style.isUnderline());
-                text.setBackgroundColor(Paint.valueOf(style.getBackgroundColor()));
-                // Add later
-//                style.getTextColor().ifPresent(text::setFill); // assuming getTextColor() returns Optional<Paint>
-//                Optional<Paint> color = Optional.of(Paint.valueOf(style.getBackgroundColor() == null ? "transparent" : style.getBackgroundColor()));
-//                color.ifPresent(text::setBackgroundColor);
-
-                return text;
+                return textSeg.createNode(style);
 
             } else if (s instanceof ImageSegment imgSeg) {
-                ImageView view = new ImageView(imgSeg.getImage());
-                view.setFitWidth(200);
-                view.setPreserveRatio(true);
-                return view;
+                return imgSeg.createNode(style);
             }
 
             return new Text("?");
         };
 
         RichTextOps<RichSegment, TextStyle> segmentOps = new RichTextOps<RichSegment, TextStyle>();
-
+        RichSegmentCodec richSegmentCodec = new RichSegmentCodec();
+        TextStyleCodec textStyleCodec = new TextStyleCodec();
+        ParStyleCodec parStyleCodec = new ParStyleCodec();
 
         textArea =  new CustomStyledArea<ParStyle, RichSegment, TextStyle>(
                 initialParStyle,
@@ -86,6 +71,10 @@ public class TextAreaController {
         );
         textArea.setWrapText(true);
         textArea.setUserData(userData);
+        textArea.setStyleCodecs(
+                parStyleCodec,
+                Codec.styledSegmentCodec(richSegmentCodec,textStyleCodec)
+        );
 
         // For testing purposes
 //        textArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
@@ -135,9 +124,7 @@ public class TextAreaController {
 
     public void initializeUpdateToolbar(MainEditorController scene){
         textArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
-            updateFontSizeFieldFromSelection(scene.textFieldFontSize);
-            updateFormattingFieldFromSelection(scene);
-            updateFontFamilyFromSelection(scene.fontComboBox);
+            updateToolbar(scene);
             desiredStyleChanged = false;
 //            TODO: Do more testing, doesn't always work
         });
@@ -157,9 +144,7 @@ public class TextAreaController {
                 textArea.selectRange(lastStartCaretPosition,lastEndCaretPosition);
             }
 
-            updateFontSizeFieldFromSelection(scene.textFieldFontSize);
-            updateFormattingFieldFromSelection(scene);
-            updateFontFamilyFromSelection(scene.fontComboBox);
+            updateToolbar(scene);
             desiredStyleChanged = false;
         });
     }
@@ -188,13 +173,11 @@ public class TextAreaController {
         return programmaticFontUpdate;
     }
 
-    private void updateFontSizeFieldFromSelection(TextField textFieldFontSize) {
+    private void updateFontSizeFieldFromSelection(TextField textFieldFontSize, TextStyle style) {
         IndexRange selection = textArea.getSelection();
         int fontSize = 0;
 
         if (selection.getLength() == 0) {
-            int caretPosition = textArea.getCaretPosition();
-            TextStyle style = textArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition + 1);
             fontSize = style.getFontSize();
         } else {
             List<Integer> sizes = new ArrayList<>();
@@ -212,23 +195,21 @@ public class TextAreaController {
         programmaticFontUpdate = false;
     }
 
-    private void updateFormattingFieldFromSelection(MainEditorController scene){
+    private void updateFormattingFieldFromSelection(MainEditorController scene, TextStyle style){
         IndexRange selection = textArea.getSelection();
         int start = selection.getStart();
         int end = selection.getEnd();
 
-        int posToCheck = (start > 0) ? start : start+1;
-
         TextStyle referenceStyle;
         if (start == end) {
-            referenceStyle = textArea.getStyleAtPosition(posToCheck);
+            referenceStyle = style;
         } else {
             referenceStyle = TextStyle.getStyleSelection(textArea, start, end);
         }
 
         programmaticFontUpdate = true;
         if (!desiredStyleChanged) {
-            desiredStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), desiredStyle.getFontSize(), desiredStyle.getFontFamily(), desiredStyle.getBackgroundColor() );
+            desiredStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), desiredStyle.getFontSize(), desiredStyle.getFontFamily(), desiredStyle.getBackgroundColor(), desiredStyle.getHeadingLevel());
         }
         programmaticFontUpdate = false;
 
@@ -240,9 +221,7 @@ public class TextAreaController {
     }
 
 
-    private void updateFontFamilyFromSelection(ComboBox fontComboBox){
-        int caretPosition = textArea.getCaretPosition();
-        TextStyle style = textArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition+1);
+    private void updateFontFamilyFromSelection(ComboBox fontComboBox, TextStyle style){
         String fontFamily = style.getFontFamily();
 
         programmaticFontUpdate = true;
@@ -252,6 +231,34 @@ public class TextAreaController {
         if (!desiredStyleChanged) {
             desiredStyle = desiredStyle.setFontFamily(fontFamily);
         }
+    }
+
+    private void updateHeadingLevel(ComboBox headingComboBox, TextStyle style){
+        int headingLevel = style.getHeadingLevel();
+
+        programmaticFontUpdate = true;
+        for (Object opt : headingComboBox.getItems()) {
+            HeadingOption option = (HeadingOption)opt;
+            if (option.getLevel() == headingLevel) {
+                headingComboBox.setValue(option);
+                break;
+            }
+        }
+        programmaticFontUpdate = false;
+
+        if (!desiredStyleChanged) {
+            desiredStyle = desiredStyle.setHeadingLevel(headingLevel);
+        }
+    }
+
+    private void updateToolbar(MainEditorController scene){
+        int caretPosition = textArea.getCaretPosition();
+        TextStyle style = textArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition+1);
+
+        updateFontFamilyFromSelection(scene.fontComboBox, style);
+        updateFontSizeFieldFromSelection(scene.textFieldFontSize, style);
+        updateFormattingFieldFromSelection(scene, style);
+        updateHeadingLevel(scene.headingComboBox, style);
     }
 
     private void insertImage(Image image) {
@@ -265,5 +272,22 @@ public class TextAreaController {
         textArea.insert(pos, new ImageSegment(image), style);
         textArea.insert(pos + 1, new TextSegment(""), style);
         textArea.moveTo(pos+1);
+    }
+
+    public void setStyle(TextAttribute att, Object value){
+        TextStyle newStyle = getDesiredStyle();
+        switch(att){
+            case BOLD -> newStyle = getDesiredStyle().setBold((Boolean) value);
+            case ITALIC -> newStyle = getDesiredStyle().setItalic((Boolean) value);
+            case UNDERLINE -> newStyle = getDesiredStyle().setUnderline((boolean)value);
+            case FONT_SIZE -> newStyle = getDesiredStyle().setFontSize((int)value);
+            case FONT_FAMILY -> newStyle = getDesiredStyle().setFontFamily((String)value);
+            case HIGHLIGHT -> newStyle = getDesiredStyle().setBackgroundColor((String)value);
+            case HEADING_LEVEL -> newStyle = getDesiredStyle().setHeadingLevel((int)value);
+        }
+
+        setDesiredStyle(newStyle);
+        TextStyle.toggleStyle(getTextArea(), att, getDesiredStyle());
+        setDesiredStyleChanged(true);
     }
 }

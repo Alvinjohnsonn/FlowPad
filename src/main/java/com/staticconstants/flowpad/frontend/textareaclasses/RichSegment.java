@@ -7,4 +7,6 @@ import javafx.scene.image.Image;
 public sealed interface RichSegment permits TextSegment, ImageSegment {
 
     int length();
+
+    Node createNode(TextStyle style);
 }

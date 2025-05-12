@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import static javafx.collections.FXCollections.observableArrayList;
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
 
 public class MainEditorController {
@@ -50,6 +51,7 @@ public class MainEditorController {
     @FXML private VBox editorContainer;
     @FXML private TabPane tabPane;
     @FXML public ComboBox fontComboBox;
+    @FXML public ComboBox headingComboBox;
     @FXML private Button btnBold;
     @FXML private Button btnItalic;
     @FXML private Button btnUnderline;
@@ -136,15 +138,32 @@ public class MainEditorController {
             String selectedFont = (String)fontComboBox.getValue();
             if (selectedFont != null) {
                 TextAreaController active = textAreas.get(activeNote);
-                TextStyle newStyle = active.getDesiredStyle().setFontFamily(selectedFont);
-                active.setDesiredStyle(newStyle);
-                TextStyle.toggleStyle(active.getTextArea(), TextAttribute.FONT_FAMILY, active.getDesiredStyle());
-
-                textAreas.get(activeNote).setDesiredStyleChanged(true);
+                active.setStyle(TextAttribute.FONT_FAMILY, selectedFont);
             }
         });
 
         fontComboBox.showingProperty().addListener((obs, wasShowing, isNowShowing) -> {
+            if (!isNowShowing) {
+                Platform.runLater(() -> textAreas.get(activeNote).getTextArea().requestFocus());
+            }
+        });
+
+        headingComboBox.setItems(observableArrayList(
+                new HeadingOption("Heading 1", 1),
+                new HeadingOption("Heading 2", 2),
+                new HeadingOption("Heading 3", 3),
+                new HeadingOption("Heading 4", 4),
+                new HeadingOption("Heading 5", 5),
+                new HeadingOption("Normal text", 0)
+        ));
+        headingComboBox.setOnAction( event -> {
+            TextAreaController active = textAreas.get(activeNote);
+
+            if (active.isProgrammaticFontUpdate()) return;
+            int headingLevel = ((HeadingOption)headingComboBox.getValue()).getLevel();
+            active.setStyle(TextAttribute.HEADING_LEVEL, headingLevel);
+        });
+        headingComboBox.showingProperty().addListener((obs, wasShowing, isNowShowing) -> {
             if (!isNowShowing) {
                 Platform.runLater(() -> textAreas.get(activeNote).getTextArea().requestFocus());
             }
@@ -231,46 +250,27 @@ public class MainEditorController {
     @FXML
     private void bold(){
         TextAreaController active = textAreas.get(activeNote);
-        TextStyle newStyle = active.getDesiredStyle().toggleBold();
-        active.setDesiredStyle(newStyle);
-
-        TextStyle.toggleStyle(active.getTextArea(), TextAttribute.BOLD, active.getDesiredStyle());
+        active.setStyle(TextAttribute.BOLD, active.getDesiredStyle().toggleBold().isBold());
         toggleSelectedButton(btnBold);
-
-        active.setDesiredStyleChanged(true);
     }
     @FXML
     private void italic(){
         TextAreaController active = textAreas.get(activeNote);
-        TextStyle newStyle = active.getDesiredStyle().toggleItalic();
-        active.setDesiredStyle(newStyle);
-
-        TextStyle.toggleStyle(active.getTextArea(), TextAttribute.ITALIC, active.getDesiredStyle());
+        active.setStyle(TextAttribute.ITALIC, active.getDesiredStyle().toggleItalic().isItalic());
         toggleSelectedButton(btnItalic);
-
-        active.setDesiredStyleChanged(true);
     }
     @FXML
     private void underline(){
         TextAreaController active = textAreas.get(activeNote);
-        TextStyle newStyle = active.getDesiredStyle().toggleUnderline();
-        active.setDesiredStyle(newStyle);
-
-        TextStyle.toggleStyle(active.getTextArea(), TextAttribute.UNDERLINE, active.getDesiredStyle());
+        active.setStyle(TextAttribute.UNDERLINE, active.getDesiredStyle().toggleUnderline().isUnderline());
         toggleSelectedButton(btnUnderline);
-
-        active.setDesiredStyleChanged(true);
     }
 
     @FXML
     private void highlight() {
         TextAreaController active = textAreas.get(activeNote);
-        TextStyle newStyle = active.getDesiredStyle().toggleHighlight();
-        active.setDesiredStyle(newStyle);
-
-        TextStyle.toggleStyle(active.getTextArea(), TextAttribute.HIGHLIGHT, active.getDesiredStyle());
+        active.setStyle(TextAttribute.HIGHLIGHT, active.getDesiredStyle().toggleHighlight().getBackgroundColor());
         toggleSelectedButton(btnMarker);
-        active.setDesiredStyleChanged(true);
     }
 
     @FXML
@@ -295,12 +295,7 @@ public class MainEditorController {
     @FXML
     private void handleFontSizeChange(String size){
         TextAreaController active = textAreas.get(activeNote);
-        TextStyle newStyle = active.getDesiredStyle().setFontSize(Integer.parseInt(size));
-        active.setDesiredStyle(newStyle);
-
-        TextStyle.toggleStyle(active.getTextArea(), TextAttribute.FONT_SIZE, active.getDesiredStyle());
-
-        active.setDesiredStyleChanged(true);
+        active.setStyle(TextAttribute.FONT_SIZE, Integer.parseInt(size));
     }
 
 

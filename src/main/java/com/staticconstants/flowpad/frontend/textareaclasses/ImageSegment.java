@@ -28,4 +28,12 @@ public final class ImageSegment implements RichSegment {
     public int length() {
         return 1;
     }
+
+    @Override
+    public Node createNode(TextStyle style) {
+        ImageView view = new ImageView(getImage());
+        view.setFitWidth(200);
+        view.setPreserveRatio(true);
+        return view;
+    }
 }
