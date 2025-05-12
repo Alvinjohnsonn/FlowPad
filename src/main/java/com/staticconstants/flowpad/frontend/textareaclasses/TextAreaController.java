@@ -41,7 +41,7 @@ public class TextAreaController {
         desiredStyle = TextStyle.EMPTY;
         TextStyle initialTextStyle = TextStyle.EMPTY;
 
-        BiConsumer<TextFlow, ParStyle> paragraphStyler = (tf, p) -> {};
+        BiConsumer<TextFlow, ParStyle> paragraphStyler = ParStyle::apply;
 
         Function<StyledSegment<RichSegment, TextStyle>, Node> nodeFactory = seg -> {
             RichSegment s = seg.getSegment();
