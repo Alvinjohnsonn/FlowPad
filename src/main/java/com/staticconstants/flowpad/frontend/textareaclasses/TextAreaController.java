@@ -12,6 +12,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.*;
 import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.StyledSegment;
@@ -51,14 +52,15 @@ public class TextAreaController {
 
                 FontWeight weight = style.isBold() ? FontWeight.BOLD : FontWeight.NORMAL;
                 FontPosture posture = style.isItalic() ? FontPosture.ITALIC : FontPosture.REGULAR;
-
                 Font font = Font.font(fontFamily, weight, posture, style.getFontSize());
                 text.setFont(font);
 
                 text.setUnderline(style.isUnderline());
-
+                text.setBackgroundColor(Paint.valueOf(style.getBackgroundColor()));
                 // Add later
 //                style.getTextColor().ifPresent(text::setFill); // assuming getTextColor() returns Optional<Paint>
+//                Optional<Paint> color = Optional.of(Paint.valueOf(style.getBackgroundColor() == null ? "transparent" : style.getBackgroundColor()));
+//                color.ifPresent(text::setBackgroundColor);
 
                 return text;
 
@@ -233,6 +235,8 @@ public class TextAreaController {
         scene.setSelectedButton(TextAttribute.BOLD, referenceStyle.isBold());
         scene.setSelectedButton(TextAttribute.ITALIC, referenceStyle.isItalic());
         scene.setSelectedButton(TextAttribute.UNDERLINE, referenceStyle.isUnderline());
+        scene.setSelectedButton(TextAttribute.HIGHLIGHT, referenceStyle.getBackgroundColor().equals("yellow"));
+//        TODO: Change "yellow" to the highlight color settings from LoggedIn user property
     }
 
 

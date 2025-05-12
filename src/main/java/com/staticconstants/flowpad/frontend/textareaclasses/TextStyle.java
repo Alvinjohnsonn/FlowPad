@@ -21,7 +21,7 @@ public class TextStyle {
     private final String fontFamily;
     private final String backgroundColor;
 
-    public static final TextStyle EMPTY = new TextStyle(false, false, false,12, "Arial", null);
+    public static final TextStyle EMPTY = new TextStyle(false, false, false,12, "Arial", "transparent");
 
 
     public TextStyle(boolean bold, boolean italic, boolean underline, int fontSize, String fontFamily, String backgroundColor) {
@@ -56,7 +56,6 @@ public class TextStyle {
     public TextStyle setFontFamily(String fontFamily) {
         return new TextStyle(this.bold, this.italic, this.underline, this.fontSize, fontFamily, this.backgroundColor);
     }
-
     public TextStyle setBackgroundColor(String backgroundColor) {
         return new TextStyle(this.bold, this.italic, this.underline, this.fontSize, this.fontFamily, backgroundColor);
     }
@@ -94,7 +93,8 @@ public class TextStyle {
                 italic == that.italic &&
                 underline == that.underline &&
                 fontSize == that.fontSize &&
-                fontFamily.equals(that.fontFamily);
+                fontFamily.equals(that.fontFamily) &&
+                backgroundColor.equals(that.backgroundColor);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class TextStyle {
     }
 
 
-    public static void toggleStyle(GenericStyledArea<ParStyle, RichSegment, TextStyle> area,
+    public static void toggleStyle(CustomStyledArea<ParStyle, RichSegment, TextStyle> area,
                                    TextAttribute attribute,
                                    TextStyle desiredStyle) {
         if (area.getSelection().getLength() == 0) return;
@@ -129,11 +129,11 @@ public class TextStyle {
     public TextStyle toggleHighlight() {
         String newColor = "yellow";
         return new TextStyle(this.bold, this.italic, this.underline, this.fontSize, this.fontFamily,
-                "yellow".equals(this.backgroundColor) ? null : newColor);
+                "yellow".equals(this.backgroundColor) ? "transparent" : newColor);
     }
 
 
-    public static boolean isStyleFullyApplied(GenericStyledArea<ParStyle, RichSegment, TextStyle> area,
+    public static boolean isStyleFullyApplied(CustomStyledArea<ParStyle, RichSegment, TextStyle> area,
                                               int start, int end,
                                               TextAttribute attribute,
                                               TextStyle desiredStyle) {
@@ -158,7 +158,7 @@ public class TextStyle {
         return true;
     }
 
-    public static TextStyle getStyleSelection(GenericStyledArea<ParStyle, RichSegment, TextStyle> area,
+    public static TextStyle getStyleSelection(CustomStyledArea<ParStyle, RichSegment, TextStyle> area,
                                               int start, int end) {
         TextStyle result = area.getStyleAtPosition(start+1);
         for (int i = start+2; i <= end; i++) {
@@ -168,6 +168,7 @@ public class TextStyle {
             if (!result.isItalic()) result = result.setItalic(result.italic || currentStyle.isItalic());
             if (!result.isUnderline()) result = result.setUnderline(result.underline || currentStyle.isUnderline());
             if (result.getFontSize()<currentStyle.getFontSize()) result = result.setFontSize(currentStyle.getFontSize());
+            if (result.getBackgroundColor().equals(currentStyle.getBackgroundColor())) result = result.setBackgroundColor(currentStyle.getBackgroundColor());
         }
         return result;
     }
@@ -192,7 +193,7 @@ public class TextStyle {
             case UNDERLINE -> new TextStyle(bold, italic, false, fontSize, fontFamily, backgroundColor);
             case FONT_SIZE -> this;
             case FONT_FAMILY -> this;
-            case HIGHLIGHT -> new TextStyle(bold, italic, underline, fontSize, fontFamily, null);
+            case HIGHLIGHT -> new TextStyle(bold, italic, underline, fontSize, fontFamily, "transparent");
         };
     }
 
@@ -211,6 +212,7 @@ public class TextStyle {
     public String toString() {
         return "Bold: " + (isBold() ? "true" : "false") +
                 "\nItalic: " + (isItalic() ? "true" : "false") +
-                "\nUnderline: " + (isUnderline() ? "true" : "false") + "\n";
+                "\nUnderline: " + (isUnderline() ? "true" : "false") +
+                "\nBackground Color: " + (getBackgroundColor()) + "\n";
     }
 }

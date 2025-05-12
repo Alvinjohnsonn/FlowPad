@@ -188,6 +188,7 @@ public class MainEditorController {
             case BOLD -> btn = btnBold;
             case ITALIC -> btn = btnItalic;
             case UNDERLINE -> btn = btnUnderline;
+            case HIGHLIGHT -> btn = btnMarker;
         }
 
         if (btn==null)return;
