@@ -20,8 +20,8 @@ public class FlowPadController {
     protected void OpenMainPageButton(ActionEvent event) throws IOException {
 
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
-
         Scene scene = new Scene(fxmlLoader.load());
+        scene.getStylesheets().add(getClass().getResource("css/editor-style.css").toExternalForm());
 
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setTitle("Note Editor");

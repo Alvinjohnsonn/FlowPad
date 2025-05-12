@@ -7,6 +7,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import static com.staticconstants.flowpad.frontend.textareaclasses.ParStyle.ListType.*;
+
 public class ParStyleCodec implements Codec<ParStyle> {
 
     @Override
@@ -24,6 +26,8 @@ public class ParStyleCodec implements Codec<ParStyle> {
         out.writeDouble(style.getTopMargin());
         out.writeDouble(style.getBottomMargin());
         out.writeUTF(style.getBackgroundColor().toString());
+        out.writeUTF(style.getListType().toString());
+        out.writeInt(style.getListLevel());
     }
 
     @Override
@@ -35,10 +39,12 @@ public class ParStyleCodec implements Codec<ParStyle> {
         double topMargin = in.readDouble();
         double bottomMargin = in.readDouble();
         String bgColorStr = in.readUTF();
+        String listType = in.readUTF();
+        int listLevel = in.readInt();
 
         TextAlignment alignment = TextAlignment.valueOf(alignmentStr);
         Color backgroundColor = Color.valueOf(bgColorStr);
-
-        return new ParStyle(alignment, lineSpacing, leftMargin, rightMargin, topMargin, bottomMargin, backgroundColor);
+        ParStyle.ListType listType1 = ParStyle.ListType.valueOf(listType);
+        return new ParStyle(alignment, lineSpacing, leftMargin, rightMargin, topMargin, bottomMargin, backgroundColor, listType1, listLevel);
     }
 }

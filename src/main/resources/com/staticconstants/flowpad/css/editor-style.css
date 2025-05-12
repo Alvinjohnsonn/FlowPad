@@ -211,3 +211,11 @@
 .bg-transparent {
     -fx-background-color: transparent;
 }
+
+.align-button {
+    -fx-background-color: transparent;
+}
+
+.align-button:hover {
+    -fx-background-color: -secondary-hover-color;
+}

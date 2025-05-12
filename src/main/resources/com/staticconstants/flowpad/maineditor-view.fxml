@@ -176,33 +176,33 @@
                                                 </ImageView>
                                             </graphic>
                                         </Button>
-                              <Button layoutX="86.0" layoutY="10.0" onAction="#cut">
-                                 <graphic>
-                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@icons/scissors.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
-                              <Button layoutX="122.0" layoutY="10.0" onAction="#copy">
-                                 <graphic>
-                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@icons/copy.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
-                              <Button layoutX="132.0" layoutY="20.0" onAction="#paste">
-                                 <graphic>
-                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@icons/paste.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
+<!--                              <Button layoutX="86.0" layoutY="10.0" onAction="#cut">-->
+<!--                                 <graphic>-->
+<!--                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">-->
+<!--                                       <image>-->
+<!--                                          <Image url="@icons/scissors.png" />-->
+<!--                                       </image>-->
+<!--                                    </ImageView>-->
+<!--                                 </graphic>-->
+<!--                              </Button>-->
+<!--                              <Button layoutX="122.0" layoutY="10.0" onAction="#copy">-->
+<!--                                 <graphic>-->
+<!--                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">-->
+<!--                                       <image>-->
+<!--                                          <Image url="@icons/copy.png" />-->
+<!--                                       </image>-->
+<!--                                    </ImageView>-->
+<!--                                 </graphic>-->
+<!--                              </Button>-->
+<!--                              <Button layoutX="132.0" layoutY="20.0" onAction="#paste">-->
+<!--                                 <graphic>-->
+<!--                                    <ImageView fitHeight="12.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">-->
+<!--                                       <image>-->
+<!--                                          <Image url="@icons/paste.png" />-->
+<!--                                       </image>-->
+<!--                                    </ImageView>-->
+<!--                                 </graphic>-->
+<!--                              </Button>-->
                                         <ComboBox fx:id="headingComboBox" prefWidth="120.0" promptText="Normal text">
                                             <items>
                                                 <FXCollections fx:factory="observableArrayList">
@@ -269,15 +269,67 @@
                                                 </ImageView>
                                             </graphic>
                                         </Button>
-                              <Button id="btnMarker" fx:id="btnMarker" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#highlight">
-                                 <graphic>
-                                    <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@icons/marker.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
+                                          <Button id="btnMarker" fx:id="btnMarker" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#highlight">
+                                             <graphic>
+                                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                                   <image>
+                                                      <Image url="@icons/marker.png" />
+                                                   </image>
+                                                </ImageView>
+                                             </graphic>
+                                          </Button>
+                                        <Button fx:id="btnAlign" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#align">
+                                            <graphic>
+                                                <HBox alignment="CENTER" spacing="4">
+                                                    <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                                        <image>
+                                                            <Image url="@icons/text-align-left.png" />
+                                                        </image>
+                                                    </ImageView>
+                                                    <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                                        <image>
+                                                            <Image url="@icons/arrow-down.png" />
+                                                        </image>
+                                                    </ImageView>
+                                                </HBox>
+                                            </graphic>
+                                        </Button>
+                                        <Button fx:id="btnLineSpacing" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#setLineSpacing">
+                                            <graphic>
+                                                <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/line-spacing.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <Button fx:id="btnBulletList" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#setBulletList">
+                                            <graphic>
+                                                <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/bulleted-list.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <Button fx:id="btnNumberedList" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#setNumberedList">
+                                            <graphic>
+                                                <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/numbered-list.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <Button fx:id="btnClearFormatting" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#clearFormatting">
+                                            <graphic>
+                                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/clear-style.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
 <!--                                        <Button fx:id="btnSave" onAction="#save">-->
 <!--                                            <String fx:value="Save" />-->
 <!--                                        </Button>-->

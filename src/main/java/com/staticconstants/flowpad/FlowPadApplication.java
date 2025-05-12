@@ -17,7 +17,7 @@ public class FlowPadApplication extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
 
         Scene scene = new Scene(fxmlLoader.load());
-
+        scene.getStylesheets().add(getClass().getResource("css/editor-style.css").toExternalForm());
 
 
         stage.setTitle("FlowPad");

@@ -8,19 +8,22 @@ import javafx.scene.text.TextFlow;
 import java.util.Objects;
 
 public class ParStyle {
-
+    public enum ListType {
+        NONE,
+        BULLET,
+        NUMBERED
+    }
     private final TextAlignment alignment;
     private final double lineSpacing;
-    private final double leftMargin;
-    private final double rightMargin;
-    private final double topMargin;
-    private final double bottomMargin;
+    private final double leftMargin, rightMargin, topMargin, bottomMargin;
     private final Color backgroundColor;
+    private final ListType listType;
+    private final int listLevel;
 
-    public static final ParStyle EMPTY = new ParStyle(TextAlignment.LEFT, 0, 0, 0, 0, 0, Color.WHITE);
+    public static final ParStyle EMPTY = new ParStyle(TextAlignment.LEFT, 0, 0, 0, 0, 0, Color.WHITE, ListType.NONE, 0);
 
     public ParStyle(TextAlignment alignment, double lineSpacing,
-                    double leftMargin, double rightMargin, double topMargin, double bottomMargin, Color backgroundColor) {
+                    double leftMargin, double rightMargin, double topMargin, double bottomMargin, Color backgroundColor, ListType listType, int listLevel) {
         this.alignment = alignment;
         this.lineSpacing = lineSpacing;
         this.leftMargin = leftMargin;
@@ -28,6 +31,8 @@ public class ParStyle {
         this.topMargin = topMargin;
         this.bottomMargin = bottomMargin;
         this.backgroundColor = backgroundColor;
+        this.listType = listType;
+        this.listLevel = listLevel;
     }
 
     public TextAlignment getAlignment() {
@@ -56,6 +61,16 @@ public class ParStyle {
 
     public Color getBackgroundColor() {
         return backgroundColor;
+    }
+    public ListType getListType(){
+        return listType;
+    }
+    public int getListLevel(){
+        return listLevel;
+    }
+
+    public ParStyle setListType(ListType listType){
+        return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,listLevel);
     }
 
     public static void apply(TextFlow textFlow, ParStyle style) {

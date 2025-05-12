@@ -3,28 +3,37 @@ package com.staticconstants.flowpad.frontend;
 import com.staticconstants.flowpad.FlowPadApplication;
 import com.staticconstants.flowpad.backend.db.notes.Note;
 import com.staticconstants.flowpad.frontend.textareaclasses.*;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
+import javafx.stage.Modality;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.util.Duration;
 import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.*;
 
@@ -58,6 +67,7 @@ public class MainEditorController {
     @FXML private Button btnBack;
     @FXML private Button btnMarker;
     @FXML private ToolBar toolBar;
+    @FXML private Button btnAlign;
 
     private HashMap<String, TextAreaController> textAreas;
     private String activeNote;
@@ -183,7 +193,144 @@ public class MainEditorController {
                 });
         tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
 
+
+//        Popup popup = new Popup();
+//        popup.setAutoFix(true);
+//        popup.setAutoHide(true);
+//        popup.setHideOnEscape(true);
+//        popup.setConsumeAutoHidingEvents(true);
+//
+//        HBox itemBox = new HBox(4);
+//        itemBox.setStyle("-fx-background-radius: 8;");
+//        itemBox.setPadding(new Insets(4));
+//
+//        DropShadow shadow = new DropShadow();
+//        shadow.setRadius(8);
+//        shadow.setOffsetX(0);
+//        shadow.setOffsetY(2);
+//        shadow.setColor(Color.rgb(0, 0, 0, 0.25));
+//        itemBox.setEffect(shadow);
+//
+//        for (String icon : List.of("icons/text-align-left.png", "icons/text-align-center.png","icons/text-align-right.png","icons/text-align-justify.png")) {
+//            Image img = new Image(FlowPadApplication.class.getResource(icon).toExternalForm());
+//            ImageView imgView = new ImageView();
+//            imgView.setImage(img);
+//            imgView.setFitHeight(18.0);
+//            imgView.setFitWidth(18.0);
+//            imgView.setPickOnBounds(true);
+//            imgView.setPreserveRatio(true);
+//            Button item = new Button();
+//            item.setGraphic(imgView);
+//            item.getStyleClass().add("align-button");
+//
+//            item.setOnAction(e -> {
+//                popup.hide();
+//            });
+//            itemBox.getChildren().add(item);
+//        }
+//
+//        popup.getContent().add(itemBox);
+//        popup.setOnShown(e -> {
+//            if (popup.getScene() != null) {
+//                popup.getScene().setFill(Color.TRANSPARENT);
+//            }
+//
+//            itemBox.setOpacity(0);
+//            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), itemBox);
+//            fadeIn.setFromValue(0);
+//            fadeIn.setToValue(1);
+//            fadeIn.setInterpolator(Interpolator.EASE_BOTH);
+//            fadeIn.play();
+//        });
+
+//        btnAlign.setOnAction(e -> {
+//            if (!popup.isShowing()) {
+//                popup.show(btnAlign,
+//                        btnAlign.localToScreen(0, btnAlign.getHeight()).getX(),
+//                        btnAlign.localToScreen(0, btnAlign.getHeight()).getY());
+//            } else {
+//                popup.hide();
+//            }
+//        });
+
+
         newNote();
+    }
+
+    public void showAlignStage(Node anchorNode) {
+        if (alignStage != null && alignStage.isShowing()) {
+            return;
+        }
+
+        alignStage = new Stage(StageStyle.TRANSPARENT);
+
+        HBox itemBox = new HBox(4);
+        itemBox.setPadding(new Insets(4));
+        itemBox.setBackground(new Background(
+                new BackgroundFill(Color.web("#E0EDEC"), new CornerRadii(8), Insets.EMPTY)
+        ));
+
+        itemBox.setStyle("""
+    -fx-background-color: #E0EDEC;
+    -fx-background-radius: 8;
+""");
+        Rectangle clip = new Rectangle();
+        clip.setArcWidth(8);
+        clip.setArcHeight(8);
+        clip.widthProperty().bind(itemBox.widthProperty());
+        clip.heightProperty().bind(itemBox.heightProperty());
+        itemBox.setClip(clip);
+
+        for (String icon : List.of(
+                "icons/text-align-left.png", "icons/text-align-center.png",
+                "icons/text-align-right.png", "icons/text-align-justify.png"
+        )) {
+            Image img = new Image(FlowPadApplication.class.getResource(icon).toExternalForm());
+            ImageView imgView = new ImageView(img);
+            imgView.setFitHeight(18);
+            imgView.setFitWidth(18);
+            imgView.setPreserveRatio(true);
+
+            Button item = new Button();
+
+            item.setGraphic(imgView);
+            item.setOnAction(e -> alignStage.close());
+            itemBox.getChildren().add(item);
+            item.getStyleClass().add("align-button");
+        }
+
+        Scene scene = new Scene(itemBox);
+        scene.setFill(Color.TRANSPARENT);
+        scene.getStylesheets().add(FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm());
+
+        alignStage.setAlwaysOnTop(true);;
+        alignStage.initOwner(btnAlign.getScene().getWindow());
+        alignStage.initModality(Modality.NONE);
+        alignStage.setScene(scene);
+
+
+
+        alignStage.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!isNowFocused) {
+                FadeTransition fadeOut = new FadeTransition(Duration.millis(150), itemBox);
+                fadeOut.setFromValue(1);
+                fadeOut.setToValue(0);
+                fadeOut.setOnFinished(e -> alignStage.close());
+                fadeOut.play();
+            }
+        });
+
+        Bounds bounds = anchorNode.localToScreen(anchorNode.getBoundsInLocal());
+        alignStage.setX(bounds.getMinX());
+        alignStage.setY(bounds.getMaxY());
+
+        itemBox.setOpacity(0);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(150), itemBox);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+        fadeIn.play();
+
+        alignStage.show();
     }
 
 
@@ -505,6 +652,32 @@ public class MainEditorController {
     private void find(){
 
     }
+    Stage alignStage;
+    @FXML
+    private void align(){
+        if (alignStage != null && alignStage.isShowing()) {
+            alignStage.close();
+        } else {
+            showAlignStage(btnAlign);
+        }
+    }
+    @FXML
+    private void setLineSpacing(){
+
+    }
+    @FXML
+    private void setBulletList(){
+
+    }
+    @FXML
+    private void setNumberedList(){
+
+    }
+    @FXML
+    private void clearFormatting(){
+
+    }
+
 
     @FXML
     private void renameFile(TextField tf){
