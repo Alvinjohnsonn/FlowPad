@@ -1,5 +1,4 @@
-package com.staticconstants.flowpad.frontend;
-
+import com.staticconstants.flowpad.frontend.MainEditorController;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
 import org.junit.jupiter.api.*;
