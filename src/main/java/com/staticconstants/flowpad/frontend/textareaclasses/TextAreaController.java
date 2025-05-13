@@ -11,6 +11,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.*;
@@ -104,6 +105,10 @@ public class TextAreaController {
                     insertImage(clipboard.getImage());
                     event.consume();
                 }
+            }
+
+            if (event.getCode() == KeyCode.BACK_SPACE) {
+                updateListType(scene, getParStyleOnSelection());
             }
 
         });
