@@ -87,6 +87,11 @@
     -fx-background-color: -secondary-color;
 }
 
+.tool-bar .button.active {
+    -fx-background-color: -secondary-hover-color;
+}
+
+
 .tool-bar .button.selected{
     -fx-background-color: -secondary-hover-color;
 }
@@ -219,3 +224,8 @@
 .align-button:hover {
     -fx-background-color: -secondary-hover-color;
 }
+
+.align-button.active {
+    -fx-background-color: -secondary-hover-color;
+}
+

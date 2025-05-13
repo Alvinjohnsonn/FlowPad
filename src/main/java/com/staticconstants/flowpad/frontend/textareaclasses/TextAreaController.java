@@ -1,5 +1,6 @@
 package com.staticconstants.flowpad.frontend.textareaclasses;
 
+import com.staticconstants.flowpad.FlowPadApplication;
 import com.staticconstants.flowpad.frontend.MainEditorController;
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -7,37 +8,41 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.*;
 import org.fxmisc.richtext.model.Codec;
-import org.fxmisc.richtext.model.Paragraph;
 import org.fxmisc.richtext.model.StyledSegment;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
+
 public class TextAreaController {
     private MainEditorController scene;
-    private boolean programmaticFontUpdate;
+    private boolean programmaticUpdate;
     private boolean desiredStyleChanged;
     private CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea;
     private String userData;
     private TextStyle desiredStyle;
+    private ParStyle desiredParStyle;
     private int lastStartCaretPosition;
     private int lastEndCaretPosition;
 
     public TextAreaController(VBox editorContainer, String userData) {
-        programmaticFontUpdate =false;
+        programmaticUpdate =false;
         desiredStyleChanged =false;
         this.userData = userData;
 
         ParStyle initialParStyle = ParStyle.EMPTY;
-        desiredStyle = TextStyle.EMPTY;
         TextStyle initialTextStyle = TextStyle.EMPTY;
+        desiredStyle = initialTextStyle;
+        desiredParStyle = initialParStyle;
 
         BiConsumer<TextFlow, ParStyle> paragraphStyler = ParStyle::apply;
 
@@ -131,7 +136,7 @@ public class TextAreaController {
 
     public void reload(){
         desiredStyleChanged = false;
-        programmaticFontUpdate = false;
+        programmaticUpdate = false;
 
         Platform.runLater(() -> {
             textArea.requestFocus();
@@ -163,15 +168,23 @@ public class TextAreaController {
         return desiredStyle;
     }
 
+    public ParStyle getDesiredParStyle(){
+        return desiredParStyle;
+    }
+
     public void setDesiredStyle(TextStyle newStyle){
         desiredStyle = newStyle;
     }
 
-    public boolean isProgrammaticFontUpdate(){
-        return programmaticFontUpdate;
+    public void setDesiredParStyle(ParStyle newStyle){
+        desiredParStyle = newStyle;
     }
 
-    private void updateFontSizeFieldFromSelection(TextField textFieldFontSize, TextStyle style) {
+    public boolean isProgrammaticUpdate(){
+        return programmaticUpdate;
+    }
+
+    private void updateFontSizeField(TextField textFieldFontSize, TextStyle style) {
         IndexRange selection = textArea.getSelection();
         int fontSize = 0;
 
@@ -185,15 +198,15 @@ public class TextAreaController {
             fontSize = Collections.max(sizes);
         }
 
-        programmaticFontUpdate = true;
+        programmaticUpdate = true;
         textFieldFontSize.setText(String.valueOf(fontSize));
         if (!desiredStyleChanged) {
             desiredStyle = desiredStyle.setFontSize(fontSize);
         }
-        programmaticFontUpdate = false;
+        programmaticUpdate = false;
     }
 
-    private void updateFormattingFieldFromSelection(MainEditorController scene, TextStyle style){
+    private void updateFormattingField(MainEditorController scene, TextStyle style){
         IndexRange selection = textArea.getSelection();
         int start = selection.getStart();
         int end = selection.getEnd();
@@ -205,11 +218,11 @@ public class TextAreaController {
             referenceStyle = TextStyle.getStyleSelection(textArea, start, end);
         }
 
-        programmaticFontUpdate = true;
+        programmaticUpdate = true;
         if (!desiredStyleChanged) {
             desiredStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), desiredStyle.getFontSize(), desiredStyle.getFontFamily(), desiredStyle.getBackgroundColor(), desiredStyle.getHeadingLevel());
         }
-        programmaticFontUpdate = false;
+        programmaticUpdate = false;
 
         scene.setSelectedButton(TextAttribute.BOLD, referenceStyle.isBold());
         scene.setSelectedButton(TextAttribute.ITALIC, referenceStyle.isItalic());
@@ -219,12 +232,12 @@ public class TextAreaController {
     }
 
 
-    private void updateFontFamilyFromSelection(ComboBox fontComboBox, TextStyle style){
+    private void updateFontFamily(ComboBox fontComboBox, TextStyle style){
         String fontFamily = style.getFontFamily();
 
-        programmaticFontUpdate = true;
+        programmaticUpdate = true;
         fontComboBox.getSelectionModel().select(fontFamily);
-        programmaticFontUpdate = false;
+        programmaticUpdate = false;
 
         if (!desiredStyleChanged) {
             desiredStyle = desiredStyle.setFontFamily(fontFamily);
@@ -234,7 +247,7 @@ public class TextAreaController {
     private void updateHeadingLevel(ComboBox headingComboBox, TextStyle style){
         int headingLevel = style.getHeadingLevel();
 
-        programmaticFontUpdate = true;
+        programmaticUpdate = true;
         for (Object opt : headingComboBox.getItems()) {
             HeadingOption option = (HeadingOption)opt;
             if (option.getLevel() == headingLevel) {
@@ -242,21 +255,68 @@ public class TextAreaController {
                 break;
             }
         }
-        programmaticFontUpdate = false;
+        programmaticUpdate = false;
 
         if (!desiredStyleChanged) {
             desiredStyle = desiredStyle.setHeadingLevel(headingLevel);
         }
     }
 
+    private void updateTextAlignment(MainEditorController scene, ParStyle parStyle){
+        programmaticUpdate = true;
+        if (!desiredStyleChanged) {
+            desiredParStyle = parStyle;
+        }
+
+        String icon = switch (parStyle.getAlignment()){
+            case LEFT -> "icons/text-align-left.png";
+            case CENTER -> "icons/text-align-center.png";
+            case RIGHT -> "icons/text-align-right.png";
+            case JUSTIFY -> "icons/text-align-justify.png";
+        };
+
+        Image img = new Image(FlowPadApplication.class.getResource(icon).toExternalForm());
+        scene.imgActiveAlignment.setImage(img);
+        programmaticUpdate = false;
+    }
+
+    private void updateListType(MainEditorController scene, ParStyle parStyle){
+        programmaticUpdate = true;
+        if (!desiredStyleChanged) {
+            desiredParStyle = parStyle;
+        }
+
+        switch (parStyle.getListType()){
+            case NONE -> {
+                scene.btnBulletList.getStyleClass().removeAll("active");
+                scene.btnNumberedList.getStyleClass().removeAll("active");
+
+            }
+            case BULLET -> scene.btnBulletList.getStyleClass().add("active");
+            case NUMBERED -> scene.btnNumberedList.getStyleClass().add("active");
+        };
+
+        programmaticUpdate = false;
+    }
+
+    public ParStyle getParStyleOnSelection(){
+        int startPar = textArea.offsetToPosition(textArea.getSelection().getStart(), Forward).getMajor();
+        return textArea.getParagraph(startPar).getParagraphStyle();
+    }
+
+
     private void updateToolbar(MainEditorController scene){
         int caretPosition = textArea.getCaretPosition();
         TextStyle style = textArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition+1);
 
-        updateFontFamilyFromSelection(scene.fontComboBox, style);
-        updateFontSizeFieldFromSelection(scene.textFieldFontSize, style);
-        updateFormattingFieldFromSelection(scene, style);
+        ParStyle parStyle = getParStyleOnSelection();
+
+        updateFontFamily(scene.fontComboBox, style);
+        updateFontSizeField(scene.textFieldFontSize, style);
+        updateFormattingField(scene, style);
         updateHeadingLevel(scene.headingComboBox, style);
+        updateTextAlignment(scene, parStyle);
+        updateListType(scene, parStyle);
     }
 
     private void insertImage(Image image) {

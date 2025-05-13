@@ -281,7 +281,7 @@
                                         <Button fx:id="btnAlign" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#align">
                                             <graphic>
                                                 <HBox alignment="CENTER" spacing="4">
-                                                    <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                                    <ImageView fx:id="imgActiveAlignment" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
                                                         <image>
                                                             <Image url="@icons/text-align-left.png" />
                                                         </image>

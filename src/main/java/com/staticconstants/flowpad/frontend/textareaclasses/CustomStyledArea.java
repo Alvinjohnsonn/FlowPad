@@ -1,6 +1,5 @@
 package com.staticconstants.flowpad.frontend.textareaclasses;
 
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
@@ -15,8 +14,47 @@ import org.fxmisc.richtext.model.*;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
+
+import static org.fxmisc.richtext.model.TwoDimensional.Bias.Backward;
+import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
 
 public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichSegment, TextStyle> {
+    private final IntFunction<Node> graphicFactory = paragraph -> {
+        TextFlow flow = new TextFlow();
+        ParStyle pStyle = getParagraph(paragraph).getParagraphStyle();
+
+        TextStyle style = getParagraph(paragraph).getSegments().isEmpty()
+                ? TextStyle.EMPTY
+                : getStyleAtPosition(getAbsolutePosition(paragraph, 0));
+
+        flow.setPadding(new Insets(pStyle.getTopMargin(), 0, pStyle.getBottomMargin(), 0));
+
+        if (pStyle.getListType() != ParStyle.ListType.NONE) {
+            Text prefix;
+
+            if (pStyle.getListType() == ParStyle.ListType.BULLET) {
+                prefix = new Text("•  ");
+            } else {
+                int number = 1;
+                for (int i = paragraph - 1; i >= 0; i--) {
+                    ParStyle prevStyle = getParagraph(i).getParagraphStyle();
+                    if (prevStyle.getListType() == ParStyle.ListType.NUMBERED) {
+                        number++;
+                    } else {
+                        break;
+                    }
+                }
+                prefix = new Text(number + ". ");
+            }
+            prefix.setFont(Font.font(style.getFontFamily(), FontWeight.BOLD, style.getFontSize()));
+            flow.getChildren().add(prefix);
+        }
+
+        return flow;
+    };
+
+
 
     public CustomStyledArea(
             ParStyle parStyle,
@@ -33,28 +71,7 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
                 nodeFactory
         );
 
-        setParagraphGraphicFactory(paragraph -> {
-            TextFlow flow = new TextFlow();
-            ParStyle pStyle = getParagraph(paragraph).getParagraphStyle();
-
-            TextStyle style = getParagraph(paragraph).getSegments().isEmpty()
-                    ? TextStyle.EMPTY
-                    : getStyleAtPosition(getAbsolutePosition(paragraph, 0));
-
-            flow.setPadding(new Insets(pStyle.getTopMargin(), 0, pStyle.getBottomMargin(), 0));
-
-            if (pStyle.getListType() != ParStyle.ListType.NONE) {
-                Text prefix = new Text(
-                        pStyle.getListType() == ParStyle.ListType.BULLET
-                                ? "•  "
-                                : (paragraph + 1) + ". "
-                );
-                prefix.setFont(Font.font(style.getFontFamily(), FontWeight.BOLD, style.getFontSize()));
-                flow.getChildren().add(prefix);
-            }
-
-            return flow;
-        });
+        setParagraphGraphicFactory(graphicFactory);
 
         addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.BACK_SPACE) {
@@ -67,7 +84,7 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
                     if (currentStyle.getListType() != ParStyle.ListType.NONE) {
                         ParStyle newStyle = currentStyle.setListType(ParStyle.ListType.NONE);
                         setParagraphStyle(paragraphIndex, newStyle);
-                        updateBulletForParagraph(paragraphIndex, newStyle);
+                        refreshParagraphGraphics();
                         event.consume();
 //                        TODO: Fix bullet not immediately dissappearing. If the first bullet is empty and deleted it doesnt update the interface automatically
                     }
@@ -76,32 +93,7 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
         });
     }
 
-    private void updateBulletForParagraph(int index, ParStyle parStyle) {
-        if (parStyle.getListType() != ParStyle.ListType.NONE) {
-            Node node = getParagraphGraphic(index);
 
-            TextStyle style = getParagraph(index).getSegments().isEmpty()
-                    ? TextStyle.EMPTY
-                    : getStyleAtPosition(getAbsolutePosition(index, 0));
-
-            if (node instanceof TextFlow textFlow) {
-                if (!textFlow.getChildren().isEmpty()
-                        && textFlow.getChildren().get(0) instanceof Text prefix
-                        && (prefix.getText().equals("• ") || prefix.getText().matches("\\d+\\. "))) {
-                    textFlow.getChildren().remove(0);
-                }
-
-                Text prefix = new Text(
-                        parStyle.getListType() == ParStyle.ListType.BULLET
-                                ? "• "
-                                : (index + 1) + ". "
-                );
-                prefix.setFont(Font.font(style.getFontFamily(), FontWeight.BOLD, style.getFontSize()));
-                textFlow.setPadding(new Insets(parStyle.getTopMargin(), 0, parStyle.getBottomMargin(), 0));
-                textFlow.getChildren().add(0, prefix);
-            }
-        }
-    }
 
     @Override
     public void deletePreviousChar() {
@@ -142,5 +134,21 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
         super.deletePreviousChar();
     }
 
+    public void applyParStyleToSelection(ParStyle style) {
+        int startPar = offsetToPosition(getSelection().getStart(), Forward).getMajor();
+        int endPar = offsetToPosition(getSelection().getEnd(), Backward).getMajor();
+
+        for (int i = startPar; i <= endPar; i++) {
+//            ParStyle existing = getParagraph(i).getParagraphStyle();
+//            ParStyle updated = existing.merge(style);
+
+            setParagraphStyle(i, style);
+            refreshParagraphGraphics();
+        }
+    }
+    public void refreshParagraphGraphics() {
+        setParagraphGraphicFactory(null);
+        setParagraphGraphicFactory(graphicFactory);
+    }
 }
 

@@ -38,40 +38,50 @@ public class ParStyle {
     public TextAlignment getAlignment() {
         return alignment;
     }
+    public ParStyle setAlignment(TextAlignment alignment){
+        return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,listLevel);
+    }
 
     public double getLineSpacing() {
         return lineSpacing;
     }
-
+    public ParStyle setLineSpacing(int lineSpacing){
+        return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,listLevel);
+    }
 
     public double getLeftMargin() {
         return leftMargin;
     }
-
     public double getRightMargin() {
         return rightMargin;
     }
     public double getTopMargin() {
         return topMargin;
     }
-
     public double getBottomMargin() {
         return bottomMargin;
     }
+//    TODO: Add setters
 
     public Color getBackgroundColor() {
         return backgroundColor;
     }
+    public ParStyle setBackgroundColor(Color backgroundColor){
+        return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,listLevel);
+    }
     public ListType getListType(){
         return listType;
+    }
+    public ParStyle setListType(ListType listType){
+        return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,listLevel);
     }
     public int getListLevel(){
         return listLevel;
     }
-
-    public ParStyle setListType(ListType listType){
+    public ParStyle setListType(int listLevel){
         return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,listLevel);
     }
+
 
     public static void apply(TextFlow textFlow, ParStyle style) {
         textFlow.setTextAlignment(style.getAlignment());
@@ -92,6 +102,14 @@ public class ParStyle {
                 (int) (color.getGreen() * 255),
                 (int) (color.getBlue() * 255));
     }
+
+//    public ParStyle merge(ParStyle other) {
+//        return new ParStyle(
+//                other.listType != ListType.NONE ? other.listType : this.listType,
+//                other.getTopMargin() != 0 ? other.getTopMargin() : this.getTopMargin(),
+//                other.getBottomMargin() != 0 ? other.getBottomMargin() : this.getBottomMargin()
+//        );
+//    }
 
     @Override
     public boolean equals(Object o) {

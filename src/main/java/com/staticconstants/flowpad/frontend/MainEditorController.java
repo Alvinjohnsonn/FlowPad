@@ -1,12 +1,9 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
-import com.staticconstants.flowpad.backend.db.notes.Note;
 import com.staticconstants.flowpad.frontend.textareaclasses.*;
 import javafx.animation.FadeTransition;
-import javafx.animation.Interpolator;
 import javafx.application.Platform;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -17,31 +14,24 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 import javafx.stage.Modality;
-import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
-import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.*;
 
 
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 import static javafx.collections.FXCollections.observableArrayList;
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
@@ -68,6 +58,10 @@ public class MainEditorController {
     @FXML private Button btnMarker;
     @FXML private ToolBar toolBar;
     @FXML private Button btnAlign;
+    @FXML private Button btnClearFormatting;
+    @FXML public ImageView imgActiveAlignment;
+    @FXML public Button btnNumberedList;
+    @FXML public Button btnBulletList;
 
     private HashMap<String, TextAreaController> textAreas;
     private String activeNote;
@@ -134,7 +128,7 @@ public class MainEditorController {
         }));
 
         textFieldFontSize.textProperty().addListener((obs, oldText, newText) -> {
-            if (textAreas.get(activeNote).isProgrammaticFontUpdate()) return;
+            if (textAreas.get(activeNote).isProgrammaticUpdate()) return;
             handleFontSizeChange(newText);
         });
 
@@ -144,7 +138,7 @@ public class MainEditorController {
 
         fontComboBox.getItems().addAll(Font.getFamilies());
         fontComboBox.setOnAction(event -> {
-            if (textAreas.get(activeNote).isProgrammaticFontUpdate()) return;
+            if (textAreas.get(activeNote).isProgrammaticUpdate()) return;
             String selectedFont = (String)fontComboBox.getValue();
             if (selectedFont != null) {
                 TextAreaController active = textAreas.get(activeNote);
@@ -169,7 +163,7 @@ public class MainEditorController {
         headingComboBox.setOnAction( event -> {
             TextAreaController active = textAreas.get(activeNote);
 
-            if (active.isProgrammaticFontUpdate()) return;
+            if (active.isProgrammaticUpdate()) return;
             int headingLevel = ((HeadingOption)headingComboBox.getValue()).getLevel();
             active.setStyle(TextAttribute.HEADING_LEVEL, headingLevel);
         });
@@ -192,67 +186,6 @@ public class MainEditorController {
                     textAreas.get(activeNote).reload();
                 });
         tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
-
-
-//        Popup popup = new Popup();
-//        popup.setAutoFix(true);
-//        popup.setAutoHide(true);
-//        popup.setHideOnEscape(true);
-//        popup.setConsumeAutoHidingEvents(true);
-//
-//        HBox itemBox = new HBox(4);
-//        itemBox.setStyle("-fx-background-radius: 8;");
-//        itemBox.setPadding(new Insets(4));
-//
-//        DropShadow shadow = new DropShadow();
-//        shadow.setRadius(8);
-//        shadow.setOffsetX(0);
-//        shadow.setOffsetY(2);
-//        shadow.setColor(Color.rgb(0, 0, 0, 0.25));
-//        itemBox.setEffect(shadow);
-//
-//        for (String icon : List.of("icons/text-align-left.png", "icons/text-align-center.png","icons/text-align-right.png","icons/text-align-justify.png")) {
-//            Image img = new Image(FlowPadApplication.class.getResource(icon).toExternalForm());
-//            ImageView imgView = new ImageView();
-//            imgView.setImage(img);
-//            imgView.setFitHeight(18.0);
-//            imgView.setFitWidth(18.0);
-//            imgView.setPickOnBounds(true);
-//            imgView.setPreserveRatio(true);
-//            Button item = new Button();
-//            item.setGraphic(imgView);
-//            item.getStyleClass().add("align-button");
-//
-//            item.setOnAction(e -> {
-//                popup.hide();
-//            });
-//            itemBox.getChildren().add(item);
-//        }
-//
-//        popup.getContent().add(itemBox);
-//        popup.setOnShown(e -> {
-//            if (popup.getScene() != null) {
-//                popup.getScene().setFill(Color.TRANSPARENT);
-//            }
-//
-//            itemBox.setOpacity(0);
-//            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), itemBox);
-//            fadeIn.setFromValue(0);
-//            fadeIn.setToValue(1);
-//            fadeIn.setInterpolator(Interpolator.EASE_BOTH);
-//            fadeIn.play();
-//        });
-
-//        btnAlign.setOnAction(e -> {
-//            if (!popup.isShowing()) {
-//                popup.show(btnAlign,
-//                        btnAlign.localToScreen(0, btnAlign.getHeight()).getX(),
-//                        btnAlign.localToScreen(0, btnAlign.getHeight()).getY());
-//            } else {
-//                popup.hide();
-//            }
-//        });
-
 
         newNote();
     }
@@ -294,9 +227,25 @@ public class MainEditorController {
             Button item = new Button();
 
             item.setGraphic(imgView);
-            item.setOnAction(e -> alignStage.close());
+            item.setOnAction(e -> {
+                TextAlignment alignment = TextAlignment.LEFT;
+                if (icon.contains("center")) alignment = TextAlignment.CENTER;
+                else if (icon.contains("right")) alignment = TextAlignment.RIGHT;
+                else if (icon.contains("justify")) alignment = TextAlignment.JUSTIFY;
+
+                TextAreaController active = textAreas.get(activeNote);
+                active.getTextArea().applyParStyleToSelection(active.getDesiredParStyle().setAlignment(alignment));
+                imgActiveAlignment.setImage(img);
+
+                FadeTransition fadeOut = new FadeTransition(Duration.millis(150), itemBox);
+                fadeOut.setFromValue(1);
+                fadeOut.setToValue(0);
+                fadeOut.setOnFinished(ae -> alignStage.close());
+                fadeOut.play();
+            });
             itemBox.getChildren().add(item);
             item.getStyleClass().add("align-button");
+            if (imgActiveAlignment.getImage().getUrl().equals(img.getUrl())) item.getStyleClass().add("active");
         }
 
         Scene scene = new Scene(itemBox);
@@ -331,6 +280,7 @@ public class MainEditorController {
         fadeIn.play();
 
         alignStage.show();
+//        TODO: Fix error if align button is hidden
     }
 
 
@@ -666,12 +616,42 @@ public class MainEditorController {
 
     }
     @FXML
-    private void setBulletList(){
+    private void setBulletList() {
+        TextAreaController active = textAreas.get(activeNote);
+        ParStyle parStyle = active.getParStyleOnSelection();
 
+        ParStyle newParStyle=null;
+        if (parStyle.getListType() == ParStyle.ListType.BULLET) {
+            newParStyle=parStyle.setListType(ParStyle.ListType.NONE);
+            active.getTextArea().applyParStyleToSelection(newParStyle);
+            btnBulletList.getStyleClass().removeAll("active");
+        }
+        else{
+            newParStyle=parStyle.setListType(ParStyle.ListType.BULLET);
+            active.getTextArea().applyParStyleToSelection(newParStyle);
+            btnBulletList.getStyleClass().add("active");
+        }
+        if (newParStyle!=null) active.setDesiredParStyle(newParStyle);
+        btnNumberedList.getStyleClass().removeAll("active");
     }
     @FXML
     private void setNumberedList(){
+        TextAreaController active = textAreas.get(activeNote);
+        ParStyle parStyle = active.getParStyleOnSelection();
 
+        ParStyle newParStyle=null;
+        if (parStyle.getListType() == ParStyle.ListType.NUMBERED) {
+            newParStyle=parStyle.setListType(ParStyle.ListType.NONE);
+            active.getTextArea().applyParStyleToSelection(newParStyle);
+            btnNumberedList.getStyleClass().removeAll("active");
+        }
+        else{
+            newParStyle=parStyle.setListType(ParStyle.ListType.NUMBERED);
+            active.getTextArea().applyParStyleToSelection(newParStyle);
+            btnNumberedList.getStyleClass().add("active");
+        }
+        if (newParStyle!=null) active.setDesiredParStyle(newParStyle);
+        btnBulletList.getStyleClass().removeAll("active");
     }
     @FXML
     private void clearFormatting(){
