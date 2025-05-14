@@ -14,8 +14,9 @@ class MainEditorControllerTest {
 
     @BeforeAll
     public static void initJFX() throws InterruptedException {
+        System.setProperty("java.awt.headless", "true");
         CountDownLatch latch = new CountDownLatch(1);
-        Platform.startup(latch::countDown); // Only once per JVM
+        Platform.startup(latch::countDown);
         latch.await();
     }
 
