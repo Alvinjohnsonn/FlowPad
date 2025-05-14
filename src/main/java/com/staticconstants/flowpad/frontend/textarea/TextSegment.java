@@ -62,11 +62,8 @@ public final class TextSegment implements RichSegment{
         Font font = Font.font(fontFamily, weight, posture, fontSize);
         text.setFont(font);
         text.setUnderline(style.isUnderline());
-        text.setBackgroundColor(Paint.valueOf(style.getBackgroundColor() == null ? "transparent" : style.getBackgroundColor()));
-        // Add later
-//                style.getTextColor().ifPresent(text::setFill); // assuming getTextColor() returns Optional<Paint>
-//                Optional<Paint> color = Optional.of(Paint.valueOf(style.getBackgroundColor() == null ? "transparent" : style.getBackgroundColor()));
-//                color.ifPresent(text::setBackgroundColor);
+        text.setBackgroundColor(style.getBackgroundColor());
+        text.setFill(style.getTextColor());
 
         return text;
     }

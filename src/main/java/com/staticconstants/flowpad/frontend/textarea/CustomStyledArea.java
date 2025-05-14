@@ -83,6 +83,8 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
         );
 
         setParagraphGraphicFactory(graphicFactory);
+
+
     }
 
 
@@ -137,17 +139,6 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
             setParagraphStyle(i, style);
             refreshParagraphGraphics();
         }
-    }
-
-    public void applyToSelectedParagraphs(UnaryOperator<ParStyle> updater) {
-        int start = getCurrentLineStartInParargraph();
-        int end = getCurrentLineEndInParargraph();
-        for (int i = start; i <= end; i++) {
-            ParStyle current = getParagraph(i).getParagraphStyle();
-            ParStyle updated = updater.apply(current);
-            setParagraphStyle(i, updated);
-        }
-        refreshParagraphGraphics();
     }
 
     public void refreshParagraphGraphics() {

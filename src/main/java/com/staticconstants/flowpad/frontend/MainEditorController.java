@@ -14,6 +14,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -21,12 +22,14 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.*;
 
 
@@ -63,8 +66,10 @@ public class MainEditorController {
     @FXML public Button btnNumberedList;
     @FXML public Button btnBulletList;
 
-    private HashMap<String, TextAreaController> textAreas;
-    private String activeNote;
+    private static HashMap<String, TextAreaController> textAreas;
+    private static String activeNote;
+
+    private static Stage popup;
 
     @FXML
     private void showDocuments() {
@@ -190,12 +195,30 @@ public class MainEditorController {
         newNote();
     }
 
-    public void showAlignStage(Node anchorNode) {
-        if (alignStage != null && alignStage.isShowing()) {
+    private static void initPopupStage(String tag, Scene scene, Node container, double screenX, double screenY){
+        popup = new Stage(StageStyle.TRANSPARENT);
+        popup.setUserData(tag);
+        popup.setAlwaysOnTop(true);;
+        popup.initModality(Modality.NONE);
+        popup.setScene(scene);
+
+        popup.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!isNowFocused) {
+                popup.close();
+            }
+        });
+
+        popup.setX(screenX);
+        popup.setY(screenY);
+
+        //        TODO: Fix error if anchorNode is outside of bounds
+    }
+
+    private void showAlignStage(Node anchorNode) {
+        String tag = "setAlignment";
+        if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
             return;
         }
-
-        alignStage = new Stage(StageStyle.TRANSPARENT);
 
         HBox itemBox = new HBox(4);
         itemBox.setPadding(new Insets(4));
@@ -240,7 +263,7 @@ public class MainEditorController {
                 FadeTransition fadeOut = new FadeTransition(Duration.millis(150), itemBox);
                 fadeOut.setFromValue(1);
                 fadeOut.setToValue(0);
-                fadeOut.setOnFinished(ae -> alignStage.close());
+                fadeOut.setOnFinished(ae -> popup.close());
                 fadeOut.play();
             });
             itemBox.getChildren().add(item);
@@ -252,36 +275,69 @@ public class MainEditorController {
         scene.setFill(Color.TRANSPARENT);
         scene.getStylesheets().add(FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm());
 
-        alignStage.setAlwaysOnTop(true);;
-        alignStage.initOwner(btnAlign.getScene().getWindow());
-        alignStage.initModality(Modality.NONE);
-        alignStage.setScene(scene);
-
-
-
-        alignStage.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (!isNowFocused) {
-                FadeTransition fadeOut = new FadeTransition(Duration.millis(150), itemBox);
-                fadeOut.setFromValue(1);
-                fadeOut.setToValue(0);
-                fadeOut.setOnFinished(e -> alignStage.close());
-                fadeOut.play();
-            }
-        });
-
         Bounds bounds = anchorNode.localToScreen(anchorNode.getBoundsInLocal());
-        alignStage.setX(bounds.getMinX());
-        alignStage.setY(bounds.getMaxY());
+
+        initPopupStage(tag, scene, itemBox, bounds.getMinX(), bounds.getMaxY());
+        popup.initOwner(btnAlign.getScene().getWindow());
 
         itemBox.setOpacity(0);
         FadeTransition fadeIn = new FadeTransition(Duration.millis(150), itemBox);
         fadeIn.setFromValue(0);
         fadeIn.setToValue(1);
         fadeIn.play();
-
-        alignStage.show();
-//        TODO: Fix error if align button is hidden
+        popup.show();
     }
+
+    public static void showHyperlinkEditorPopup(TextExt textNode, HyperlinkSegment segment, double screenX, double screenY) {
+        String tag = "setHyperlink";
+        if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
+            return;
+        }
+
+        TextField displayField = new TextField(segment.getDisplayText());
+        TextField urlField = new TextField(segment.getUrl());
+
+        Button saveButton = new Button("Save");
+        Button cancelButton = new Button("Cancel");
+        saveButton.setStyle("-fx-background-color: -primary-color; -fx-background-radius: 10;");
+        cancelButton.setStyle("-fx-background-color: -primary-color; -fx-background-radius: 10;");
+
+        HBox buttons = new HBox(10, saveButton, cancelButton);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox layout = new VBox(10, new Label("Display Text:"), displayField, new Label("URL:"), urlField, buttons);
+        layout.setPadding(new Insets(15));
+        layout.setStyle("-fx-background-color: -secondary-color; -fx-background-radius: 10;");
+        layout.setEffect(new DropShadow(10, Color.rgb(0, 0, 0, 0.3)));
+
+        StackPane root = new StackPane(layout);
+        root.setPadding(new Insets(20));
+        root.setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
+        root.setPickOnBounds(false);
+
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm());
+        scene.setFill(Color.TRANSPARENT);
+
+        initPopupStage(tag, scene, layout, screenX, screenY);
+        popup.initOwner(textNode.getScene().getWindow());
+
+        saveButton.setOnAction(e -> {
+            String newDisplay = displayField.getText().trim();
+            String newUrl = urlField.getText().trim();
+
+            if (!newDisplay.isEmpty() && !newUrl.isEmpty()) {
+                HyperlinkSegment newSegment = new HyperlinkSegment(newDisplay, newUrl);
+                replaceHyperlinkSegment(textNode, segment, newSegment);
+            }
+
+            popup.close();
+        });
+
+        cancelButton.setOnAction(e -> popup.close());
+        popup.show();
+    }
+
 
 
     public static String hashMapStyleToString(HashMap<String, String> styles){
@@ -602,11 +658,11 @@ public class MainEditorController {
     private void find(){
 
     }
-    Stage alignStage;
+
     @FXML
     private void align(){
-        if (alignStage != null && alignStage.isShowing()) {
-            alignStage.close();
+        if (popup != null && popup.isShowing()) {
+            popup.close();
         } else {
             showAlignStage(btnAlign);
         }
@@ -700,17 +756,40 @@ public class MainEditorController {
         stage.setMaximized(true);
     }
 
+    private static void replaceHyperlinkSegment(Node node, HyperlinkSegment oldSegment, HyperlinkSegment newSegment) {
+        textAreas.get(activeNote).setSuppressHyperlinkMonitoring(true);
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote).getTextArea();
 
-    private RichSegment getSegmentAt(int position) {
-        if (position < 0 || position >= textAreas.get(activeNote).getTextArea().getLength()) {
+
+        int pos = area.getCaretPosition();
+        for (int i = 0; i < area.getParagraphs().size(); i++) {
+            Paragraph<ParStyle, RichSegment, TextStyle> paragraph = area.getParagraph(i);
+            int abs = area.getAbsolutePosition(i, 0);
+            for (RichSegment seg : paragraph.getSegments()) {
+                if (seg == oldSegment) {
+                    int segStart = abs;
+                    int segEnd = abs + seg.length();
+
+                    area.replace(segStart, segEnd, newSegment, area.getStyleAtPosition(segStart));
+                    textAreas.get(activeNote).setSuppressHyperlinkMonitoring(false);
+                    return;
+                }
+                abs += seg.length();
+            }
+        }
+    }
+
+
+    public static RichSegment getSegmentAt(TextAreaController controller, int position) {
+        if (position < 0 || position >= controller.getTextArea().getLength()) {
             return null;
         }
 
-        TwoDimensional.Position twoDimPos = textAreas.get(activeNote).getTextArea().offsetToPosition(position, Forward);
+        TwoDimensional.Position twoDimPos = controller.getTextArea().offsetToPosition(position, Forward);
         int paragraphIndex = twoDimPos.getMajor();
         int column = twoDimPos.getMinor();
 
-        Paragraph<ParStyle, RichSegment, TextStyle> paragraph = textAreas.get(activeNote).getTextArea().getParagraph(paragraphIndex);
+        Paragraph<ParStyle, RichSegment, TextStyle> paragraph = controller.getTextArea().getParagraph(paragraphIndex);
         int offset = 0;
 
         for (StyledSegment<RichSegment, TextStyle> seg : paragraph.getStyledSegments()) {

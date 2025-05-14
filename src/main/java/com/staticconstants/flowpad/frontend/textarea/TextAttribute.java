@@ -6,6 +6,7 @@ public enum TextAttribute {
     UNDERLINE,
     FONT_SIZE,
     FONT_FAMILY,
+    TEXT_COLOR,
     HIGHLIGHT,
     HEADING_LEVEL
 }

@@ -12,7 +12,11 @@ public class RichTextOps<R, T> implements TextOps<RichSegment, TextStyle> {
     public int length(RichSegment seg) {
         if (seg instanceof TextSegment textSegment) {
             return styledTextOps.length(textSegment.getText());
-        } else if (seg instanceof ImageSegment) {
+        }
+        else if (seg instanceof HyperlinkSegment hyperlinkSegment) {
+            return hyperlinkSegment.length();
+        }
+        else if (seg instanceof ImageSegment) {
             return 1;
         }
         return 1;
@@ -23,6 +27,9 @@ public class RichTextOps<R, T> implements TextOps<RichSegment, TextStyle> {
         if (seg instanceof TextSegment textSegment) {
             return styledTextOps.charAt(textSegment.getText(), index);
         }
+        else if (seg instanceof  HyperlinkSegment hyperlinkSegment){
+            return hyperlinkSegment.getText().charAt(index);
+        }
         return '\ufffc';
     }
 
@@ -31,6 +38,9 @@ public class RichTextOps<R, T> implements TextOps<RichSegment, TextStyle> {
         if (seg instanceof TextSegment textSegment) {
             return textSegment.getText();
         }
+        else if (seg instanceof  HyperlinkSegment hyperlinkSegment){
+            return hyperlinkSegment.getText();
+        }
         return "\ufffc";
     }
 
@@ -38,6 +48,8 @@ public class RichTextOps<R, T> implements TextOps<RichSegment, TextStyle> {
     public RichSegment subSequence(RichSegment seg, int start) {
         if (seg instanceof TextSegment t)
             return new TextSegment(styledTextOps.subSequence(t.getText(), start));
+        else if (seg instanceof  HyperlinkSegment t)
+            return t.subSequence(start);
         return seg;
     }
 
@@ -45,6 +57,8 @@ public class RichTextOps<R, T> implements TextOps<RichSegment, TextStyle> {
     public RichSegment subSequence(RichSegment seg, int start, int end) {
         if (seg instanceof TextSegment t)
             return new TextSegment(styledTextOps.subSequence(t.getText(), start, end));
+        if (seg instanceof HyperlinkSegment t)
+            return t.subSequence(start, end);
         return seg;
     }
 
@@ -53,6 +67,10 @@ public class RichTextOps<R, T> implements TextOps<RichSegment, TextStyle> {
         if (currentSeg instanceof TextSegment t1 && nextSeg instanceof TextSegment t2) {
             return styledTextOps.joinSeg(t1.getText(), t2.getText())
                     .map(merged -> new TextSegment(merged));
+        }
+        else if (currentSeg instanceof HyperlinkSegment h1 && nextSeg instanceof HyperlinkSegment h2 &&
+                h1.getUrl().equals(h2.getUrl())) {
+            return Optional.of(new HyperlinkSegment(h1.getText() + h2.getText(), h1.getUrl()));
         }
         return Optional.empty();
     }

@@ -1,4 +1,5 @@
 package com.staticconstants.flowpad.frontend.textarea;
+import javafx.scene.paint.Color;
 import org.fxmisc.richtext.model.Codec;
 import java.io.*;
 
@@ -16,7 +17,8 @@ public class TextStyleCodec implements Codec<TextStyle> {
         out.writeBoolean(style.isUnderline());
         out.writeInt(style.getFontSize());
         out.writeUTF(style.getFontFamily());
-        out.writeUTF(style.getBackgroundColor() != null ? style.getBackgroundColor() : "transparent");
+        out.writeUTF(style.getTextColor().toString());
+        out.writeUTF(style.getBackgroundColor().toString());
         out.writeInt(style.getHeadingLevel());
     }
 
@@ -27,10 +29,13 @@ public class TextStyleCodec implements Codec<TextStyle> {
         boolean underline = in.readBoolean();
         int fontSize = in.readInt();
         String fontFamily = in.readUTF();
+        String textColor = in.readUTF();
         String backgroundColor = in.readUTF();
         int headingLevel = in.readInt();
 
-        return new TextStyle(bold, italic, underline, fontSize, fontFamily, backgroundColor, headingLevel);
+        Color txtColor = Color.valueOf(textColor);
+        Color bgColor = Color.valueOf(backgroundColor);
+        return new TextStyle(bold, italic, underline, fontSize, fontFamily, txtColor, bgColor, headingLevel);
     }
 
 

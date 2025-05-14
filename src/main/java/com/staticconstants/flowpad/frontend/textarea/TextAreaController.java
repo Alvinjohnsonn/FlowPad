@@ -13,14 +13,15 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.*;
-import org.fxmisc.richtext.model.Codec;
-import org.fxmisc.richtext.model.StyledSegment;
-import org.fxmisc.richtext.model.TwoDimensional;
+import org.fxmisc.richtext.model.*;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
 
@@ -34,10 +35,12 @@ public class TextAreaController {
     private ParStyle desiredParStyle;
     private int lastStartCaretPosition;
     private int lastEndCaretPosition;
+    private boolean suppressHyperlinkMonitoring;
 
     public TextAreaController(VBox editorContainer, String userData) {
-        programmaticUpdate =false;
-        desiredStyleChanged =false;
+        programmaticUpdate = false;
+        desiredStyleChanged = false;
+        suppressHyperlinkMonitoring = false;
         this.userData = userData;
 
         ParStyle initialParStyle = ParStyle.EMPTY;
@@ -53,8 +56,11 @@ public class TextAreaController {
 
             if (s instanceof TextSegment textSeg) {
                 return textSeg.createNode(style);
-
-            } else if (s instanceof ImageSegment imgSeg) {
+            }
+            else if (s instanceof HyperlinkSegment linkSeg){
+                return linkSeg.createNode(style);
+            }
+            else if (s instanceof ImageSegment imgSeg) {
                 return imgSeg.createNode(style);
             }
 
@@ -122,7 +128,6 @@ public class TextAreaController {
                     textArea.refreshParagraphGraphics();
                     event.consume();
                 }
-
             }
         });
 
@@ -130,6 +135,7 @@ public class TextAreaController {
             if ("\t".equals(event.getCharacter())) {
                 event.consume();
             }
+
         });
 
         textArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -172,6 +178,44 @@ public class TextAreaController {
                     event.consume();
                 }
             }
+
+            if (event.getCode() == KeyCode.ENTER) {
+                int caretPosition = textArea.getCaretPosition();
+                if (caretPosition < 8) return;
+
+                RichSegment currentSegment = MainEditorController.getSegmentAt(this, caretPosition-1);
+                if (currentSegment instanceof HyperlinkSegment){
+                    return;
+                }
+
+                int currentParagraphIndex = textArea.getCurrentParagraph();
+                if (currentParagraphIndex < 0) return;
+
+                String paragraphText = textArea.getParagraph(currentParagraphIndex).getText();
+
+
+                Pattern urlPattern = Pattern.compile("https://[\\w\\-./?%&=]+\\.(com|org|net|edu|gov|io|co|id|au)(/\\S*)?");
+                Matcher matcher = urlPattern.matcher(paragraphText);
+
+                int lastMatchStart = -1;
+                int lastMatchEnd = -1;
+                String lastUrl = null;
+
+                while (matcher.find()) {
+                    lastMatchStart = matcher.start();
+                    lastMatchEnd = matcher.end();
+                    lastUrl = matcher.group();
+                }
+
+                if (lastUrl != null && caretPosition == textArea.getAbsolutePosition(currentParagraphIndex, lastMatchEnd)) {
+                    int startPos = textArea.getAbsolutePosition(currentParagraphIndex, lastMatchStart);
+                    int endPos = textArea.getAbsolutePosition(currentParagraphIndex, lastMatchEnd);
+
+                    textArea.replace(startPos, endPos,
+                            new HyperlinkSegment(lastUrl, lastUrl), desiredStyle);
+                    event.consume();
+                }
+            }
         });
 
         textArea.caretPositionProperty().addListener((obs, oldVal, newVal) -> {
@@ -186,7 +230,48 @@ public class TextAreaController {
                 }
             }
         });
-        
+
+
+//        TODO: Fix unwanted conversion from deleting char just before or after hyperlink
+        textArea.plainTextChanges()
+                .subscribe(change -> {
+                    if (suppressHyperlinkMonitoring) return;
+
+                    int index = change.getPosition();
+                    int removed = change.getRemoved().length();
+
+                    if (removed > 0) {
+                        int deletionStart = index;
+                        int deletionEnd = index + removed;
+
+                        int paragraphIdx = textArea.offsetToPosition(deletionStart, Forward).getMajor();
+                        Paragraph<ParStyle, RichSegment, TextStyle> paragraph = textArea.getParagraph(paragraphIdx);
+                        int paragraphStart = textArea.getAbsolutePosition(paragraphIdx, 0);
+                        int runningOffset = paragraphStart;
+
+                        for (RichSegment segment : paragraph.getSegments()) {
+                            int segLen = segment.length();
+                            int segStart = runningOffset;
+                            int segEnd = segStart + segLen;
+
+
+                            if (segment instanceof HyperlinkSegment hyperlink &&
+                                    deletionStart <= segEnd && deletionEnd > segStart) {
+
+                                TextSegment replacement = new TextSegment(hyperlink.getText());
+                                textArea.replace(segStart, segEnd, replacement, textArea.getStyleAtPosition(segStart));
+                                break;
+                            }
+
+                            runningOffset += segLen;
+                        }
+                    }
+                });
+
+
+
+
+
         VBox.setVgrow(textArea, Priority.ALWAYS);
         editorContainer.getChildren().add(textArea);
     }
@@ -204,7 +289,7 @@ public class TextAreaController {
     public void reload(){
         desiredStyleChanged = false;
         programmaticUpdate = false;
-
+        suppressHyperlinkMonitoring = false;
         Platform.runLater(() -> {
             textArea.requestFocus();
 
@@ -251,6 +336,14 @@ public class TextAreaController {
         return programmaticUpdate;
     }
 
+    public boolean getSuppressHyperlinkMonitoring(){
+        return suppressHyperlinkMonitoring;
+    }
+
+    public void setSuppressHyperlinkMonitoring(boolean state){
+        suppressHyperlinkMonitoring = state;
+    }
+
     private void updateFontSizeField(TextField textFieldFontSize, TextStyle style) {
         IndexRange selection = textArea.getSelection();
         int fontSize = 0;
@@ -287,14 +380,14 @@ public class TextAreaController {
 
         programmaticUpdate = true;
         if (!desiredStyleChanged) {
-            desiredStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), desiredStyle.getFontSize(), desiredStyle.getFontFamily(), desiredStyle.getBackgroundColor(), desiredStyle.getHeadingLevel());
+            desiredStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), desiredStyle.getFontSize(), desiredStyle.getFontFamily(), desiredStyle.getTextColor(), desiredStyle.getBackgroundColor(), desiredStyle.getHeadingLevel());
         }
         programmaticUpdate = false;
 
         scene.setSelectedButton(TextAttribute.BOLD, referenceStyle.isBold());
         scene.setSelectedButton(TextAttribute.ITALIC, referenceStyle.isItalic());
         scene.setSelectedButton(TextAttribute.UNDERLINE, referenceStyle.isUnderline());
-        scene.setSelectedButton(TextAttribute.HIGHLIGHT, referenceStyle.getBackgroundColor().equals("yellow"));
+        scene.setSelectedButton(TextAttribute.HIGHLIGHT, referenceStyle.getBackgroundColor().equals(Color.YELLOW));
 //        TODO: Change "yellow" to the highlight color settings from LoggedIn user property
     }
 
@@ -407,7 +500,8 @@ public class TextAreaController {
             case UNDERLINE -> newStyle = getDesiredStyle().setUnderline((boolean)value);
             case FONT_SIZE -> newStyle = getDesiredStyle().setFontSize((int)value);
             case FONT_FAMILY -> newStyle = getDesiredStyle().setFontFamily((String)value);
-            case HIGHLIGHT -> newStyle = getDesiredStyle().setBackgroundColor((String)value);
+            case TEXT_COLOR -> newStyle = getDesiredStyle().setTextColor((Color)value);
+            case HIGHLIGHT -> newStyle = getDesiredStyle().setBackgroundColor((Color)value);
             case HEADING_LEVEL -> newStyle = getDesiredStyle().setHeadingLevel((int)value);
         }
 
