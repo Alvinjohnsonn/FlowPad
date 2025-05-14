@@ -1,4 +1,4 @@
-package com.staticconstants.flowpad.frontend.textareaclasses;
+package com.staticconstants.flowpad.frontend.textarea;
 
 import javafx.scene.Node;
 import javafx.scene.paint.Paint;

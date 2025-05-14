@@ -1,7 +1,6 @@
-package com.staticconstants.flowpad.frontend.textareaclasses;
+package com.staticconstants.flowpad.frontend.textarea;
 
 import javafx.scene.Node;
-import javafx.scene.image.Image;
 
 
 public sealed interface RichSegment permits TextSegment, ImageSegment {

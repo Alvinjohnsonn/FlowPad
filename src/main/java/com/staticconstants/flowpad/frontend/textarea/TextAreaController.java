@@ -1,4 +1,4 @@
-package com.staticconstants.flowpad.frontend.textareaclasses;
+package com.staticconstants.flowpad.frontend.textarea;
 
 import com.staticconstants.flowpad.FlowPadApplication;
 import com.staticconstants.flowpad.frontend.MainEditorController;
@@ -8,7 +8,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -17,6 +16,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.*;
 import org.fxmisc.richtext.model.Codec;
 import org.fxmisc.richtext.model.StyledSegment;
+import org.fxmisc.richtext.model.TwoDimensional;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -108,9 +108,70 @@ public class TextAreaController {
             }
 
             if (event.getCode() == KeyCode.BACK_SPACE) {
-                updateListType(scene, getParStyleOnSelection());
-            }
+                int caretPosition = textArea.getCaretPosition();
+                int paragraphIndex = textArea.offsetToPosition(caretPosition, TwoDimensional.Bias.Backward).getMajor();
+                int paragraphStart = textArea.getAbsolutePosition(paragraphIndex, 0);
 
+                if (caretPosition == paragraphStart) {
+                    ParStyle style = textArea.getParagraph(paragraphIndex).getParagraphStyle();
+                    ParStyle newStyle = style.decreaseListLevel(style.getListLevel());
+                    textArea.setParagraphStyle(paragraphIndex, newStyle);
+                    if (newStyle.getListType() != style.getListType()) {
+                        updateListType(scene, newStyle);
+                    }
+                    textArea.refreshParagraphGraphics();
+                    event.consume();
+                }
+
+            }
+        });
+
+        textArea.addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            if ("\t".equals(event.getCharacter())) {
+                event.consume();
+            }
+        });
+
+        textArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                IndexRange selection = textArea.getSelection();
+                int startPar = textArea.offsetToPosition(selection.getStart(), TwoDimensional.Bias.Backward).getMajor();
+                int endPar = textArea.offsetToPosition(selection.getEnd(), TwoDimensional.Bias.Forward).getMajor();
+
+                boolean isShift = event.isShiftDown();
+
+                if (selection.getLength()==0){
+                    ParStyle style = textArea.getParagraph(textArea.getCurrentParagraph()).getParagraphStyle();
+                    ParStyle newStyle;
+                    if (isShift) newStyle = style.decreaseListLevel(style.getListLevel());
+                    else newStyle = style.increaseListLevel(style.getListLevel());
+
+                    textArea.setParagraphStyle(textArea.getCurrentParagraph(), newStyle);
+                    if (newStyle.getListType() != style.getListType()) updateListType(scene, newStyle);
+                    textArea.refreshParagraphGraphics();
+                    event.consume();
+                    return;
+                }
+
+                boolean anyChanged = false;
+
+                for (int i = startPar; i <= endPar; i++) {
+                    ParStyle style = textArea.getParagraph(i).getParagraphStyle();
+                    if (style.getListType() != ParStyle.ListType.NONE) {
+                        ParStyle updated = isShift
+                                ? style.decreaseListLevel(style.getListLevel())
+                                : style.increaseListLevel(style.getListLevel());
+                        textArea.setParagraphStyle(i, updated);
+                        anyChanged = true;
+                    }
+                }
+
+                if (anyChanged) {
+                    updateListType(scene, textArea.getParagraph(textArea.getCurrentParagraph()).getParagraphStyle());
+                    textArea.refreshParagraphGraphics();
+                    event.consume();
+                }
+            }
         });
 
         textArea.caretPositionProperty().addListener((obs, oldVal, newVal) -> {
@@ -125,10 +186,11 @@ public class TextAreaController {
                 }
             }
         });
-
+        
         VBox.setVgrow(textArea, Priority.ALWAYS);
         editorContainer.getChildren().add(textArea);
     }
+
 
     public void initializeUpdateToolbar(MainEditorController scene){
         textArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {

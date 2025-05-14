@@ -1,4 +1,4 @@
-package com.staticconstants.flowpad.frontend.textareaclasses;
+package com.staticconstants.flowpad.frontend.textarea;
 import org.fxmisc.richtext.model.Codec;
 import java.io.*;
 

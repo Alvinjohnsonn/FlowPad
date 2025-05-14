@@ -1,7 +1,7 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
-import com.staticconstants.flowpad.frontend.textareaclasses.*;
+import com.staticconstants.flowpad.frontend.textarea.*;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;

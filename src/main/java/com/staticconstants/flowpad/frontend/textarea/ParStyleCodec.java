@@ -1,4 +1,4 @@
-package com.staticconstants.flowpad.frontend.textareaclasses;
+package com.staticconstants.flowpad.frontend.textarea;
 
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
@@ -6,8 +6,6 @@ import org.fxmisc.richtext.model.Codec;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-
-import static com.staticconstants.flowpad.frontend.textareaclasses.ParStyle.ListType.*;
 
 public class ParStyleCodec implements Codec<ParStyle> {
 

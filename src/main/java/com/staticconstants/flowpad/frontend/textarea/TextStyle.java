@@ -1,15 +1,5 @@
-package com.staticconstants.flowpad.frontend.textareaclasses;
+package com.staticconstants.flowpad.frontend.textarea;
 
-import javafx.css.converter.FontConverter;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
-import org.fxmisc.richtext.GenericStyledArea;
-import org.fxmisc.richtext.model.StyleSpansBuilder;
-
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class TextStyle {

@@ -1,4 +1,4 @@
-package com.staticconstants.flowpad.frontend.textareaclasses;
+package com.staticconstants.flowpad.frontend.textarea;
 
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.function.UnaryOperator;
 
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Backward;
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
@@ -33,8 +34,18 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
         if (pStyle.getListType() != ParStyle.ListType.NONE) {
             Text prefix;
 
+            int level = Math.max(0, pStyle.getListLevel());
+            double indent = 20 * (level-1);
+            flow.setPadding(new Insets(pStyle.getTopMargin(), 0, pStyle.getBottomMargin(), indent));
+
             if (pStyle.getListType() == ParStyle.ListType.BULLET) {
-                prefix = new Text("•  ");
+                String symbol = switch (level) {
+                    case 1 -> "• ";
+                    case 2 -> "◦ ";
+                    case 3 -> "▪ ";
+                    default -> "• ";
+                };
+                prefix = new Text(symbol);
             } else {
                 int number = 1;
                 for (int i = paragraph - 1; i >= 0; i--) {
@@ -72,25 +83,6 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
         );
 
         setParagraphGraphicFactory(graphicFactory);
-
-        addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() == KeyCode.BACK_SPACE) {
-                int paragraphIndex = getCurrentParagraph();
-                int caretColumn = getCaretColumn();
-
-                if (caretColumn == 0) {
-                    ParStyle currentStyle = getParagraph(paragraphIndex).getParagraphStyle();
-
-                    if (currentStyle.getListType() != ParStyle.ListType.NONE) {
-                        ParStyle newStyle = currentStyle.setListType(ParStyle.ListType.NONE);
-                        setParagraphStyle(paragraphIndex, newStyle);
-                        refreshParagraphGraphics();
-                        event.consume();
-//                        TODO: Fix bullet not immediately dissappearing. If the first bullet is empty and deleted it doesnt update the interface automatically
-                    }
-                }
-            }
-        });
     }
 
 
@@ -146,6 +138,18 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
             refreshParagraphGraphics();
         }
     }
+
+    public void applyToSelectedParagraphs(UnaryOperator<ParStyle> updater) {
+        int start = getCurrentLineStartInParargraph();
+        int end = getCurrentLineEndInParargraph();
+        for (int i = start; i <= end; i++) {
+            ParStyle current = getParagraph(i).getParagraphStyle();
+            ParStyle updated = updater.apply(current);
+            setParagraphStyle(i, updated);
+        }
+        refreshParagraphGraphics();
+    }
+
     public void refreshParagraphGraphics() {
         setParagraphGraphicFactory(null);
         setParagraphGraphicFactory(graphicFactory);

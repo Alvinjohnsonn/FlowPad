@@ -1,7 +1,6 @@
-package com.staticconstants.flowpad.frontend.textareaclasses;
+package com.staticconstants.flowpad.frontend.textarea;
 
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
@@ -73,13 +72,22 @@ public class ParStyle {
         return listType;
     }
     public ParStyle setListType(ListType listType){
+        int listLevel = getListLevel();
+        if (listType == ListType.NONE) listLevel = 0;
+        else listLevel=1;
         return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,listLevel);
     }
     public int getListLevel(){
         return listLevel;
     }
-    public ParStyle setListType(int listLevel){
-        return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,listLevel);
+    public ParStyle increaseListLevel(int currentListLevel){
+        return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,currentListLevel<5?currentListLevel+1:currentListLevel);
+    }
+    public ParStyle decreaseListLevel(int currentListLevel){
+        if (currentListLevel==1) return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,ListType.NONE,0);
+        else {
+            return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,currentListLevel-1);
+        }
     }
 
 
