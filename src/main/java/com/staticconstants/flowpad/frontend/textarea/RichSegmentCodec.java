@@ -8,6 +8,8 @@ import java.io.IOException;
 public class RichSegmentCodec implements Codec<RichSegment> {
 
     private final TextSegmentCodec textSegmentCodec = new TextSegmentCodec();
+    private final HyperlinkSegmentCodec hyperlinkSegmentCodec = new HyperlinkSegmentCodec();
+
 
     @Override
     public String getName() {
@@ -19,7 +21,12 @@ public class RichSegmentCodec implements Codec<RichSegment> {
         if (segment instanceof TextSegment) {
             out.writeUTF("text");
             textSegmentCodec.encode(out, (TextSegment) segment);
-        } else {
+        }
+        else if (segment instanceof HyperlinkSegment){
+            out.writeUTF("hyperlink");
+            hyperlinkSegmentCodec.encode(out, (HyperlinkSegment) segment);
+        }
+        else {
             throw new IOException("Unsupported RichSegment type");
         }
     }
@@ -31,11 +38,12 @@ public class RichSegmentCodec implements Codec<RichSegment> {
         }
 
         String type = in.readUTF();
-        //System.out.println("RichSegmentCodec.decode() – type: " + type);
-
         if (type.equals("text")) {
             return textSegmentCodec.decode(in);
-        } else {
+        }
+        else if (type.equals("hyperlink")) {
+            return hyperlinkSegmentCodec.decode(in);
+        }else {
             throw new IOException("Unknown segment type: " + type);
         }
     }
