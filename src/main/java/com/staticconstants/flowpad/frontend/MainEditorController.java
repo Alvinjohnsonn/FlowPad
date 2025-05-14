@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -25,6 +26,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -33,10 +35,13 @@ import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.*;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static javafx.collections.FXCollections.observableArrayList;
+import static org.controlsfx.tools.Utils.getWindow;
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
 
 public class MainEditorController {
@@ -288,7 +293,7 @@ public class MainEditorController {
         popup.show();
     }
 
-    public static void showHyperlinkEditorPopup(TextExt textNode, HyperlinkSegment segment, double screenX, double screenY) {
+    public static void showHyperlinkEditorPopup(TextExt textNode, HyperlinkSegment segment, double screenX, double screenY, Consumer<HyperlinkSegment> onConfirm) {
         String tag = "setHyperlink";
         if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
             return;
@@ -320,15 +325,21 @@ public class MainEditorController {
         scene.setFill(Color.TRANSPARENT);
 
         initPopupStage(tag, scene, layout, screenX, screenY);
-        popup.initOwner(textNode.getScene().getWindow());
+        if (textNode.getScene()!=null) popup.initOwner(textNode.getScene().getWindow());
 
         saveButton.setOnAction(e -> {
             String newDisplay = displayField.getText().trim();
             String newUrl = urlField.getText().trim();
 
+            if (!newUrl.startsWith("https://")) newUrl = "https://"+newUrl;
+
             if (!newDisplay.isEmpty() && !newUrl.isEmpty()) {
                 HyperlinkSegment newSegment = new HyperlinkSegment(newDisplay, newUrl);
                 replaceHyperlinkSegment(textNode, segment, newSegment);
+
+                if (onConfirm != null) {
+                    onConfirm.accept(newSegment);
+                }
             }
 
             popup.close();
@@ -713,7 +724,67 @@ public class MainEditorController {
     private void clearFormatting(){
 
     }
+    @FXML
+    private void setTextColor(){
 
+    }
+    @FXML
+    private void insertHyperlink() {
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote).getTextArea();
+        int caretPos = area.getCaretPosition();
+        IndexRange selection = area.getSelection();
+
+        String selectedText = selection.getLength() > 0
+                ? area.getText(selection.getStart(), selection.getEnd())
+                : "";
+
+        TextExt dummy = new TextExt();
+        Bounds caretBounds = area.getCaretBounds().orElse(null);
+
+        Point2D screenPos = caretBounds != null
+                ? new Point2D(caretBounds.getMinX(), caretBounds.getMaxY())
+                : new Point2D(500, 500);
+
+        showHyperlinkEditorPopup(dummy, new HyperlinkSegment(selectedText, ""), screenPos.getX(), screenPos.getY(), newSegment -> {
+            if (selection.getLength() > 0) {
+                area.replace(selection.getStart(), selection.getEnd(), newSegment, area.getStyleAtPosition(selection.getStart()));
+            } else {
+                area.insert(caretPos, newSegment, area.getStyleAtPosition(caretPos));
+            }
+        });
+    }
+
+    @FXML
+    private void insertImage(){
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+        File userHome = new File(System.getProperty("user.home"));
+        File downloadsFolder = new File(userHome, "Downloads");
+
+        if (downloadsFolder.exists() && downloadsFolder.isDirectory()) {
+            fileChooser.setInitialDirectory(downloadsFolder);
+        }
+        File file = fileChooser.showOpenDialog(tabPane.getScene().getWindow());
+
+        if (file != null) {
+            insertImageAtCaret(file);
+        }
+    }
+
+    private void insertImageAtCaret(File file) {
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote).getTextArea();
+        int caretPos = area.getCaretPosition();
+        IndexRange selection = area.getSelection();
+
+        Image image = new Image(file.toURI().toString());
+        ImageSegment imageSegment = new ImageSegment(image);
+
+        if (selection.getLength() > 0) {
+            area.replace(selection.getStart(), selection.getEnd(), imageSegment, area.getStyleAtPosition(selection.getStart()));
+        } else {
+            area.insert(caretPos, imageSegment, area.getStyleAtPosition(caretPos));
+        }
+    }
 
     @FXML
     private void renameFile(TextField tf){

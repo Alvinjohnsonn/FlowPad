@@ -269,6 +269,15 @@
                                                 </ImageView>
                                             </graphic>
                                         </Button>
+                                        <Button id="btnTextColor" fx:id="btnTextColor" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#setTextColor">
+                                            <graphic>
+                                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/text-color.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
                                           <Button id="btnMarker" fx:id="btnMarker" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#highlight">
                                              <graphic>
                                                 <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
@@ -317,6 +326,24 @@
                                                 <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
                                                     <image>
                                                         <Image url="@icons/numbered-list.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <Button fx:id="btnInsertHyperlink" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#insertHyperlink">
+                                            <graphic>
+                                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/link.png" />
+                                                    </image>
+                                                </ImageView>
+                                            </graphic>
+                                        </Button>
+                                        <Button fx:id="btnInsertImage" focusTraversable="false" layoutX="10.0" layoutY="10.0" onAction="#insertImage">
+                                            <graphic>
+                                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@icons/image.png" />
                                                     </image>
                                                 </ImageView>
                                             </graphic>

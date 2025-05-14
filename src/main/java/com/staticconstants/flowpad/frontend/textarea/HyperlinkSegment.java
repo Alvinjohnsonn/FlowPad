@@ -79,7 +79,7 @@ public final class HyperlinkSegment implements RichSegment{
             }
         });
         text.setOnContextMenuRequested(event -> {
-            MainEditorController.showHyperlinkEditorPopup(text, this, event.getScreenX(), event.getScreenY());
+            MainEditorController.showHyperlinkEditorPopup(text, this, event.getScreenX(), event.getScreenY(), null);
         });
 
         text.setOnMouseEntered(e -> text.setStyle("-fx-cursor: hand;"));
