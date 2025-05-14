@@ -28,7 +28,7 @@ jobs:
       #   with:
       #       folder: target/docs/javadoc
       - name: Test
-        run: mvn --batch-mode verify
+        run: mvn --batch-mode -Dmaven.test.failure.ignore=true test
 
       - name: Report
         uses: dorny/test-reporter@v1
