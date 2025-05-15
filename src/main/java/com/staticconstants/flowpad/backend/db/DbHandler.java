@@ -21,7 +21,9 @@ public final class DbHandler {
         runner.start();
     }
 
-    static DbHandler getInstance()
+
+//    TODO: Change temp public modifier
+    public static DbHandler getInstance()
     {
         if (INSTANCE == null) {
             synchronized (DbHandler.class) {
