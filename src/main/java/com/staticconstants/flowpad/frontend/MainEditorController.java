@@ -15,12 +15,16 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -37,6 +41,7 @@ import org.fxmisc.richtext.model.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Array;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -70,6 +75,7 @@ public class MainEditorController {
     @FXML public ImageView imgActiveAlignment;
     @FXML public Button btnNumberedList;
     @FXML public Button btnBulletList;
+    @FXML private Button profilebtn;
 
     private static HashMap<String, TextAreaController> textAreas;
     private static String activeNote;
@@ -190,7 +196,7 @@ public class MainEditorController {
                     VBox vb = (VBox)sp.getItems().getFirst();
 
                     if (!vb.getChildren().contains(toolBar)) vb.getChildren().addFirst(toolBar);
-                    
+
                     activeNote = (String)newTab.getUserData();
 
                     textAreas.get(activeNote).reload();
@@ -822,6 +828,21 @@ public class MainEditorController {
         Scene scene = new Scene(fxmlLoader.load());
         scene.getStylesheets().add(stylesheet);
         stage.setTitle("Home Page");
+
+        stage.setScene(scene);
+        stage.setMaximized(true);
+    }
+
+
+    @FXML
+    protected void onProfileButtonClick() throws IOException {
+        Stage stage = (Stage) profilebtn.getScene().getWindow();
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("settings-view.fxml"));
+        String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
+
+        Scene scene = new Scene(fxmlLoader.load());
+        scene.getStylesheets().add(stylesheet);
+        stage.setTitle("Settings Page");
 
         stage.setScene(scene);
         stage.setMaximized(true);
