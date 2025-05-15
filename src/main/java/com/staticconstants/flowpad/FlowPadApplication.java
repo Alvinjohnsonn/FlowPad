@@ -13,11 +13,10 @@ public class FlowPadApplication extends Application {
     public void start(Stage stage) throws IOException {
 
 
-//        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("login-view.fxml"));
-        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("login-view.fxml"));
 
         Scene scene = new Scene(fxmlLoader.load());
-        scene.getStylesheets().add(getClass().getResource("css/editor-style.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("flowpad-stylesheet.css").toExternalForm());
 
 
         stage.setTitle("FlowPad");
