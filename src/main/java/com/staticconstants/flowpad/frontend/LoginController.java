@@ -60,7 +60,7 @@ public class LoginController {
                 Stage stage = (Stage) btnSubmit.getScene().getWindow();
 
                 FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
-                String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
+                String stylesheet =  FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm();
 
                 Scene scene = new Scene(fxmlLoader.load());
                 scene.getStylesheets().add(stylesheet);
