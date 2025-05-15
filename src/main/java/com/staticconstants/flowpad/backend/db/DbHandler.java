@@ -10,6 +10,7 @@ public final class DbHandler {
     private LinkedBlockingQueue<DbTask<?>> opQueue;
     private Connection dbConnection;
 
+
     private DbHandler()
     {
         if (INSTANCE != null) {
@@ -20,6 +21,8 @@ public final class DbHandler {
         runner.start();
     }
 
+
+//    TODO: Change temp public modifier
     public static DbHandler getInstance()
     {
         if (INSTANCE == null) {
@@ -30,10 +33,6 @@ public final class DbHandler {
             }
         }
         return INSTANCE;
-    }
-
-    public Connection getConnection(){
-        return this.dbConnection;
     }
 
     public <T> CompletableFuture<T> dbOperation(DbOperation<T> callback) {

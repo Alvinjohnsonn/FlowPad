@@ -1,6 +1,7 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.LoggedInUser;
 import com.staticconstants.flowpad.backend.db.users.User;
 import com.staticconstants.flowpad.backend.db.users.UserDAO;
 import javafx.application.Platform;
@@ -67,9 +68,9 @@ public class RegisterPageController {
             String lastName = txtLastName.getText();
 
             UserDAO userDAO = new UserDAO();
-            User user = new User(firstName, lastName, username, password);
+            LoggedInUser.user = new User(firstName, lastName, username, password);
 
-            userDAO.insert(user).thenAccept(success -> {
+            userDAO.insert(LoggedInUser.user).thenAccept(success -> {
                 Platform.runLater(() -> {  // Ensure this runs on the JavaFX Application Thread
                     if (success) {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);

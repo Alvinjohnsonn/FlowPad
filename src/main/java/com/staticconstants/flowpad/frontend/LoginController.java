@@ -1,7 +1,7 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
-import com.staticconstants.flowpad.backend.db.users.User;
+import com.staticconstants.flowpad.backend.db.users.LoginResult;
 import com.staticconstants.flowpad.backend.db.users.UserDAO;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,7 +13,6 @@ import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 public class LoginController {
 
@@ -54,13 +53,13 @@ public class LoginController {
 
             //create code to check db if login is correct
             //check if the username and password is correct
-            if (userDAO.checklogin(username, password)){
+            if (userDAO.login(username, password).get() == LoginResult.SUCCESS){
                 // Get user details
 
                 // Success
                 Stage stage = (Stage) btnSubmit.getScene().getWindow();
 
-                FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("flowpad-view.fxml"));
+                FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
                 String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
 
                 Scene scene = new Scene(fxmlLoader.load());

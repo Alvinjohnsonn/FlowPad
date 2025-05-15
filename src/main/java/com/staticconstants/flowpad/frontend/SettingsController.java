@@ -25,10 +25,17 @@ public class SettingsController {
     public Button Highlight;
 
     @FXML
+    public Button btnGoBack;
+
+    @FXML
     private Label welcomeText;
 
     @FXML
     private ImageView profileImage;
+
+    @FXML
+    public Button logoutbtn;
+
 
     public void initialize() {
         if (profileImage != null) {
@@ -57,7 +64,6 @@ public class SettingsController {
     }
 
 
-//TODO: fix this
     @FXML
     private void onBackButton() throws IOException {
         Stage stage = (Stage) backButton.getScene().getWindow();
@@ -67,12 +73,39 @@ public class SettingsController {
         String css = Objects.requireNonNull(
                 getClass().getResource("/com/staticconstants/flowpad/flowpad-stylesheet.css")
         ).toExternalForm();
+        scene.getStylesheets().add(css);
 
 
         stage.setScene(scene);
     }
 
+    @FXML
+    private void goBack() throws IOException {
 
+        Stage stage = (Stage) btnGoBack.getScene().getWindow();
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
+        String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
 
+        Scene scene = new Scene(fxmlLoader.load());
+        scene.getStylesheets().add(stylesheet);
+        stage.setTitle("Home Page");
+
+        stage.setScene(scene);
+        stage.setMaximized(true);
+    }
+
+    @FXML
+    protected void onLogOutButtonClick() throws IOException {
+        Stage stage = (Stage) logoutbtn.getScene().getWindow();
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("login-view.fxml"));
+        String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
+
+        Scene scene = new Scene(fxmlLoader.load());
+        scene.getStylesheets().add(stylesheet);
+        stage.setTitle("Settings Page");
+
+        stage.setScene(scene);
+        stage.setMaximized(true);
+    }
 }
 

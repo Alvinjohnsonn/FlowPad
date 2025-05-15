@@ -1,25 +1,56 @@
 package com.staticconstants.flowpad.frontend;
 
-import com.staticconstants.flowpad.backend.db.notes.Note;
-import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
-import com.staticconstants.flowpad.backend.notes.StyledTextCodecs;
+import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.frontend.textarea.*;
+import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import org.fxmisc.richtext.InlineCssTextArea;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.*;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.util.Duration;
+import org.fxmisc.richtext.TextExt;
+import org.fxmisc.richtext.model.*;
 
+
+import java.io.File;
 import java.io.IOException;
 import java.sql.Array;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.function.Consumer;
+
+import static javafx.collections.FXCollections.observableArrayList;
+import static org.controlsfx.tools.Utils.getWindow;
+import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
 
 public class MainEditorController {
+
     @FXML private TreeView<String> folderTree;
     @FXML private VBox aiOptions;
     @FXML private Button btnDocuments;
@@ -28,20 +59,28 @@ public class MainEditorController {
     @FXML private Label zoomLabel;
     @FXML private Button btnMinus;
     @FXML private Button btnPlus;
-    @FXML private TextField textFieldFontSize;
+    @FXML public TextField textFieldFontSize;
     @FXML private VBox editorContainer;
     @FXML private TabPane tabPane;
-    @FXML private ComboBox fontComboBox;
+    @FXML public ComboBox fontComboBox;
+    @FXML public ComboBox headingComboBox;
     @FXML private Button btnBold;
     @FXML private Button btnItalic;
     @FXML private Button btnUnderline;
+    @FXML private Button btnBack;
+    @FXML private Button btnMarker;
+    @FXML private ToolBar toolBar;
+    @FXML private Button btnAlign;
+    @FXML private Button btnClearFormatting;
+    @FXML public ImageView imgActiveAlignment;
+    @FXML public Button btnNumberedList;
+    @FXML public Button btnBulletList;
+    @FXML private Button profilebtn;
 
-    private InlineCssTextArea richTextArea;
-    private boolean isProgrammaticFontUpdate = false;
-    private HashMap<String, String> desiredStyle = new HashMap<>();
+    private static HashMap<String, TextAreaController> textAreas;
+    private static String activeNote;
 
-
-    private int defaultFontSize = 12;
+    private static Stage popup;
 
     @FXML
     private void showDocuments() {
@@ -67,6 +106,8 @@ public class MainEditorController {
 
     @FXML
     public void initialize() {
+        textAreas = new HashMap<>();
+
         TreeItem<String> rootItem = new TreeItem<>("Notes");
         rootItem.setExpanded(true);
 
@@ -91,31 +132,11 @@ public class MainEditorController {
             zoomLabel.setText(zoomPercent + "%");
         });
 
-        desiredStyle.put("-fx-font-size", defaultFontSize+"px");
-        desiredStyle.put("-fx-font-family", "Arial");
+        textFieldFontSize.setText(TextStyle.EMPTY.getFontSize()+"");
 
-        String fontSize = desiredStyle.get("-fx-font-size");
-        textFieldFontSize.setText(defaultFontSize+"");
-
-        richTextArea = new InlineCssTextArea();
-        richTextArea.setWrapText(true);
-        richTextArea.setStyle(hashMapStyleToString(desiredStyle));
-
-        richTextArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
-            updateFontSizeFieldFromSelection();
-            updateFormattingFieldFromSelection();
-            updateFontFamilyFromSelection();
-//            TODO: Do more testing, doesn't always work
-        });
-
-        richTextArea.plainTextChanges().subscribe(change -> {
-            int from = change.getPosition();
-            int length = change.getInserted().length();
-            richTextArea.setStyle(from, from+length, hashMapStyleToString(desiredStyle));
-        });
-
-        VBox.setVgrow(richTextArea, Priority.ALWAYS);
-        editorContainer.getChildren().add(richTextArea);
+        TextAreaController tac = new TextAreaController(editorContainer, "note1");
+        tac.initializeUpdateToolbar(this);
+        textAreas.put("note1", tac);
 
         textFieldFontSize.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getText();
@@ -123,7 +144,7 @@ public class MainEditorController {
         }));
 
         textFieldFontSize.textProperty().addListener((obs, oldText, newText) -> {
-            if (isProgrammaticFontUpdate) return;
+            if (textAreas.get(activeNote).isProgrammaticUpdate()) return;
             handleFontSizeChange(newText);
         });
 
@@ -131,18 +152,210 @@ public class MainEditorController {
             handleFontSizeChange(textFieldFontSize.getText());
         });
 
-//        TODO: Change background color and text color when richtextarea is selected
-
         fontComboBox.getItems().addAll(Font.getFamilies());
         fontComboBox.setOnAction(event -> {
-            if (isProgrammaticFontUpdate) return;
+            if (textAreas.get(activeNote).isProgrammaticUpdate()) return;
             String selectedFont = (String)fontComboBox.getValue();
             if (selectedFont != null) {
-                addOrRemoveStyle(richTextArea, "-fx-font-family","'"+ selectedFont + "';");
-                desiredStyle.put("-fx-font-family", "'"+ selectedFont + "'");
+                TextAreaController active = textAreas.get(activeNote);
+                active.setStyle(TextAttribute.FONT_FAMILY, selectedFont);
             }
         });
+
+        fontComboBox.showingProperty().addListener((obs, wasShowing, isNowShowing) -> {
+            if (!isNowShowing) {
+                Platform.runLater(() -> textAreas.get(activeNote).getTextArea().requestFocus());
+            }
+        });
+
+        headingComboBox.setItems(observableArrayList(
+                new HeadingOption("Heading 1", 1),
+                new HeadingOption("Heading 2", 2),
+                new HeadingOption("Heading 3", 3),
+                new HeadingOption("Heading 4", 4),
+                new HeadingOption("Heading 5", 5),
+                new HeadingOption("Normal text", 0)
+        ));
+        headingComboBox.setOnAction( event -> {
+            TextAreaController active = textAreas.get(activeNote);
+
+            if (active.isProgrammaticUpdate()) return;
+            int headingLevel = ((HeadingOption)headingComboBox.getValue()).getLevel();
+            active.setStyle(TextAttribute.HEADING_LEVEL, headingLevel);
+        });
+        headingComboBox.showingProperty().addListener((obs, wasShowing, isNowShowing) -> {
+            if (!isNowShowing) {
+                Platform.runLater(() -> textAreas.get(activeNote).getTextArea().requestFocus());
+            }
+        });
+
+        tabPane.getSelectionModel().selectedItemProperty().addListener(
+                (obs,oldTab, newTab) -> {
+                    if (oldTab == newTab || newTab==null) return;
+                    SplitPane sp = (SplitPane)newTab.getContent();
+                    VBox vb = (VBox)sp.getItems().getFirst();
+
+                    if (!vb.getChildren().contains(toolBar)) vb.getChildren().addFirst(toolBar);
+
+                    activeNote = (String)newTab.getUserData();
+
+                    textAreas.get(activeNote).reload();
+                });
+        tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
+
+        newNote();
     }
+
+    private static void initPopupStage(String tag, Scene scene, Node container, double screenX, double screenY){
+        popup = new Stage(StageStyle.TRANSPARENT);
+        popup.setUserData(tag);
+        popup.setAlwaysOnTop(true);;
+        popup.initModality(Modality.NONE);
+        popup.setScene(scene);
+
+        popup.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!isNowFocused) {
+                popup.close();
+            }
+        });
+
+        popup.setX(screenX);
+        popup.setY(screenY);
+
+        //        TODO: Fix error if anchorNode is outside of bounds
+    }
+
+    private void showAlignStage(Node anchorNode) {
+        String tag = "setAlignment";
+        if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
+            return;
+        }
+
+        HBox itemBox = new HBox(4);
+        itemBox.setPadding(new Insets(4));
+        itemBox.setBackground(new Background(
+                new BackgroundFill(Color.web("#E0EDEC"), new CornerRadii(8), Insets.EMPTY)
+        ));
+
+        itemBox.setStyle("""
+    -fx-background-color: #E0EDEC;
+    -fx-background-radius: 8;
+""");
+        Rectangle clip = new Rectangle();
+        clip.setArcWidth(8);
+        clip.setArcHeight(8);
+        clip.widthProperty().bind(itemBox.widthProperty());
+        clip.heightProperty().bind(itemBox.heightProperty());
+        itemBox.setClip(clip);
+
+        for (String icon : List.of(
+                "icons/text-align-left.png", "icons/text-align-center.png",
+                "icons/text-align-right.png", "icons/text-align-justify.png"
+        )) {
+            Image img = new Image(FlowPadApplication.class.getResource(icon).toExternalForm());
+            ImageView imgView = new ImageView(img);
+            imgView.setFitHeight(18);
+            imgView.setFitWidth(18);
+            imgView.setPreserveRatio(true);
+
+            Button item = new Button();
+
+            item.setGraphic(imgView);
+            item.setOnAction(e -> {
+                TextAlignment alignment = TextAlignment.LEFT;
+                if (icon.contains("center")) alignment = TextAlignment.CENTER;
+                else if (icon.contains("right")) alignment = TextAlignment.RIGHT;
+                else if (icon.contains("justify")) alignment = TextAlignment.JUSTIFY;
+
+                TextAreaController active = textAreas.get(activeNote);
+                active.getTextArea().applyParStyleToSelection(active.getDesiredParStyle().setAlignment(alignment));
+                imgActiveAlignment.setImage(img);
+
+                FadeTransition fadeOut = new FadeTransition(Duration.millis(150), itemBox);
+                fadeOut.setFromValue(1);
+                fadeOut.setToValue(0);
+                fadeOut.setOnFinished(ae -> popup.close());
+                fadeOut.play();
+            });
+            itemBox.getChildren().add(item);
+            item.getStyleClass().add("align-button");
+            if (imgActiveAlignment.getImage().getUrl().equals(img.getUrl())) item.getStyleClass().add("active");
+        }
+
+        Scene scene = new Scene(itemBox);
+        scene.setFill(Color.TRANSPARENT);
+        scene.getStylesheets().add(FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm());
+
+        Bounds bounds = anchorNode.localToScreen(anchorNode.getBoundsInLocal());
+
+        initPopupStage(tag, scene, itemBox, bounds.getMinX(), bounds.getMaxY());
+        popup.initOwner(btnAlign.getScene().getWindow());
+
+        itemBox.setOpacity(0);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(150), itemBox);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+        fadeIn.play();
+        popup.show();
+    }
+
+    public static void showHyperlinkEditorPopup(TextExt textNode, HyperlinkSegment segment, double screenX, double screenY, Consumer<HyperlinkSegment> onConfirm) {
+        String tag = "setHyperlink";
+        if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
+            return;
+        }
+
+        TextField displayField = new TextField(segment.getDisplayText());
+        TextField urlField = new TextField(segment.getUrl());
+
+        Button saveButton = new Button("Save");
+        Button cancelButton = new Button("Cancel");
+        saveButton.setStyle("-fx-background-color: -primary-color; -fx-background-radius: 10;");
+        cancelButton.setStyle("-fx-background-color: -primary-color; -fx-background-radius: 10;");
+
+        HBox buttons = new HBox(10, saveButton, cancelButton);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox layout = new VBox(10, new Label("Display Text:"), displayField, new Label("URL:"), urlField, buttons);
+        layout.setPadding(new Insets(15));
+        layout.setStyle("-fx-background-color: -secondary-color; -fx-background-radius: 10;");
+        layout.setEffect(new DropShadow(10, Color.rgb(0, 0, 0, 0.3)));
+
+        StackPane root = new StackPane(layout);
+        root.setPadding(new Insets(20));
+        root.setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
+        root.setPickOnBounds(false);
+
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm());
+        scene.setFill(Color.TRANSPARENT);
+
+        initPopupStage(tag, scene, layout, screenX, screenY);
+        if (textNode.getScene()!=null) popup.initOwner(textNode.getScene().getWindow());
+
+        saveButton.setOnAction(e -> {
+            String newDisplay = displayField.getText().trim();
+            String newUrl = urlField.getText().trim();
+
+            if (!newUrl.startsWith("https://")) newUrl = "https://"+newUrl;
+
+            if (!newDisplay.isEmpty() && !newUrl.isEmpty()) {
+                HyperlinkSegment newSegment = new HyperlinkSegment(newDisplay, newUrl);
+                replaceHyperlinkSegment(textNode, segment, newSegment);
+
+                if (onConfirm != null) {
+                    onConfirm.accept(newSegment);
+                }
+            }
+
+            popup.close();
+        });
+
+        cancelButton.setOnAction(e -> popup.close());
+        popup.show();
+    }
+
+
 
     public static String hashMapStyleToString(HashMap<String, String> styles){
         String styleString = "";
@@ -158,7 +371,17 @@ public class MainEditorController {
         inactive.getStyleClass().removeAll("selected");
     }
 
-    public static void setSelectedButton(Button btn, boolean isSelected) {
+    public void setSelectedButton(TextAttribute att, boolean isSelected) {
+        Button btn = null;
+        switch(att){
+            case BOLD -> btn = btnBold;
+            case ITALIC -> btn = btnItalic;
+            case UNDERLINE -> btn = btnUnderline;
+            case HIGHLIGHT -> btn = btnMarker;
+        }
+
+        if (btn==null)return;
+
         if (isSelected && !btn.getStyleClass().contains("selected")) btn.getStyleClass().add("selected");
 
         else if (!isSelected) btn.getStyleClass().removeAll("selected");
@@ -169,13 +392,16 @@ public class MainEditorController {
         else btn.getStyleClass().removeAll("selected");
     }
 
+
     @FXML
     private void increaseFontSize() {
         int fontSize = Integer.parseInt(textFieldFontSize.getText());
         fontSize++;
         textFieldFontSize.setText(fontSize + "");
+        TextStyle newStyle = textAreas.get(activeNote).getDesiredStyle().setFontSize(fontSize);
+        textAreas.get(activeNote).setDesiredStyle(newStyle);
 
-        desiredStyle.put("-fx-font-size", fontSize+"px");
+        textAreas.get(activeNote).setDesiredStyleChanged(true);
     }
 
     @FXML
@@ -184,210 +410,494 @@ public class MainEditorController {
         if (fontSize > 1) {
             fontSize--;
             textFieldFontSize.setText(fontSize + "");
+            TextStyle newStyle = textAreas.get(activeNote).getDesiredStyle().setFontSize(fontSize);
+            textAreas.get(activeNote).setDesiredStyle(newStyle);
 
-            desiredStyle.put("-fx-font-size", fontSize+"px");
+            textAreas.get(activeNote).setDesiredStyleChanged(true);
         }
     }
 
     @FXML
     private void bold(){
-        addOrRemoveStyle(richTextArea, "-fx-font-weight", "bold");
-        switchOnOffDesiredStyle("-fx-font-weight", "bold");
+        TextAreaController active = textAreas.get(activeNote);
+        active.setStyle(TextAttribute.BOLD, active.getDesiredStyle().toggleBold().isBold());
         toggleSelectedButton(btnBold);
     }
     @FXML
     private void italic(){
-        addOrRemoveStyle(richTextArea, "-fx-font-style", "italic");
-        switchOnOffDesiredStyle("-fx-font-style", "italic");
+        TextAreaController active = textAreas.get(activeNote);
+        active.setStyle(TextAttribute.ITALIC, active.getDesiredStyle().toggleItalic().isItalic());
         toggleSelectedButton(btnItalic);
     }
     @FXML
     private void underline(){
-        addOrRemoveStyle(richTextArea, "-fx-underline", "true");
-        switchOnOffDesiredStyle("-fx-underline", "true");
+        TextAreaController active = textAreas.get(activeNote);
+        active.setStyle(TextAttribute.UNDERLINE, active.getDesiredStyle().toggleUnderline().isUnderline());
         toggleSelectedButton(btnUnderline);
+    }
+
+    @FXML
+    private void highlight() {
+        TextAreaController active = textAreas.get(activeNote);
+        active.setStyle(TextAttribute.HIGHLIGHT, active.getDesiredStyle().toggleHighlight().getBackgroundColor());
+        toggleSelectedButton(btnMarker);
     }
 
     @FXML
     private void save(){
 
-        try {
-            byte[] serializedText = StyledTextCodecs.serializeStyledText(richTextArea);
-
-            Note note = new Note("test", serializedText, new String[]{});
-            NoteDAO dao = new NoteDAO();
-            dao.insert(note);
-
-        } catch (IOException ex) {
-            // TODO: Add better exception handling
-            System.err.println("Failed to serialize text");
-        }
+//        try {
+//            byte[] serializedText = StyledTextCodecs.serializeStyledText(richTextArea);
+//
+//            Note note = new Note("test", serializedText, new String[]{});
+//            NoteDAO dao = new NoteDAO();
+//            dao.insert(note);
+//
+//        } catch (IOException ex) {
+//            // TODO: Add better exception handling
+//            System.err.println("Failed to serialize text");
+//        }
 
     }
 
-    private void switchOnOffDesiredStyle(String key, String value){
-        if (desiredStyle.getOrDefault(key,"").equals(value)){
-            desiredStyle.remove(key);
-        }
-        else desiredStyle.put(key, value);
-    }
 
 
     @FXML
     private void handleFontSizeChange(String size){
-        addOrRemoveStyle(richTextArea, "-fx-font-size", size+"px");
-        desiredStyle.put("-fx-font-size", size+"px");
+        TextAreaController active = textAreas.get(activeNote);
+        active.setStyle(TextAttribute.FONT_SIZE, Integer.parseInt(size));
     }
 
 
-    private void updateFontSizeFieldFromSelection() {
-        IndexRange selection = richTextArea.getSelection();
+    @FXML
+    private void closeTab(ActionEvent event) {
+        Node source = (Node) event.getSource();
 
-        if (selection.getLength() == 0) {
-            if (richTextArea.getCaretPosition()>0) {
-                String sizeValue = getStyleValue(richTextArea.getStyleOfChar(richTextArea.getCaretPosition() - 1),"-fx-font-size");
-                desiredStyle.put("-fx-font-size", sizeValue);
-                textFieldFontSize.setText(sizeValue.substring(0, sizeValue.length()-2));
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab.getGraphic() instanceof HBox hbox) {
+                if (hbox.getChildren().contains(source)) {
+//                    TODO: Check if code is safe, prone to errors
+                    textAreas.remove(tab.getUserData());
+                    tabPane.getTabs().remove(tab);
+
+
+                    if (!tabPane.getTabs().isEmpty())
+                        activeNote = (String)tabPane.getTabs().getFirst().getUserData();
+                    break;
+                }
             }
-            else{
-                String sizeValue = getStyleValue(richTextArea.getStyleOfChar(richTextArea.getCaretPosition()),"-fx-font-size");
-                desiredStyle.put("-fx-font-size", sizeValue);
-                textFieldFontSize.setText(sizeValue);
-                textFieldFontSize.setText(sizeValue.substring(0, sizeValue.length()-2));
+        }
+    }
+
+    private static int numOfNewNote = 0;
+    @FXML
+    private void newNote(){
+//        TODO: Create Note object
+
+        String fileName = "New Note" + (numOfNewNote>0 ? " "+numOfNewNote : "") ;
+        numOfNewNote++;
+
+//        Initialize Tab
+        Tab newTab = new Tab();
+        newTab.setUserData(fileName);
+
+//        Initialize HBox Tab Title
+        HBox hbox = new HBox();
+        hbox.setAlignment(Pos.CENTER_LEFT);
+        hbox.setSpacing(12.0);
+        hbox.setPadding(new Insets(2 ,8,2, 8));
+
+//        Initialize Label Title
+        TextField title = new TextField(fileName);
+        title.setPrefWidth(80);
+        title.setMaxWidth(80);
+        title.setMinWidth(80);
+        title.setEditable(false);
+        title.setPadding(new Insets(0,0,0,0));
+        title.setUserData(fileName);
+        title.getStyleClass().add("bg-transparent");
+        title.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                    if(mouseEvent.getClickCount() == 2){
+                        TextField tf = (TextField)mouseEvent.getSource();
+                        tf.setEditable(true);
+                        tf.selectAll();
+
+                    }
+                }
             }
-
-            return;
-        }
-
-        List<String> styles = new ArrayList<>();
-
-        for (int i = selection.getStart(); i < selection.getEnd(); i++) {
-            String style = richTextArea.getStyleOfChar(i);
-            styles.add(style);
-        }
-
-        OptionalInt maxFontSize = styles.stream()
-                .map(this::extractFontSize)
-                .filter(OptionalInt::isPresent)
-                .mapToInt(OptionalInt::getAsInt)
-                .max();
-
-        isProgrammaticFontUpdate = true;
-        maxFontSize.ifPresent(size -> {
-            textFieldFontSize.setText(String.valueOf(size));
-            desiredStyle.put("-fx-font-size", size + "px");
         });
 
-        isProgrammaticFontUpdate = false;
+        title.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            Object tag = ((TextField)event.getSource()).getUserData()==null ? "" : ((TextField)event.getSource()).getUserData();
+            Tab tab = null;
+
+            for (Tab t : tabPane.getTabs()){
+                if (t.getUserData()!=null && t.getUserData().equals(tag)){
+                    tab = t;
+                    break;
+                }
+            }
+
+            if (tab!=null) {
+                tabPane.getSelectionModel().select(tab);
+
+            }
+        });
+
+        title.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.ESCAPE){
+                title.deselect();
+                title.setEditable(false);
+                renameFile(title);
+
+            }
+        });
+
+        title.focusedProperty().addListener((obs,old,current) -> {
+            if (!current){
+                title.deselect();
+                title.setEditable(false);
+                renameFile(title);
+            }
+
+//            TODO: Rename Note object
+        });
+
+        title.textProperty().addListener((obs, oldS, newS) -> {
+            title.setPrefWidth(newS.length() * 7);
+        });
+
+//        Initialize X image
+        Image img = new Image(FlowPadApplication.class.getResource("icons/close.png").toExternalForm());
+        ImageView x = new ImageView();
+        x.setImage(img);
+        x.setFitHeight(8.0);
+        x.setFitWidth(8.0);
+        x.setPickOnBounds(true);
+        x.setPreserveRatio(true);
+
+//        Initialize Close Button
+        Button btnClose = new Button("");
+        btnClose.setOnAction(event -> closeTab(event));
+        btnClose.getStyleClass().add("tab-close");
+        btnClose.setGraphic(x);
+
+//        Combine Title and Button
+        hbox.getChildren().add(title);
+        hbox.getChildren().add(btnClose);
+        newTab.setGraphic(hbox);
+
+//        Initialize Content, starting with SplitPane
+        SplitPane splitPane = new SplitPane();
+        splitPane.getStyleClass().add("inner-split");
+
+//        Initialize Main Container
+        VBox mainContainer = new VBox();
+        mainContainer.setPrefWidth(501);
+        mainContainer.setPrefHeight(379);
+        mainContainer.setSpacing(5);
+        VBox.setVgrow(mainContainer, Priority.ALWAYS);
+        mainContainer.getChildren().add(toolBar);
+
+//        Initialize GenericStyledArea
+
+
+
+//        Initialize Editor Container
+        VBox editor = new VBox();
+        editor.prefWidth(500);
+        VBox.setVgrow(editor,Priority.ALWAYS);
+        editor.setPadding(new Insets(10,10,10,10));
+
+        TextAreaController newTextArea = new TextAreaController(editor,fileName);
+        newTextArea.initializeUpdateToolbar(this);
+        textAreas.put(fileName, newTextArea);
+
+//        Complete All Setup
+        mainContainer.getChildren().add(editor);
+        splitPane.getItems().add(mainContainer);
+        newTab.setContent(splitPane);
+
+        tabPane.getTabs().add(newTab);
+        tabPane.getSelectionModel().select(newTab);
     }
 
-    private void updateFormattingFieldFromSelection(){
-        if (isStyleFullyApplied(richTextArea,"-fx-font-weight", "bold")){
-            setSelectedButton(btnBold, true);
-        }
-        else setSelectedButton(btnBold, false);
 
-        if (isStyleFullyApplied(richTextArea,"-fx-font-style", "italic")){
-            setSelectedButton(btnItalic, true);
+    @FXML
+    private void undo(){
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null && active.getTextArea().isUndoAvailable()) {
+            active.getTextArea().undo();
         }
-        else setSelectedButton(btnItalic, false);
-
-        if (isStyleFullyApplied(richTextArea,"-fx-underline", "true")){
-            setSelectedButton(btnUnderline, true);
-        }
-        else setSelectedButton(btnUnderline, false);
     }
 
+    @FXML
+    private void redo(){
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null && active.getTextArea().isRedoAvailable()) {
+            active.getTextArea().redo();
+        }
+    }
+    @FXML
+    private void cut(){
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null) {
+            active.getTextArea().cut();
+        }
+    }
+    @FXML
+    private void copy(){
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null) {
+            active.getTextArea().copy();
+        }
+    }
 
-    private void updateFontFamilyFromSelection(){
-        String currentStyle = "";
-        if (richTextArea.getCaretPosition()>0) {
-            currentStyle = richTextArea.getStyleOfChar(richTextArea.getCaretPosition() - 1);
+    @FXML
+    private void paste(){
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null) {
+            active.getTextArea().paste();
+        }
+    }
+
+    @FXML
+    private void selectAll(){
+        TextAreaController active = textAreas.get(activeNote);
+        if (active != null) {
+            active.getTextArea().selectAll();
+        }
+    }
+    @FXML
+    private void find(){
+
+    }
+
+    @FXML
+    private void align(){
+        if (popup != null && popup.isShowing()) {
+            popup.close();
+        } else {
+            showAlignStage(btnAlign);
+        }
+    }
+    @FXML
+    private void setLineSpacing(){
+
+    }
+    @FXML
+    private void setBulletList() {
+        TextAreaController active = textAreas.get(activeNote);
+        ParStyle parStyle = active.getParStyleOnSelection();
+
+        ParStyle newParStyle=null;
+        if (parStyle.getListType() == ParStyle.ListType.BULLET) {
+            newParStyle=parStyle.setListType(ParStyle.ListType.NONE);
+            active.getTextArea().applyParStyleToSelection(newParStyle);
+            btnBulletList.getStyleClass().removeAll("active");
         }
         else{
-            currentStyle = richTextArea.getStyleOfChar(richTextArea.getCaretPosition());
+            newParStyle=parStyle.setListType(ParStyle.ListType.BULLET);
+            active.getTextArea().applyParStyleToSelection(newParStyle);
+            btnBulletList.getStyleClass().add("active");
         }
-        String value = getStyleValue(currentStyle, "-fx-font-family");
-        desiredStyle.put("-fx-font-family", value);
-        if (value != null && value.length() >= 2 && value.startsWith("'") && value.endsWith("'")) {
-            value = value.substring(1, value.length() - 1);
+        if (newParStyle!=null) active.setDesiredParStyle(newParStyle);
+        btnNumberedList.getStyleClass().removeAll("active");
+    }
+    @FXML
+    private void setNumberedList(){
+        TextAreaController active = textAreas.get(activeNote);
+        ParStyle parStyle = active.getParStyleOnSelection();
+
+        ParStyle newParStyle=null;
+        if (parStyle.getListType() == ParStyle.ListType.NUMBERED) {
+            newParStyle=parStyle.setListType(ParStyle.ListType.NONE);
+            active.getTextArea().applyParStyleToSelection(newParStyle);
+            btnNumberedList.getStyleClass().removeAll("active");
         }
-        isProgrammaticFontUpdate = true;
-        fontComboBox.getSelectionModel().select(value);
-        isProgrammaticFontUpdate = false;
+        else{
+            newParStyle=parStyle.setListType(ParStyle.ListType.NUMBERED);
+            active.getTextArea().applyParStyleToSelection(newParStyle);
+            btnNumberedList.getStyleClass().add("active");
+        }
+        if (newParStyle!=null) active.setDesiredParStyle(newParStyle);
+        btnBulletList.getStyleClass().removeAll("active");
+    }
+    @FXML
+    private void clearFormatting(){
+
+    }
+    @FXML
+    private void setTextColor(){
+
+    }
+    @FXML
+    private void insertHyperlink() {
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote).getTextArea();
+        int caretPos = area.getCaretPosition();
+        IndexRange selection = area.getSelection();
+
+        String selectedText = selection.getLength() > 0
+                ? area.getText(selection.getStart(), selection.getEnd())
+                : "";
+
+        TextExt dummy = new TextExt();
+        Bounds caretBounds = area.getCaretBounds().orElse(null);
+
+        Point2D screenPos = caretBounds != null
+                ? new Point2D(caretBounds.getMinX(), caretBounds.getMaxY())
+                : new Point2D(500, 500);
+
+        showHyperlinkEditorPopup(dummy, new HyperlinkSegment(selectedText, ""), screenPos.getX(), screenPos.getY(), newSegment -> {
+            if (selection.getLength() > 0) {
+                area.replace(selection.getStart(), selection.getEnd(), newSegment, area.getStyleAtPosition(selection.getStart()));
+            } else {
+                area.insert(caretPos, newSegment, area.getStyleAtPosition(caretPos));
+            }
+        });
     }
 
-    private OptionalInt extractFontSize(String style) {
-        try {
-            Pattern pattern = Pattern.compile("-fx-font-size\\s*:\\s*(\\d+)px");
-            Matcher matcher = pattern.matcher(style);
-            if (matcher.find()) {
-                return OptionalInt.of(Integer.parseInt(matcher.group(1)));
-            }
-        } catch (Exception e) {
-            // ignore
+    @FXML
+    private void insertImage(){
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+        File userHome = new File(System.getProperty("user.home"));
+        File downloadsFolder = new File(userHome, "Downloads");
+
+        if (downloadsFolder.exists() && downloadsFolder.isDirectory()) {
+            fileChooser.setInitialDirectory(downloadsFolder);
         }
-        return OptionalInt.empty();
+        File file = fileChooser.showOpenDialog(tabPane.getScene().getWindow());
+
+        if (file != null) {
+            insertImageAtCaret(file);
+        }
     }
 
-    // Check if all selection has the same style applied
-    // If there are no selection then it will check the style applied on the char before
-    // the caret position, however, if the caret position is at 0 it will compare it with the char
-    // after the caret position. The function will return true if the styles parameter given matches
-    // with the conditions stated above.
-    public static boolean isStyleFullyApplied(InlineCssTextArea area, String styleKey, String valueToToggle){
-        if (area.getSelection().getLength() == 0){
-            String currentStyle = "";
-            if (area.getCaretPosition()>0) {
-                currentStyle = area.getStyleOfChar(area.getCaretPosition() - 1);
-            }
-            else{
-                currentStyle = area.getStyleOfChar(area.getCaretPosition());
-            }
-            String value = getStyleValue(currentStyle, styleKey);
-            return value.equals(valueToToggle);
+    private void insertImageAtCaret(File file) {
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote).getTextArea();
+        int caretPos = area.getCaretPosition();
+        IndexRange selection = area.getSelection();
+
+        Image image = new Image(file.toURI().toString());
+        ImageSegment imageSegment = new ImageSegment(image);
+
+        if (selection.getLength() > 0) {
+            area.replace(selection.getStart(), selection.getEnd(), imageSegment, area.getStyleAtPosition(selection.getStart()));
+        } else {
+            area.insert(caretPos, imageSegment, area.getStyleAtPosition(caretPos));
         }
+    }
 
-        int start = area.getSelection().getStart();
-        int end = area.getSelection().getEnd();
-        boolean styleFullyApplied = true;
+    @FXML
+    private void renameFile(TextField tf){
+        Object tag = tf.getUserData()==null ? "" : tf.getUserData();
 
-        for (int i = start; i < end; i++) {
-            String currentStyle = area.getStyleOfChar(i);
-            String value = getStyleValue(currentStyle, styleKey);
-            if (!value.equals(valueToToggle)) {
-                styleFullyApplied = false;
+        if (tag.equals(tf.getText())) return;
+
+        Tab tab = null;
+
+        for (Tab t : tabPane.getTabs()){
+            if (t.getUserData()!=null && t.getUserData().equals(tag)){
+                tab = t;
                 break;
             }
         }
-        return styleFullyApplied;
+
+        if (tab==null) return;
+
+        TextAreaController temp = textAreas.get(tab.getUserData());
+        textAreas.remove(tab.getUserData());
+        tf.setUserData(tf.getText());
+        tab.setUserData(tf.getText());
+        textAreas.put(tf.getText(), temp);
+
+//        TODO: Rename Note object
     }
 
-    public static void addOrRemoveStyle(InlineCssTextArea area, String styleKey, String valueToToggle) {
-        if (area.getSelection().getLength() == 0) return;
-        int start = area.getSelection().getStart();
-        int end = area.getSelection().getEnd();
 
-        boolean styleFullyApplied = isStyleFullyApplied(area, styleKey, valueToToggle);
+    @FXML
+    protected void onBackButtonClick() throws IOException {
+        Stage stage = (Stage) btnBack.getScene().getWindow();
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("flowpad-view.fxml"));
+        String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
 
-        for (int i = start; i < end; i++) {
-            String currentStyle = area.getStyleOfChar(i);
-            Map<String, String> styles = parseStyle(currentStyle);
+        Scene scene = new Scene(fxmlLoader.load());
+        scene.getStylesheets().add(stylesheet);
+        stage.setTitle("Home Page");
 
-            if (styleFullyApplied) {
-                styles.remove(styleKey);
-            } else {
-                styles.put(styleKey, valueToToggle);
+        stage.setScene(scene);
+        stage.setMaximized(true);
+    }
+
+
+    @FXML
+    protected void onProfileButtonClick() throws IOException {
+        Stage stage = (Stage) profilebtn.getScene().getWindow();
+        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("settings-view.fxml"));
+        String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
+
+        Scene scene = new Scene(fxmlLoader.load());
+        scene.getStylesheets().add(stylesheet);
+        stage.setTitle("Settings Page");
+
+        stage.setScene(scene);
+        stage.setMaximized(true);
+    }
+
+    private static void replaceHyperlinkSegment(Node node, HyperlinkSegment oldSegment, HyperlinkSegment newSegment) {
+        textAreas.get(activeNote).setSuppressHyperlinkMonitoring(true);
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote).getTextArea();
+
+
+        int pos = area.getCaretPosition();
+        for (int i = 0; i < area.getParagraphs().size(); i++) {
+            Paragraph<ParStyle, RichSegment, TextStyle> paragraph = area.getParagraph(i);
+            int abs = area.getAbsolutePosition(i, 0);
+            for (RichSegment seg : paragraph.getSegments()) {
+                if (seg == oldSegment) {
+                    int segStart = abs;
+                    int segEnd = abs + seg.length();
+
+                    area.replace(segStart, segEnd, newSegment, area.getStyleAtPosition(segStart));
+                    textAreas.get(activeNote).setSuppressHyperlinkMonitoring(false);
+                    return;
+                }
+                abs += seg.length();
             }
-
-            // Rebuild and apply the new style
-            StringBuilder newStyle = new StringBuilder();
-            for (Map.Entry<String, String> entry : styles.entrySet()) {
-                newStyle.append(entry.getKey()).append(": ").append(entry.getValue()).append("; ");
-            }
-
-            area.setStyle(i, i + 1, newStyle.toString().trim());
         }
+    }
+
+
+    public static RichSegment getSegmentAt(TextAreaController controller, int position) {
+        if (position < 0 || position >= controller.getTextArea().getLength()) {
+            return null;
+        }
+
+        TwoDimensional.Position twoDimPos = controller.getTextArea().offsetToPosition(position, Forward);
+        int paragraphIndex = twoDimPos.getMajor();
+        int column = twoDimPos.getMinor();
+
+        Paragraph<ParStyle, RichSegment, TextStyle> paragraph = controller.getTextArea().getParagraph(paragraphIndex);
+        int offset = 0;
+
+        for (StyledSegment<RichSegment, TextStyle> seg : paragraph.getStyledSegments()) {
+            int segLength = seg.getSegment().length();
+            if (column >= offset && column < offset + segLength) {
+                return seg.getSegment();
+            }
+            offset += segLength;
+        }
+
+        return null;
+    }
+
+    public static String getStyleValue(String styleString, String key) {
+        Map<String, String> styles = parseStyle(styleString);
+        return styles.getOrDefault(key, "");
     }
 
     public static HashMap<String, String> parseStyle(String styleString) {
@@ -404,24 +914,6 @@ public class MainEditorController {
         return styles;
     }
 
-    public static String getStyleValue(String styleString, String key) {
-        Map<String, String> styles = parseStyle(styleString);
-        return styles.getOrDefault(key, "");
-    }
 
-
-    @FXML
-    private void closeTab(ActionEvent event) {
-        Node source = (Node) event.getSource();
-
-        for (Tab tab : tabPane.getTabs()) {
-            if (tab.getGraphic() instanceof HBox hbox) {
-                if (hbox.getChildren().contains(source)) {
-                    tabPane.getTabs().remove(tab);
-                    break;
-                }
-            }
-        }
-    }
 
 }

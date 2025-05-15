@@ -1,5 +1,6 @@
 package com.staticconstants.flowpad.backend.db.users;
 
+import com.staticconstants.flowpad.backend.LoggedInUser;
 import com.staticconstants.flowpad.backend.db.DAO;
 import com.staticconstants.flowpad.backend.security.HashedPassword;
 import com.staticconstants.flowpad.backend.security.PasswordHasher;
@@ -8,6 +9,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class UserDAO extends DAO<User> {
 
@@ -117,24 +119,45 @@ public class UserDAO extends DAO<User> {
         return users;
     }
 
-    public boolean checklogin(String username, char[] password) throws Exception {
-        PreparedStatement checklogin = dbHandler.getConnection().prepareStatement(
-                "SELECT username, hashedPassword, encodedSalt FROM Users WHERE username = ?"
-        );
+    public CompletableFuture<LoginResult> login(String username, char[] password) throws Exception {
 
-        checklogin.setString(1, username);
-        ResultSet rs = checklogin.executeQuery();
+        CompletableFuture<LoginResult> op = dbHandler.dbOperation((connection)-> {
+            PreparedStatement checklogin = connection.prepareStatement(
+                    "SELECT * FROM Users WHERE username = ?"
+            );
 
-        if (rs.next()){
+            checklogin.setString(1, username);
+            ResultSet rs = checklogin.executeQuery();
+
+            if (!rs.next()) return LoginResult.USER_NOT_EXIST;
+
+
             String storedHashBase64 = rs.getString("hashedPassword");
             String storedSaltBase64 = rs.getString("encodedSalt");
 
-//            TODO: Check if verifyPassword is working properly
-            return PasswordHasher.verifyPassword(password, storedHashBase64, storedSaltBase64);
-        }
+            try {
+                boolean correctPassword = PasswordHasher.verifyPassword(password, storedHashBase64, storedSaltBase64);
 
-        // User not found
-        return false;
+                if (!correctPassword) return LoginResult.PASSWORD_INCORRECT;
+
+                LoggedInUser.user = User.fromExisting(
+                        UUID.fromString(rs.getString(1)),
+                        rs.getString(2),
+                        rs.getString(3),
+                        rs.getString(4),
+                        new HashedPassword(
+                               storedHashBase64,
+                               storedSaltBase64
+                        )
+                );
+                return LoginResult.SUCCESS;
+
+            } catch (Exception ex) {
+                return LoginResult.ERROR;
+            }
+        });
+
+        return op;
     }
 
 }
