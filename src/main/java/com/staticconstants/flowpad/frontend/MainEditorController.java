@@ -895,5 +895,25 @@ public class MainEditorController {
         return null;
     }
 
+    public static String getStyleValue(String styleString, String key) {
+        Map<String, String> styles = parseStyle(styleString);
+        return styles.getOrDefault(key, "");
+    }
+
+    public static HashMap<String, String> parseStyle(String styleString) {
+        HashMap<String, String> styles = new HashMap<>();
+        if (styleString == null || styleString.isEmpty()) return styles;
+
+        String[] styleArray = styleString.split(";");
+        for (String style : styleArray) {
+            String[] parts = style.trim().split(":", 2);
+            if (parts.length == 2) {
+                styles.put(parts[0].trim(), parts[1].trim());
+            }
+        }
+        return styles;
+    }
+
+
 
 }
