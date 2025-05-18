@@ -8,13 +8,18 @@ import java.util.UUID;
 public class Note implements DbRecord {
 
     UUID id;
+    long createdTime;
+    long lastModifiedTime;
     String filename;
     byte[] serializedText;
     LinkedList<String> folders;
 
     public Note(String filename, byte[] serializedText, String... folders)
     {
+        long time = System.currentTimeMillis();
         this.id = UUID.randomUUID();
+        this.createdTime = time;
+        this.lastModifiedTime = time;
         this.filename = filename;
         this.serializedText = serializedText;
         this.folders = new LinkedList<>();
@@ -24,9 +29,11 @@ public class Note implements DbRecord {
         }
     }
 
-    private Note (UUID id , String filename, byte[] serializedText, String... folders)
+    private Note (UUID id , long createdTime, long lastModifiedTime, String filename, byte[] serializedText, String... folders)
     {
         this.id = id;
+        this.createdTime = createdTime;
+        this.lastModifiedTime = lastModifiedTime;
         this.filename = filename;
         this.folders = new LinkedList<>();
         for (String folder : folders) {
@@ -34,9 +41,9 @@ public class Note implements DbRecord {
         }
     }
 
-    public static Note fromExisting(UUID id , String filename, byte[] serializedText, String... folders)
+    public static Note fromExisting(UUID id , long createdTime, long lastModifiedTime, String filename, byte[] serializedText, String... folders)
     {
-        return new Note(id, filename, serializedText, folders);
+        return new Note(id, createdTime, lastModifiedTime, filename, serializedText, folders);
     }
 
     @Override

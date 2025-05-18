@@ -268,10 +268,6 @@ public class TextAreaController {
                     }
                 });
 
-
-
-
-
         VBox.setVgrow(textArea, Priority.ALWAYS);
         editorContainer.getChildren().add(textArea);
     }

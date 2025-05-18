@@ -1,6 +1,9 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.db.notes.Note;
+import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
+import com.staticconstants.flowpad.backend.notes.StyledTextCodec;
 import com.staticconstants.flowpad.frontend.textarea.*;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -446,17 +449,18 @@ public class MainEditorController {
     @FXML
     private void save(){
 
-//        try {
-//            byte[] serializedText = StyledTextCodecs.serializeStyledText(richTextArea);
-//
-//            Note note = new Note("test", serializedText, new String[]{});
-//            NoteDAO dao = new NoteDAO();
-//            dao.insert(note);
-//
-//        } catch (IOException ex) {
-//            // TODO: Add better exception handling
-//            System.err.println("Failed to serialize text");
-//        }
+        try {
+
+            byte[] serializedText = StyledTextCodec.serializeStyledText(textAreas.get(activeNote).getTextArea());
+
+            Note note = new Note(activeNote, serializedText, new String[]{"folder1", "folder2"});
+            NoteDAO dao = new NoteDAO();
+            dao.insert(note);
+
+        } catch (IOException ex) {
+            // TODO: Add better exception handling
+            System.err.println("Failed to serialize text");
+        }
 
     }
 

@@ -13,6 +13,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class FlowPadController {
+    
     @FXML
     private Label welcomeText;
 

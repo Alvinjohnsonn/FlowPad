@@ -18,7 +18,9 @@ public class NoteDAO extends DAO<Note> {
                 id UUID PRIMARY KEY,
                 filename TEXT NOT NULL,
                 serialized_text BYTEA NOT NULL,
-                folders TEXT
+                folders TEXT,
+                created_time INTEGER NOT NULL,
+                last_modified_time INTEGER NOT NULL
             )
         """;
         try (Statement stmt = connection.createStatement()) {
@@ -29,12 +31,14 @@ public class NoteDAO extends DAO<Note> {
 
     @Override
     protected Boolean insertImpl(Connection connection, Note note) throws SQLException {
-        String sql = "INSERT INTO notes (id, filename, serialized_text, folders) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO notes (id, filename, serialized_text, folders, created_time, last_modified_time) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setObject(1, note.getId());
+            ps.setString(1, note.getId().toString());
             ps.setString(2, note.filename);
             ps.setBytes(3, note.serializedText);
             ps.setString(4, String.join(",", note.folders));
+            ps.setLong(5, note.createdTime);
+            ps.setLong(6, note.lastModifiedTime);
             ps.executeUpdate();
             return true;
         }
@@ -42,14 +46,17 @@ public class NoteDAO extends DAO<Note> {
 
     @Override
     protected Void updateImpl(Connection connection, Note note) throws SQLException {
-        String sql = "UPDATE notes SET filename = ?, serialized_text = ?, folders = ? WHERE id = ?";
+        String sql = "UPDATE notes SET filename = ?, serialized_text = ?, folders = ?, last_modified_time = ? WHERE id = ?";
+        long time = System.currentTimeMillis();
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, note.filename);
             ps.setBytes(2, note.serializedText);
             ps.setString(3, String.join(",", note.folders));
-            ps.setObject(4, note.getId());
+            ps.setLong(4, time);
+            ps.setString(5, note.getId().toString());
             ps.executeUpdate();
         }
+        note.lastModifiedTime = time;
         return null;
     }
 
@@ -94,7 +101,9 @@ public class NoteDAO extends DAO<Note> {
         String filename = rs.getString("filename");
         byte[] serializedText = rs.getBytes("serialized_text");
         String foldersStr = rs.getString("folders");
+        long createdTime = rs.getLong("created_time");
+        long modTime = rs.getLong("last_modified_time");
         String[] folders = foldersStr != null ? foldersStr.split(",") : new String[0];
-        return Note.fromExisting(id, filename, serializedText, folders);
+        return Note.fromExisting(id, createdTime, modTime, filename, serializedText, folders);
     }
 }
