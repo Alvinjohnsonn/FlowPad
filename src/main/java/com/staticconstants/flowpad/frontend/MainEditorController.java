@@ -1,9 +1,11 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.LoggedInUser;
 import com.staticconstants.flowpad.backend.db.notes.Note;
 import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
 import com.staticconstants.flowpad.backend.notes.StyledTextCodec;
+import com.staticconstants.flowpad.frontend.folders.FolderTreeBuilder;
 import com.staticconstants.flowpad.frontend.textarea.*;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -30,7 +32,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 import javafx.stage.FileChooser;
@@ -44,12 +45,11 @@ import org.fxmisc.richtext.model.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Array;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import static javafx.collections.FXCollections.observableArrayList;
-import static org.controlsfx.tools.Utils.getWindow;
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
 
 public class MainEditorController {
@@ -80,8 +80,8 @@ public class MainEditorController {
     @FXML public Button btnBulletList;
     @FXML private Button profilebtn;
 
-    private static HashMap<String, TextAreaController> textAreas;
-    private static String activeNote;
+    private static HashMap<Note, TextAreaController> textAreas;
+    private static Note activeNote;
 
     private static Stage popup;
 
@@ -107,27 +107,39 @@ public class MainEditorController {
         aiOptions.setManaged(true);
     }
 
+
     @FXML
     public void initialize() {
         textAreas = new HashMap<>();
 
-        TreeItem<String> rootItem = new TreeItem<>("Notes");
+        LoggedInUser.notes.sort(Comparator.comparingLong(Note::getLastModifiedTime)); // most recent note is last in the list now
+
+        if ( LoggedInUser.notes.isEmpty() ) {
+            newNote();
+        }
+        else {
+            activeNote = LoggedInUser.notes.getLast();
+        }
+
+        TreeItem<String> rootItem = new TreeItem<>();
         rootItem.setExpanded(true);
 
-        TreeItem<String> personalNotes = new TreeItem<>("CAB302");
-        personalNotes.getChildren().addAll(
-                new TreeItem<>("Week 1"),
-                new TreeItem<>("Week 2")
-        );
+        List<List<String>> folders = new ArrayList<>();
+        // setup treeview
+        for (Note note : LoggedInUser.notes)
+        {
+            List<String> fileTree = note.getFolders().stream().toList();
+            fileTree.add(note.getFilename());
+            folders.add(fileTree);
+        }
 
-        TreeItem<String> workNotes = new TreeItem<>("CAB103");
-        workNotes.getChildren().addAll(
-                new TreeItem<>("Week 1"),
-                new TreeItem<>("Week 2")
-        );
-
-        rootItem.getChildren().addAll(personalNotes, workNotes);
-
+        List<TreeItem<String>> trees = FolderTreeBuilder.buildTreeItems(folders);
+        rootItem.getChildren().addAll(trees);
+        rootItem.getChildren().forEach(tree -> {
+            if (activeNote.getFolders().contains(tree.getValue())) {
+                tree.setExpanded(true);
+            }
+        });
         folderTree.setRoot(rootItem);
 
         zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -137,9 +149,9 @@ public class MainEditorController {
 
         textFieldFontSize.setText(TextStyle.EMPTY.getFontSize()+"");
 
-        TextAreaController tac = new TextAreaController(editorContainer, "note1");
+        TextAreaController tac = new TextAreaController(editorContainer, activeNote.getFilename());
         tac.initializeUpdateToolbar(this);
-        textAreas.put("note1", tac);
+        textAreas.put(activeNote, tac);
 
         textFieldFontSize.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getText();
@@ -200,13 +212,18 @@ public class MainEditorController {
 
                     if (!vb.getChildren().contains(toolBar)) vb.getChildren().addFirst(toolBar);
 
-                    activeNote = (String)newTab.getUserData();
+                    int index = 0;
+                    for (int i = 0; i < LoggedInUser.notes.size(); i++) {
+                        if (LoggedInUser.notes.get(i).getFilename() == newTab.getUserData().toString()) {
+                            index = i;
+                        }
+                    }
+                    activeNote = LoggedInUser.notes.get(index);
 
                     textAreas.get(activeNote).reload();
                 });
         tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
 
-        newNote();
     }
 
     private static void initPopupStage(String tag, Scene scene, Node container, double screenX, double screenY){
@@ -452,10 +469,24 @@ public class MainEditorController {
         try {
 
             byte[] serializedText = StyledTextCodec.serializeStyledText(textAreas.get(activeNote).getTextArea());
-
-            Note note = new Note(activeNote, serializedText, new String[]{"folder1", "folder2"});
             NoteDAO dao = new NoteDAO();
-            dao.insert(note);
+
+            activeNote = Note.fromExisting(
+                    activeNote.getId(),
+                    activeNote.isNewNote(),
+                    activeNote.getCreatedTime(),
+                    activeNote.getLastModifiedTime(),
+                    activeNote.getFilename(),
+                    serializedText,
+                    activeNote.getFolders()
+            );
+
+            if (activeNote.isNewNote()) {
+                dao.insert(activeNote);
+            }
+            else {
+                dao.update(activeNote);
+            }
 
         } catch (IOException ex) {
             // TODO: Add better exception handling
@@ -486,7 +517,16 @@ public class MainEditorController {
 
 
                     if (!tabPane.getTabs().isEmpty())
-                        activeNote = (String)tabPane.getTabs().getFirst().getUserData();
+                    {
+                        int index = 0;
+                        for (int i = 0; i < LoggedInUser.notes.size(); i++) {
+                            if (LoggedInUser.notes.get(i).getFilename() == tabPane.getTabs().getFirst().getUserData().toString()) {
+                                index = i;
+                            }
+                        }
+                        activeNote = LoggedInUser.notes.get(index);
+                    }
+
                     break;
                 }
             }
@@ -500,6 +540,9 @@ public class MainEditorController {
 
         String fileName = "New Note" + (numOfNewNote>0 ? " "+numOfNewNote : "") ;
         numOfNewNote++;
+
+        activeNote = new Note(fileName, new byte[]{}, new String[]{});
+        LoggedInUser.notes.add(activeNote);
 
 //        Initialize Tab
         Tab newTab = new Tab();
@@ -618,7 +661,7 @@ public class MainEditorController {
 
         TextAreaController newTextArea = new TextAreaController(editor,fileName);
         newTextArea.initializeUpdateToolbar(this);
-        textAreas.put(fileName, newTextArea);
+        textAreas.put(activeNote, newTextArea);
 
 //        Complete All Setup
         mainContainer.getChildren().add(editor);
@@ -813,13 +856,13 @@ public class MainEditorController {
 
         if (tab==null) return;
 
-        TextAreaController temp = textAreas.get(tab.getUserData());
-        textAreas.remove(tab.getUserData());
+        activeNote.setFilename(tf.getText());
+        NoteDAO noteDAO = new NoteDAO();
+        noteDAO.update(activeNote);
+
         tf.setUserData(tf.getText());
         tab.setUserData(tf.getText());
-        textAreas.put(tf.getText(), temp);
 
-//        TODO: Rename Note object
     }
 
 

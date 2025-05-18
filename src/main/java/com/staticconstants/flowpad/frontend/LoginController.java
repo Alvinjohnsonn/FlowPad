@@ -1,6 +1,8 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.LoggedInUser;
+import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
 import com.staticconstants.flowpad.backend.db.users.LoginResult;
 import com.staticconstants.flowpad.backend.db.users.UserDAO;
 import javafx.fxml.FXML;
@@ -55,7 +57,9 @@ public class LoginController {
             //check if the username and password is correct
             if (userDAO.login(username, password).get() == LoginResult.SUCCESS){
                 // Get user details
-
+                new NoteDAO().getAll().whenComplete(((notes, throwable) -> {
+                    LoggedInUser.notes = notes;
+                }));
                 // Success
                 Stage stage = (Stage) btnSubmit.getScene().getWindow();
 
@@ -65,9 +69,9 @@ public class LoginController {
                 Scene scene = new Scene(fxmlLoader.load());
                 scene.getStylesheets().add(stylesheet);
                 stage.setTitle("Home Page");
-
-                stage.setScene(scene);
                 stage.setMaximized(true);
+                stage.setScene(scene);
+
             }else{
                 Alert loginalert = new Alert(Alert.AlertType.INFORMATION);
                 loginalert.setContentText("Login failed!");
