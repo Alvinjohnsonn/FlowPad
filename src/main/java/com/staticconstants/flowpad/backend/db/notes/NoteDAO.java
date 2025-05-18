@@ -117,6 +117,6 @@ public class NoteDAO extends DAO<Note> {
         long createdTime = rs.getLong("created_time");
         long modTime = rs.getLong("last_modified_time");
         String[] folders = foldersStr != null ? foldersStr.split(",") : new String[0];
-        return Note.fromExisting(id, createdTime, modTime, filename, serializedText, folders);
+        return Note.fromExisting(id, false, createdTime, modTime, filename, serializedText, folders);
     }
 }
