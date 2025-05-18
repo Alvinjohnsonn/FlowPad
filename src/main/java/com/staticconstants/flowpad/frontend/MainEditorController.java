@@ -128,7 +128,7 @@ public class MainEditorController {
         // setup treeview
         for (Note note : LoggedInUser.notes)
         {
-            List<String> fileTree = note.getFolders().stream().toList();
+            List<String> fileTree = new ArrayList<>(note.getFolders().stream().toList());
             fileTree.add(note.getFilename());
             folders.add(fileTree);
         }
@@ -495,14 +495,11 @@ public class MainEditorController {
 
     }
 
-
-
     @FXML
     private void handleFontSizeChange(String size){
         TextAreaController active = textAreas.get(activeNote);
         active.setStyle(TextAttribute.FONT_SIZE, Integer.parseInt(size));
     }
-
 
     @FXML
     private void closeTab(ActionEvent event) {

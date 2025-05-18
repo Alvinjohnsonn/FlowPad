@@ -15,6 +15,8 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
+
 public class RegisterPageController {
     @FXML
     private Button btnBack;
@@ -69,6 +71,7 @@ public class RegisterPageController {
 
             UserDAO userDAO = new UserDAO();
             LoggedInUser.user = new User(firstName, lastName, username, password);
+            LoggedInUser.notes = new ArrayList<>();
 
             userDAO.insert(LoggedInUser.user).thenAccept(success -> {
                 Platform.runLater(() -> {  // Ensure this runs on the JavaFX Application Thread
