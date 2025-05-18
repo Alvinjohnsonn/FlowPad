@@ -67,6 +67,13 @@ public final class DbHandler {
                 System.err.println(sqlEx);
                 throw new RuntimeException(sqlEx);
             }
+
+            try (Statement stmt = dbConnection.createStatement()) {
+                stmt.execute("PRAGMA foreign_keys = ON");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+
             super.start();
             running = true;
         }

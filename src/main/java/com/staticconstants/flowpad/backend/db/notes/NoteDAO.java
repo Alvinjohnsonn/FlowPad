@@ -1,5 +1,6 @@
 package com.staticconstants.flowpad.backend.db.notes;
 
+import com.staticconstants.flowpad.backend.LoggedInUser;
 import com.staticconstants.flowpad.backend.db.DAO;
 
 import java.sql.*;
@@ -15,12 +16,14 @@ public class NoteDAO extends DAO<Note> {
     protected Void createTableImpl(Connection connection) throws SQLException {
         String sql = """
             CREATE TABLE IF NOT EXISTS notes (
-                id UUID PRIMARY KEY,
+                id VARCHAR(36) PRIMARY KEY,
                 filename TEXT NOT NULL,
                 serialized_text BYTEA NOT NULL,
                 folders TEXT,
                 created_time INTEGER NOT NULL,
-                last_modified_time INTEGER NOT NULL
+                last_modified_time INTEGER NOT NULL,
+                user_id VARCHAR(36) NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """;
         try (Statement stmt = connection.createStatement()) {
@@ -31,7 +34,11 @@ public class NoteDAO extends DAO<Note> {
 
     @Override
     protected Boolean insertImpl(Connection connection, Note note) throws SQLException {
-        String sql = "INSERT INTO notes (id, filename, serialized_text, folders, created_time, last_modified_time) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = """
+            INSERT INTO notes 
+                (id, filename, serialized_text, folders, created_time, last_modified_time, user_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, note.getId().toString());
             ps.setString(2, note.filename);
@@ -39,6 +46,7 @@ public class NoteDAO extends DAO<Note> {
             ps.setString(4, String.join(",", note.folders));
             ps.setLong(5, note.createdTime);
             ps.setLong(6, note.lastModifiedTime);
+            ps.setString(7, LoggedInUser.user.getId().toString());
             ps.executeUpdate();
             return true;
         }
@@ -64,7 +72,7 @@ public class NoteDAO extends DAO<Note> {
     protected Void deleteImpl(Connection connection, UUID id) throws SQLException {
         String sql = "DELETE FROM notes WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setObject(1, id);
+            ps.setString(1, id.toString());
             ps.executeUpdate();
         }
         return null;
@@ -72,9 +80,10 @@ public class NoteDAO extends DAO<Note> {
 
     @Override
     protected Note getByIdImpl(Connection connection, UUID id) throws SQLException {
-        String sql = "SELECT * FROM notes WHERE id = ?";
+        String sql = "SELECT * FROM notes WHERE id = ? AND user_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setObject(1, id);
+            ps.setString(1, id.toString());
+            ps.setString(2, LoggedInUser.user.getId().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return extractNoteFromResultSet(rs);
@@ -84,13 +93,17 @@ public class NoteDAO extends DAO<Note> {
         return null;
     }
 
+
     @Override
     protected List<Note> getAllImpl(Connection connection) throws SQLException {
         List<Note> notes = new ArrayList<>();
-        String sql = "SELECT * FROM notes";
-        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                notes.add(extractNoteFromResultSet(rs));
+        String sql = "SELECT * FROM notes WHERE user_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, LoggedInUser.user.getId().toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    notes.add(extractNoteFromResultSet(rs));
+                }
             }
         }
         return notes;

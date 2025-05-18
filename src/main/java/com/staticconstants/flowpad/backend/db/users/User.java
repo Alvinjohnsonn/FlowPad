@@ -14,6 +14,7 @@ public class User implements DbRecord {
     private String lastName;
     private String username;
     private final HashedPassword hashedPassword;
+
 //TODO: Check password length is appropriate length for hashing & insertion to database
     public User(String firstName, String lastName, String username, char[] password) throws Exception
     {
