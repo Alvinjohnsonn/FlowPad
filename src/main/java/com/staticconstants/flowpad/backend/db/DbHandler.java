@@ -1,4 +1,5 @@
 package com.staticconstants.flowpad.backend.db;
+
 import java.sql.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -10,21 +11,16 @@ public final class DbHandler {
     private LinkedBlockingQueue<DbTask<?>> opQueue;
     private Connection dbConnection;
 
-
-    private DbHandler()
-    {
+    private DbHandler() {
         if (INSTANCE != null) {
-            throw new IllegalStateException("DbHandler.class is singleton.  Multiple instantiations attempted");
+            throw new IllegalStateException("DbHandler.class is singleton.");
         }
         opQueue = new LinkedBlockingQueue<>();
         runner = new DbHandlerThread();
         runner.start();
     }
 
-
-//    TODO: Change temp public modifier
-    public static DbHandler getInstance()
-    {
+    public static DbHandler getInstance() {
         if (INSTANCE == null) {
             synchronized (DbHandler.class) {
                 if (INSTANCE == null) {
@@ -45,6 +41,10 @@ public final class DbHandler {
         return f;
     }
 
+    public Connection getConnection() {
+        return dbConnection;
+    }
+
     private static class DbTask<T> {
         final DbOperation<T> operation;
         final CompletableFuture<T> future;
@@ -56,7 +56,6 @@ public final class DbHandler {
     }
 
     private final class DbHandlerThread extends Thread {
-
         private boolean running;
 
         @Override
@@ -73,10 +72,7 @@ public final class DbHandler {
 
         @Override
         public void run() {
-            while (running)
-            {
-                if (!isDbConnected()) continue;
-
+            while (running) {
                 try {
                     DbTask<?> task = opQueue.take();
                     handleTask(task);
@@ -91,17 +87,8 @@ public final class DbHandler {
             try {
                 T result = task.operation.operation(dbConnection);
                 task.future.complete(result);
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 task.future.completeExceptionally(ex);
-            }
-        }
-
-        private boolean isDbConnected()
-        {
-            try {
-                return dbConnection.isValid(0) || !dbConnection.isClosed();
-            } catch (SQLException ex) {
-                return false;
             }
         }
     }

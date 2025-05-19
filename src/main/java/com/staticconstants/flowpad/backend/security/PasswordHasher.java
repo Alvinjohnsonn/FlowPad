@@ -1,52 +1,48 @@
 package com.staticconstants.flowpad.backend.security;
 
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.Arrays;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
-public final class PasswordHasher {
+public class PasswordHasher {
+    private static final int ITERATIONS = 65536;
+    private static final int KEY_LENGTH = 256;
 
-    static final int SALT_LENGTH = 16;
-    static final int ITERATIONS = 65536;
-    static final int KEY_LENGTH = 256;
-    static final String ALGORITHM = "PBKDF2WithHmacSHA256";
+    public static HashedPassword hashPassword(char[] password) {
+        try {
+            byte[] salt = new byte[16];
+            new SecureRandom().nextBytes(salt);
 
-    public static HashedPassword hashPassword(char[] password) throws Exception
-    {
-        byte[] salt = generateSalt();
-        String hash = hashPassword(password, salt);
-        Arrays.fill(password, '\0');
-        return new HashedPassword(hash, Base64.getEncoder().encodeToString(salt));
+            PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH);
+            SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            byte[] hash = skf.generateSecret(spec).getEncoded();
+
+            return new HashedPassword(Base64.getEncoder().encodeToString(hash),
+                    Base64.getEncoder().encodeToString(salt));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static boolean verifyPassword(char[] inputPassword, String storedHashBase64, String storedSaltBase64) throws Exception
-    {
-        byte[] salt = Base64.getDecoder().decode(storedSaltBase64);
-        byte[] storedHash = Base64.getDecoder().decode(storedHashBase64);
-        String inputHashBase64 = hashPassword(inputPassword, salt);
-        byte[] inputHash = Base64.getDecoder().decode(inputHashBase64);
-        Arrays.fill(inputPassword, '\0');
-        return MessageDigest.isEqual(inputHash, storedHash);
+    public static boolean verifyPassword(char[] password, String hashBase64, String saltBase64) {
+        try {
+            byte[] salt = Base64.getDecoder().decode(saltBase64);
+            byte[] expectedHash = Base64.getDecoder().decode(hashBase64);
+
+            PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH);
+            SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            byte[] actualHash = skf.generateSecret(spec).getEncoded();
+
+            if (actualHash.length != expectedHash.length) return false;
+
+            for (int i = 0; i < actualHash.length; i++) {
+                if (actualHash[i] != expectedHash[i]) return false;
+            }
+
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
-
-    static String hashPassword(char[] password, byte[] salt) throws Exception
-    {
-        PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH);
-        SecretKeyFactory skf = SecretKeyFactory.getInstance(ALGORITHM);
-        byte[] hash = skf.generateSecret(spec).getEncoded();
-        return Base64.getEncoder().encodeToString(hash);
-    }
-
-    static byte[] generateSalt()
-    {
-        SecureRandom sr = new SecureRandom();
-        byte[] salt = new byte[SALT_LENGTH];
-        sr.nextBytes(salt);
-        return salt;
-    }
-
-
 }

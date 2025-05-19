@@ -1,6 +1,9 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.db.DbHandler;
+import com.staticconstants.flowpad.backend.security.HashedPassword;
+import com.staticconstants.flowpad.backend.security.PasswordHasher;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -12,7 +15,10 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 
 public class SettingsController {
     @FXML
@@ -67,15 +73,8 @@ public class SettingsController {
     @FXML
     private void onBackButton() throws IOException {
         Stage stage = (Stage) backButton.getScene().getWindow();
-        FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("settings-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), stage.getWidth(), stage.getHeight());
-
-        String css = Objects.requireNonNull(
-                getClass().getResource("/com/staticconstants/flowpad/flowpad-stylesheet.css")
-        ).toExternalForm();
-        scene.getStylesheets().add(css);
-
-
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/staticconstants/flowpad/settings-view.fxml"));
+        Scene scene = new Scene(loader.load(), stage.getWidth(), stage.getHeight());
         stage.setScene(scene);
     }
 
@@ -107,5 +106,21 @@ public class SettingsController {
         stage.setScene(scene);
         stage.setMaximized(true);
     }
-}
+
+    public CompletionStage<Boolean> updatePassword(String currentUsername, char[] charArray) {
+        return DbHandler.getInstance().dbOperation(conn -> {
+            HashedPassword hashed = PasswordHasher.hashPassword(new String(charArray).toCharArray());
+            Arrays.fill(charArray, ' '); // clear memory
+
+            String sql = "UPDATE Users SET hashedPassword = ?, encodedSalt = ? WHERE username = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, hashed.hashBase64);
+                stmt.setString(2, hashed.saltBase64);
+                stmt.setString(3, currentUsername);
+                int affected = stmt.executeUpdate();
+                return affected > 0;
+            }
+        });
+}}
+
 

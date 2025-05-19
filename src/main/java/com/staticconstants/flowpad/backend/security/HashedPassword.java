@@ -8,4 +8,11 @@ public class HashedPassword {
         this.hashBase64 = hashBase64;
         this.saltBase64 = saltBase64;
     }
+    public String getHashedPasswordBase64() {
+        return hashBase64;
+    }
+
+    public String getEncodedSaltBase64() {
+        return saltBase64;
+    }
 }
