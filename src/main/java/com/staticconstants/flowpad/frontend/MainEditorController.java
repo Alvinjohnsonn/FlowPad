@@ -810,6 +810,7 @@ public class MainEditorController {
         if (tab==null) return;
 
         TextAreaController temp = textAreas.get(tab.getUserData());
+        if (activeNote == tab.getUserData()) activeNote = tf.getText();
         textAreas.remove(tab.getUserData());
         tf.setUserData(tf.getText());
         tab.setUserData(tf.getText());
@@ -869,6 +870,7 @@ public class MainEditorController {
                 abs += seg.length();
             }
         }
+        textAreas.get(activeNote).setSuppressHyperlinkMonitoring(false);
     }
 
 
