@@ -76,6 +76,14 @@ public class MainEditorController {
     @FXML public Button btnNumberedList;
     @FXML public Button btnBulletList;
     @FXML private Button profilebtn;
+    @FXML public Button btnGenerateSummary;
+    @FXML public Button btnAIHighlight;
+    @FXML public Button btnAutoCorrect;
+    @FXML public Button btnRefactorContent;
+    @FXML public Button btnGenerateOutline;
+    @FXML public Button btnFormatWriting;
+    @FXML public Button btnShortToFull;
+    @FXML public Button btnCustomPrompt;
 
     private static HashMap<String, TextAreaController> textAreas;
     private static String activeNote;
@@ -133,10 +141,6 @@ public class MainEditorController {
         });
 
         textFieldFontSize.setText(TextStyle.EMPTY.getFontSize()+"");
-
-        TextAreaController tac = new TextAreaController(editorContainer, "note1");
-        tac.initializeUpdateToolbar(this);
-        textAreas.put("note1", tac);
 
         textFieldFontSize.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getText();
@@ -202,6 +206,33 @@ public class MainEditorController {
                     textAreas.get(activeNote).reload();
                 });
         tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
+
+
+        // Initialize Button AI On Click
+        btnGenerateSummary.setOnAction(e -> {
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnAIHighlight.setOnAction(e -> {
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnAutoCorrect.setOnAction(e -> {
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnRefactorContent.setOnAction(e -> {
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnGenerateOutline.setOnAction(e -> {
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnFormatWriting.setOnAction(e -> {
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnShortToFull.setOnAction(e -> {
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnCustomPrompt.setOnAction(e -> {
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
 
         newNote();
     }
@@ -355,7 +386,130 @@ public class MainEditorController {
         popup.show();
     }
 
+    public void showTextSelectOptionPopup(Node anchorNode){
+        String tag = "setTextSelect";
+        if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
+            return;
+        }
 
+        Label title = new Label("Select text to modify");
+        title.setStyle("-fx-font-weight: bold;");
+
+        Button btnSelectAll = new Button("Select all");
+        Button btnSelectPar = new Button("Select paragraph");
+        Button btnSelectCursor = new Button("Select manually");
+
+        btnSelectAll.getStyleClass().add("align-button");
+        btnSelectPar.getStyleClass().add("align-button");
+        btnSelectCursor.getStyleClass().add("align-button");
+
+        VBox layout = new VBox(10, title, btnSelectAll, btnSelectPar, btnSelectCursor);
+        layout.setPadding(new Insets(15));
+        layout.setStyle("-fx-background-color: white; -fx-background-radius: 10;");
+        layout.setEffect(new DropShadow(10, Color.rgb(0, 0, 0, 0.3)));
+
+        StackPane root = new StackPane(layout);
+        root.setPadding(new Insets(20));
+        root.setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
+        root.setPickOnBounds(false);
+
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm());
+        scene.setFill(Color.TRANSPARENT);
+
+        Bounds bounds = anchorNode.localToScreen(anchorNode.getBoundsInLocal());
+
+        initPopupStage(tag, scene, layout, bounds.getMinX(), bounds.getMaxY());
+        popup.initOwner(anchorNode.getScene().getWindow());
+
+        AIConnector aiCon = textAreas.get(activeNote).getAIConnector();
+        btnSelectAll.setOnAction(e -> {
+            popup.close();
+            textAreas.get(activeNote).showAIOutput(aiCon.getAllText());
+        });
+        btnSelectPar.setOnAction(e -> {
+            popup.close();
+            aiCon.startHighlightParagraphOnHover();
+        });
+        btnSelectCursor.setOnAction(e -> {
+            popup.close();
+            aiCon.startTrackingSelection();
+        });
+
+        popup.show();
+    }
+
+    public static void showSelectConfirmationPopup(double screenX, double screenY, String selectedText){
+        String tag = "setSelectConfirm";
+        if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
+            return;
+        }
+
+        Label title = new Label("Confirm Selection");
+        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px");
+
+//        Label content = new Label(selectedText);
+//        content.setWrapText(true);
+//        content.setMaxWidth(400);
+
+        TextArea content = new TextArea(selectedText);
+        content.setWrapText(true);
+        content.setEditable(false);
+        content.setFocusTraversable(false);
+        content.setStyle("-fx-font-size: 12px;");
+        content.setMinWidth(24);
+        VBox.setVgrow(content, Priority.ALWAYS);
+
+        Button btnCancel = new Button("Cancel");
+        Button btnReselect = new Button("Reselect");
+        Button btnConfirm = new Button("Confirm");
+        btnCancel.setStyle("-fx-font-size: 12px; -fx-background-color: -primary-color;");
+        btnReselect.setStyle("-fx-font-size: 12px; -fx-background-color: -primary-color;");
+        btnConfirm.setStyle("-fx-font-size: 12px; -fx-background-color: -primary-color;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox buttons = new HBox(12);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        HBox.setHgrow(buttons, Priority.ALWAYS);
+
+        buttons.getChildren().addAll(btnCancel, spacer, btnReselect, btnConfirm);
+
+        VBox layout = new VBox(10, title, content, buttons);
+        layout.setPadding(new Insets(15));
+        layout.setStyle("-fx-background-color: white; -fx-background-radius: 10;");
+        layout.setEffect(new DropShadow(10, Color.rgb(0, 0, 0, 0.3)));
+
+        StackPane root = new StackPane(layout);
+        root.setPadding(new Insets(20));
+        root.setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
+        root.setPickOnBounds(false);
+
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm());
+        scene.setFill(Color.TRANSPARENT);
+
+        initPopupStage(tag, scene, layout, screenX, screenY);
+//        popup.initOwner(tabPane.getScene().getWindow());
+
+        AIConnector aiCon = textAreas.get(activeNote).getAIConnector();
+        btnCancel.setOnAction(e -> {
+            aiCon.cancelOperation();
+            popup.close();
+        });
+        btnReselect.setOnAction(e -> {
+            popup.close();
+        });
+        btnConfirm.setOnAction(e -> {
+            popup.close();
+
+            aiCon.cancelOperation();
+            textAreas.get(activeNote).showAIOutput(selectedText);
+        });
+
+        popup.show();
+    }
 
     public static String hashMapStyleToString(HashMap<String, String> styles){
         String styleString = "";
@@ -602,17 +756,13 @@ public class MainEditorController {
         VBox.setVgrow(mainContainer, Priority.ALWAYS);
         mainContainer.getChildren().add(toolBar);
 
-//        Initialize GenericStyledArea
-
-
-
 //        Initialize Editor Container
         VBox editor = new VBox();
         editor.prefWidth(500);
         VBox.setVgrow(editor,Priority.ALWAYS);
         editor.setPadding(new Insets(10,10,10,10));
 
-        TextAreaController newTextArea = new TextAreaController(editor,fileName);
+        TextAreaController newTextArea = new TextAreaController(editor, fileName, splitPane);
         newTextArea.initializeUpdateToolbar(this);
         textAreas.put(fileName, newTextArea);
 
@@ -728,11 +878,11 @@ public class MainEditorController {
     }
     @FXML
     private void clearFormatting(){
-
+        //TODO: Add code
     }
     @FXML
     private void setTextColor(){
-
+//        TODO: Add code
     }
     @FXML
     private void insertHyperlink() {
@@ -848,6 +998,8 @@ public class MainEditorController {
         stage.setScene(scene);
         stage.setMaximized(true);
     }
+
+
 
     private static void replaceHyperlinkSegment(Node node, HyperlinkSegment oldSegment, HyperlinkSegment newSegment) {
         textAreas.get(activeNote).setSuppressHyperlinkMonitoring(true);

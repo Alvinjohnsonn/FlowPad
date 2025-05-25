@@ -119,13 +119,14 @@
                     <TreeView fx:id="folderTree" maxWidth="1.7976931348623157E308" prefHeight="409.0" prefWidth="58.0" />
 
                     <VBox fx:id="aiOptions" managed="false" maxWidth="1.7976931348623157E308" prefHeight="419.0" prefWidth="98.0" styleClass="feature-bar" visible="false">
-                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Generate Summary" />
-                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Highlight" />
-                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Auto-Correct" />
-                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Refactor Content" />
-                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Generate Outlines" />
-                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Format Writing" />
-                        <Button maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Convert Abbreviation to Full Text" />
+                        <Button fx:id="btnGenerateSummary" maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Generate Summary"/>
+                        <Button fx:id="btnAIHighlight" maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Highlight"/>
+                        <Button fx:id="btnAutoCorrect" maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Auto-Correct"/>
+                        <Button fx:id="btnRefactorContent" maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Refactor Content"/>
+                        <Button fx:id="btnGenerateOutline" maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Generate Outlines"/>
+                        <Button fx:id="btnFormatWriting" maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Format Writing"/>
+                        <Button fx:id="btnShortToFull" maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Convert Abbreviation to Full Text"/>
+                        <Button fx:id="btnCustomPrompt" maxWidth="1.7976931348623157E308" styleClass="button-ai" text="Custom Prompt"/>
                     </VBox>
                 </StackPane>
             </VBox>
