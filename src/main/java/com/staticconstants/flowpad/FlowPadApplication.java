@@ -7,8 +7,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class FlowPadApplication extends Application {
+    public static final ExecutorService aiExecutor = Executors.newFixedThreadPool(5);
+
     @Override
     public void start(Stage stage) throws IOException {
 
@@ -31,6 +35,14 @@ public class FlowPadApplication extends Application {
 
         NoteDAO notes = new NoteDAO();
         notes.createTable();
+
+
         launch();
     }
+
+    @Override
+    public void stop() {
+        aiExecutor.shutdownNow();
+    }
+
 }

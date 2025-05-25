@@ -1,5 +1,6 @@
 package com.staticconstants.flowpad.frontend.textarea;
 
+import com.staticconstants.flowpad.backend.AI.Prompt;
 import com.staticconstants.flowpad.frontend.MainEditorController;
 import javafx.geometry.Bounds;
 import javafx.scene.input.KeyCode;
@@ -14,6 +15,7 @@ public class AIConnector {
     private CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea;
     private String previousVersion;
     private String selectedText;
+    private Prompt activePromptType;
 
 
     public AIConnector(TextAreaController textAreaController){
@@ -102,6 +104,13 @@ public class AIConnector {
 
     public void modifyText(String newText){
 
+    }
+
+    public Prompt getActivePromptType(){
+        return activePromptType;
+    }
+    public void setActivePromptType(Prompt type){
+        activePromptType = type;
     }
 
     private void showSelectConfirmation(){

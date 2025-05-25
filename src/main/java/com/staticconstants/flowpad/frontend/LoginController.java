@@ -68,6 +68,7 @@ public class LoginController {
 
                 stage.setScene(scene);
                 stage.setMaximized(true);
+                stage.show();
             }else{
                 Alert loginalert = new Alert(Alert.AlertType.INFORMATION);
                 loginalert.setContentText("Login failed!");
@@ -90,6 +91,7 @@ public class LoginController {
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Register Page");
         stage.setScene(scene);
+        stage.show();
     }
 
 }

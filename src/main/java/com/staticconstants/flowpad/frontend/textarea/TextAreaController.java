@@ -1,6 +1,8 @@
 package com.staticconstants.flowpad.frontend.textarea;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.AI.GeneratePrompt;
+import com.staticconstants.flowpad.backend.AI.Prompt;
 import com.staticconstants.flowpad.frontend.MainEditorController;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -592,23 +594,15 @@ public class TextAreaController {
 
             hbox.getChildren().addAll(title, spacer, btnClose);
 
-            // Scrollable Output
-//            outputArea = new TextArea(output);
-//            outputArea.setWrapText(true);
-//            outputArea.setEditable(false);
-//            outputArea.setFocusTraversable(false);
-//            outputArea.setStyle("-fx-font-size: 14px;");
-//            VBox.setVgrow(outputArea, Priority.ALWAYS);
-
             outputArea = createReadOnlyTextArea();
             outputArea.setWrapText(true);
             outputArea.setEditable(false);
             outputArea.setFocusTraversable(false);
             outputArea.setPadding(new Insets(12));
-            outputArea.replaceText(output);
+
+            GeneratePrompt.send(outputArea, aiConnector.getActivePromptType(), output, "");
+
             VBox.setVgrow(outputArea, Priority.ALWAYS);
-
-
             // Bottom HBox
             HBox buttonBar = new HBox(10);
             buttonBar.setPadding(new Insets(8));
@@ -636,6 +630,11 @@ public class TextAreaController {
                 textArea.requestFocus();
             });
             Button btnSend = new Button("Send");
+            btnSend.setOnAction(e->{
+                GeneratePrompt.send(outputArea, aiConnector.getActivePromptType(), output, message.getText());
+
+                message.setText("");
+            });
             btnBack.setStyle("-fx-background-color: -primary-color;");
             btnSend.setStyle("-fx-background-color: -primary-color;");
             queryBar.getChildren().addAll(btnBack, message, btnSend);
@@ -668,7 +667,8 @@ public class TextAreaController {
 
             if (!innerSplitPane.getItems().contains(AIOutputContainer)) innerSplitPane.getItems().add(AIOutputContainer);
             innerSplitPane.setDividerPositions(0.5);
-            outputArea.replaceText(output);
+
+            GeneratePrompt.send(outputArea, aiConnector.getActivePromptType(), output, "");
         }
     }
 

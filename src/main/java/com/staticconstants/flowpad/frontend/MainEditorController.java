@@ -1,6 +1,7 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.AI.Prompt;
 import com.staticconstants.flowpad.frontend.textarea.*;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -210,27 +211,35 @@ public class MainEditorController {
 
         // Initialize Button AI On Click
         btnGenerateSummary.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.GENERATE_SUMMARY);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnAIHighlight.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.AI_HIGHLIGHT);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnAutoCorrect.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.AUTO_CORRECT);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnRefactorContent.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.REFACTOR_CONTENT);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnGenerateOutline.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.GENERATE_OUTLINE);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnFormatWriting.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.FORMAT_WRITING);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnShortToFull.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.SHORT_TO_FULL);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnCustomPrompt.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.CUSTOM_PROMPT);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
 
