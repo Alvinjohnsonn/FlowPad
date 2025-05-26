@@ -8,5 +8,6 @@ public enum Prompt {
     GENERATE_OUTLINE,
     FORMAT_WRITING,
     SHORT_TO_FULL,
-    CUSTOM_PROMPT
+    CUSTOM_PROMPT,
 }
+

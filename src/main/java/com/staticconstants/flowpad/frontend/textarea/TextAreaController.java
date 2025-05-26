@@ -570,7 +570,17 @@ public class TextAreaController {
             hbox.setPadding(new Insets(8));
             hbox.setMaxWidth(Double.MAX_VALUE);
 
-            Label title = new Label("Generated Summary - I wonder how long this could go and what will happen");
+            String sTitle = switch(aiConnector.getActivePromptType()){
+                case GENERATE_SUMMARY -> "Generated Summary";
+                case AI_HIGHLIGHT -> "Highlighted Text";
+                case AUTO_CORRECT -> "Auto Corrected Text";
+                case REFACTOR_CONTENT -> "Refined Content";
+                case GENERATE_OUTLINE -> "Generated Outline";
+                case FORMAT_WRITING -> "Formatted Writing";
+                case SHORT_TO_FULL -> "Converted Short to Full Text";
+                case CUSTOM_PROMPT -> "Custom Prompt";
+            };
+            Label title = new Label(sTitle);
             title.setStyle("-fx-font-weight: bold; -fx-font-size: 20px;");
             title.getStyleClass().add("bg-transparent");
 

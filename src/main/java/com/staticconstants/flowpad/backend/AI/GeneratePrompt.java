@@ -17,14 +17,41 @@ public class GeneratePrompt {
             case GENERATE_OUTLINE -> generateOutline(textArea, text, optionalRequest);
             case FORMAT_WRITING -> formatWriting(textArea, text, optionalRequest);
             case SHORT_TO_FULL -> shortToFull(textArea, text, optionalRequest);
-            case CUSTOM_PROMPT -> customPrompt(textArea, text, optionalRequest);
+            case CUSTOM_PROMPT -> customPrompt(textArea, text, optionalRequest, "");
         }
     }
 
-    private static void customPrompt(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String optionalRequest) {
+    private static void customPrompt(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String optionalRequest, String customPrompt) {
+        String prompt = """
+                You are an AI assistant inside a rich text note-taking application.
+                
+                Your task is to:""" + customPrompt + """
+                
+                This is less important, but please consider the following request: (ignore if it's empty)
+                                \\""\"" + optionalRequest + ""\"
+                                "
+               
+                Here is the text:
+                
+                """ + text;
+        AsyncQuery.sendQuery(textArea, prompt);
+//        TODO: Make sure this is a flexible as custom request could ask for formatting
     }
 
     private static void shortToFull(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String optionalRequest) {
+        String prompt = """
+                You are an AI assistant inside a rich text note-taking application.
+                
+                Your task is to find abbreviated word and convert them to the full word. Leave other complete words in tact.
+                
+                This is less important, but please consider the following request: (ignore if it's empty)
+                                \\""\"" + optionalRequest + ""\"
+                                "
+               
+                Here is the text:
+                
+                """ + text;
+        AsyncQuery.sendQuery(textArea, prompt);
     }
 
     private static void formatWriting(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String optionalRequest) {
@@ -37,7 +64,7 @@ public class GeneratePrompt {
                 
                 1. **Text segment**:
                    {
-                     "type": "text",
+                     "type": "text",   // if want to insert heading have this set to text and change the heading level below!
                      "content": "plain string of the user's original text",
                      "style": {
                        "bold": true | false,
@@ -47,6 +74,12 @@ public class GeneratePrompt {
                        "textColor": "#RRGGBB",
                        "backgroundColor": "#RRGGBB",
                        "headingLevel": 0 to 5  // 0 means normal text
+                     },
+                     "paragraphStyle": {
+                        "alignment": "left" | "center" | "right" | "justify",
+                        "lineSpacing": 0 to 5, // 0 = no line spacing
+                        "listType": "none" | "bullet" | "numbered",
+                        "listLevel": 0 to 5 // level of indentation, with 0 being no indent
                      }
                    }
                 
@@ -66,6 +99,8 @@ public class GeneratePrompt {
                 Do not add any commentary, markdown, or additional explanation.
                 Do not change any of the user's original wording.
                 Only output JSON, one object per line.
+                Return structured content as JSON. Do not include \\\\n or \\\\t characters in the text. Each paragraph or heading should be a separate JSON object.
+                You may format a span of words, you can do this without including "paragraphStyle"
                 
                 This is less important, but please consider the following request: (ignore if it's empty)
                 \"""" + optionalRequest + """
@@ -78,23 +113,77 @@ public class GeneratePrompt {
     }
 
     private static void generateOutline(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String optionalRequest) {
+        String prompt = """
+                You are an AI assistant inside a rich text note-taking application.
+                
+                Your task is to find abbreviated word and convert them to the full word. Leave other complete words in tact.
+                
+                This is less important, but please consider the following request: (ignore if it's empty)
+                                \\""\"" + optionalRequest + ""\"
+                                "
+               
+                Here is the text:
+                
+                """ + text;
+        AsyncQuery.sendQuery(textArea, prompt);
     }
 
     private static void refactorContent(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String optionalRequest) {
+        String prompt = """
+                You are an AI assistant inside a rich text note-taking application.
+                
+                
+                Your task is refine the text by removing and adding any word/s to improve the quality of the text.
+                
+                This is less important, but please consider the following request: (ignore if it's empty)
+                \\""\"" + optionalRequest + ""\"
+                "
+               
+                Here is the text:
+                
+                """ + text;
+        AsyncQuery.sendQuery(textArea, prompt);
     }
 
     private static void autoCorrect(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String optionalRequest) {
-
+        String prompt = """
+                You are an AI assistant inside a rich text note-taking application.
+                
+                Your task is to find grammatical errors and fix them from a text, essentially auto correcting them.
+                
+                This is less important, but please consider the following request: (ignore if it's empty)
+                                \\""\"" + optionalRequest + ""\"
+                                "
+               
+                Here is the text:
+                
+                """ + text;
+        AsyncQuery.sendQuery(textArea, prompt);
     }
 
     private static void highlight(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String optionalRequest) {
+        String prompt = """
+                You are an AI assistant inside a rich text note-taking application.
+                
+                Your task is to find abbreviated word and convert them to the full word. Leave other complete words in tact.
+                
+                This is less important, but please consider the following request: (ignore if it's empty)
+                                \\""\"" + optionalRequest + ""\"
+                                "
+               
+                Here is the text:
+                
+                """ + text;
+        AsyncQuery.sendFormattedQuery(textArea, prompt);
     }
 
 
     private static void summarize(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String optionalRequest){
 
         String prompt = """
-    Summarize the following for a university student who needs to quickly understand the key points.
+    You are an AI assistant inside a rich text note-taking application.
+   
+    Your task is to to summarize the following for a student who needs to quickly understand the key points.
     Keep it concise and focused on the main ideas. Only return the summary and omit any additional commentary or explanation.
    """ + (optionalRequest.isEmpty()?"":" Additional Request: " + optionalRequest) + """
  
