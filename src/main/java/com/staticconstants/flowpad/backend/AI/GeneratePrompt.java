@@ -43,6 +43,7 @@ public class GeneratePrompt {
                 You are an AI assistant inside a rich text note-taking application.
                 
                 Your task is to find abbreviated word and convert them to the full word. Leave other complete words in tact.
+                Return only the full text, do not include any preamble or explanation.
                 
                 This is less important, but please consider the following request: (ignore if it's empty)
                                 \\""\"" + optionalRequest + ""\"
@@ -59,6 +60,7 @@ public class GeneratePrompt {
                 You are an AI assistant inside a rich text note-taking application.
                 
                 Your task is to format the user's writing and return it as a structured JSON stream. Each line must be a **complete and valid JSON object**, describing a segment to insert into the editor. Do **not** wrap the segments in a list or array. Output **one segment per line**, no other commentary or text.
+                
                 
                 Each segment can be of one of the following types:
                 
@@ -117,6 +119,7 @@ public class GeneratePrompt {
                 You are an AI assistant inside a rich text note-taking application.
                 
                 Your task is to find abbreviated word and convert them to the full word. Leave other complete words in tact.
+                Return only the modified text, do not include any preamble or explanation.
                 
                 This is less important, but please consider the following request: (ignore if it's empty)
                                 \\""\"" + optionalRequest + ""\"
@@ -132,8 +135,8 @@ public class GeneratePrompt {
         String prompt = """
                 You are an AI assistant inside a rich text note-taking application.
                 
-                
                 Your task is refine the text by removing and adding any word/s to improve the quality of the text.
+                Return only the full text, do not include any preamble or explanation.
                 
                 This is less important, but please consider the following request: (ignore if it's empty)
                 \\""\"" + optionalRequest + ""\"
@@ -150,6 +153,7 @@ public class GeneratePrompt {
                 You are an AI assistant inside a rich text note-taking application.
                 
                 Your task is to find grammatical errors and fix them from a text, essentially auto correcting them.
+                Return only the corrected text, do not include any preamble or explanation.
                 
                 This is less important, but please consider the following request: (ignore if it's empty)
                                 \\""\"" + optionalRequest + ""\"
@@ -166,6 +170,7 @@ public class GeneratePrompt {
                 You are an AI assistant inside a rich text note-taking application.
                 
                 Your task is to find abbreviated word and convert them to the full word. Leave other complete words in tact.
+                Return only the highlight, do not include any preamble or explanation.
                 
                 This is less important, but please consider the following request: (ignore if it's empty)
                                 \\""\"" + optionalRequest + ""\"
@@ -184,7 +189,9 @@ public class GeneratePrompt {
     You are an AI assistant inside a rich text note-taking application.
    
     Your task is to to summarize the following for a student who needs to quickly understand the key points.
-    Keep it concise and focused on the main ideas. Only return the summary and omit any additional commentary or explanation.
+    Keep it concise and focused on the main ideas.
+    Return only the summary, do not include any preamble or explanation.
+    
    """ + (optionalRequest.isEmpty()?"":" Additional Request: " + optionalRequest) + """
  
     
