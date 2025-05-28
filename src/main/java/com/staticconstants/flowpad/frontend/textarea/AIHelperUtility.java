@@ -56,7 +56,7 @@ public class AIHelperUtility {
                 TextStyle style = parseStyle(styleNode);
                 ParStyle parStyle = parseParStyle(parStyleNode);
 
-                if (parStyleNode.isNull()) insertText(content, style);
+                if (parStyleNode == null) insertText(content, style);
                 else insertParagraph(content, style, parStyle);
             }
             case "image" -> insertImage(new Image(node.get("url").asText(), true));
@@ -71,7 +71,7 @@ public class AIHelperUtility {
         if (styleNode.has("underline")) style = style.setItalic(styleNode.get("underline").asBoolean());
         if (styleNode.has("fontSize")) style = style.setFontSize(styleNode.get("fontSize").asInt());
         if (styleNode.has("textColor")) style = style.setTextColor(Color.valueOf(styleNode.get("textColor").asText()));
-        if (styleNode.has("backgroundColor")) style = style.setBackgroundColor(Color.valueOf(styleNode.get("backgroundColor").asText()));
+        if (styleNode.has("backgroundColor")) style = style.setBackgroundColor(styleNode.get("backgroundColor").asText().equals("transparent") ? Color.TRANSPARENT : Color.valueOf(styleNode.get("backgroundColor").asText()));
         if (styleNode.has("headingLevel")) style = style.setHeadingLevel(styleNode.get("headingLevel").asInt());
         return style;
     }

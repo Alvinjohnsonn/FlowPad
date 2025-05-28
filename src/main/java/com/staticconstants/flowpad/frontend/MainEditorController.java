@@ -14,6 +14,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
@@ -85,6 +86,7 @@ public class MainEditorController {
     @FXML public Button btnFormatWriting;
     @FXML public Button btnShortToFull;
     @FXML public Button btnCustomPrompt;
+    private AnchorPane parentPane;
 
     private static HashMap<String, TextAreaController> textAreas;
     private static String activeNote;
@@ -113,8 +115,10 @@ public class MainEditorController {
         aiOptions.setManaged(true);
     }
 
+
     @FXML
     public void initialize() {
+
         textAreas = new HashMap<>();
 
         TreeItem<String> rootItem = new TreeItem<>("Notes");
@@ -245,7 +249,6 @@ public class MainEditorController {
 
         newNote();
     }
-
     private static void initPopupStage(String tag, Scene scene, Node container, double screenX, double screenY){
         popup = new Stage(StageStyle.TRANSPARENT);
         popup.setUserData(tag);

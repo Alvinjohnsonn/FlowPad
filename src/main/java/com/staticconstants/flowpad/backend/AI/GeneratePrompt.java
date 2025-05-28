@@ -118,17 +118,38 @@ public class GeneratePrompt {
         String prompt = """
                 You are an AI assistant inside a rich text note-taking application.
                 
-                Your task is to find abbreviated word and convert them to the full word. Leave other complete words in tact.
-                Return only the modified text, do not include any preamble or explanation.
+                Your task is to analyze the given text and generate a clear, hierarchical outline capturing the main ideas and supporting points. 
+                Use bullet points or numbered lists as appropriate, and indent subpoints under their parent topics. 
+                Do not rewrite or summarize the content—just structure it into an outline.
                 
-                This is less important, but please consider the following request: (ignore if it's empty)
-                                \\""\"" + optionalRequest + ""\"
-                                "
+                Return only the outline. Do not include any preamble or explanation.
+                
+                Do not change any of the user's original wording.
+                Only output JSON, one object per line.
+                Return structured content as JSON. Do not include \\\\n or \\\\t characters in the text. Each paragraph/line should be a separate JSON object.
+                You should always include "paragraphStyle" as that indicates a new line.
+                
+                Please return a JSON following this criteria:
+                
+                1.   {
+                     "type": "text",
+                     "content": "plain string of the user's original text",
+                     "paragraphStyle": {
+                        "alignment": "left" | "center" | "right" | "justify",
+                        "lineSpacing": 0 to 5, // 0 = no line spacing
+                        "listType": "bullet" | "numbered",
+                        "listLevel": 1 to 5 // level of indentation
+                     }
+                   }
+                
+                
+                This is less important, but please consider the following request:(ignore if it's empty)
+                ""\" + optionalRequest + ""\"
                
                 Here is the text:
                 
                 """ + text;
-        AsyncQuery.sendQuery(textArea, prompt);
+        AsyncQuery.sendFormattedQuery(textArea, prompt);
     }
 
     private static void refactorContent(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String optionalRequest) {
@@ -152,7 +173,7 @@ public class GeneratePrompt {
         String prompt = """
                 You are an AI assistant inside a rich text note-taking application.
                 
-                Your task is to find grammatical errors and fix them from a text, essentially auto correcting them.
+                Your task is to find grammatical and spelling errors and fix them from a text, essentially auto correcting them.
                 Return only the corrected text, do not include any preamble or explanation.
                 
                 This is less important, but please consider the following request: (ignore if it's empty)
@@ -170,7 +191,25 @@ public class GeneratePrompt {
                 You are an AI assistant inside a rich text note-taking application.
                 
                 Your task is to find abbreviated word and convert them to the full word. Leave other complete words in tact.
-                Return only the highlight, do not include any preamble or explanation.
+                Return only the given text (with some already highlighted), do not include any preamble or explanation.
+                
+                Do not change any of the user's original wording.
+                Only output JSON, one object per line.
+                Return structured content as JSON.
+                If you need to insert a new line/paragraph, please return a JSON with the content only containing new line char (backslash n), preferably include 2 chars of new line to have a space between paragraphs.
+                You may use different color of highlight, but make sure it is contrast to a light theme and a black colored text.
+                Do not include HTML tags!!! Each part of the text should be in each separate JSON
+                
+                Please return a JSON following this criteria:
+                
+                1. {
+                     "type": "text",
+                     "content": "plain string of the user's original text",
+                     style": {
+                       "backgroundColor": "#RRGGBB", // the highlight color, set "transparent" if returning text with no highlight
+                     }
+                   }
+                
                 
                 This is less important, but please consider the following request: (ignore if it's empty)
                                 \\""\"" + optionalRequest + ""\"
