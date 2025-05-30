@@ -321,6 +321,8 @@ public class TextAreaController {
                 parStyleCodec,
                 Codec.styledSegmentCodec(richSegmentCodec,textStyleCodec)
         );
+        textArea.setAiConnector(aiConnector);
+
         return textArea;
     }
     public void initializeUpdateToolbar(MainEditorController scene){
@@ -558,6 +560,8 @@ public class TextAreaController {
 
     private VBox AIOutputContainer;
     private CustomStyledArea<ParStyle,RichSegment,TextStyle> outputArea;
+    private Label title;
+
     public void showAIOutput(String output) {
         if (AIOutputContainer == null) {
             AIOutputContainer = new VBox();
@@ -580,7 +584,7 @@ public class TextAreaController {
                 case SHORT_TO_FULL -> "Converted Short to Full Text";
                 case CUSTOM_PROMPT -> "Custom Prompt";
             };
-            Label title = new Label(sTitle);
+            title = new Label(sTitle);
             title.setStyle("-fx-font-weight: bold; -fx-font-size: 20px;");
             title.getStyleClass().add("bg-transparent");
 
@@ -610,7 +614,7 @@ public class TextAreaController {
             outputArea.setFocusTraversable(false);
             outputArea.setPadding(new Insets(12));
 
-            GeneratePrompt.send(outputArea, aiConnector.getActivePromptType(), output, "");
+            aiConnector.sendQuery(outputArea, output);
 
             VBox.setVgrow(outputArea, Priority.ALWAYS);
             // Bottom HBox
@@ -641,8 +645,7 @@ public class TextAreaController {
             });
             Button btnSend = new Button("Send");
             btnSend.setOnAction(e->{
-                GeneratePrompt.send(outputArea, aiConnector.getActivePromptType(), output, message.getText());
-
+                aiConnector.sendOptionalRequest(outputArea, output, message.getText());
                 message.setText("");
             });
             btnBack.setStyle("-fx-background-color: -primary-color;");
@@ -653,6 +656,21 @@ public class TextAreaController {
             Button btnCopy = new Button("Copy");
             Button btnApply = new Button("Apply");
             Button btnRegenerate = new Button("Generate Again");
+            btnCopy.setOnAction(e -> {
+                outputArea.selectAll();
+                outputArea.copy();
+                outputArea.deselect();
+            });
+            btnApply.setOnAction(e -> {
+                int start = aiConnector.getStartIndex();
+                int end = aiConnector.getEndIndex();
+                if (start == -1 && start == end){
+                    textArea.replace(0, textArea.getLength(), outputArea.getDocument());
+                }
+                else{
+                    textArea.replace(start, end, outputArea.getDocument());
+                }
+            });
             btnRegenerate.setOnAction(e->{
                 queryBar.setVisible(true);
                 queryBar.setManaged(true);
@@ -678,7 +696,18 @@ public class TextAreaController {
             if (!innerSplitPane.getItems().contains(AIOutputContainer)) innerSplitPane.getItems().add(AIOutputContainer);
             innerSplitPane.setDividerPositions(0.5);
 
-            GeneratePrompt.send(outputArea, aiConnector.getActivePromptType(), output, "");
+            String sTitle = switch(aiConnector.getActivePromptType()){
+                case GENERATE_SUMMARY -> "Generated Summary";
+                case AI_HIGHLIGHT -> "Highlighted Text";
+                case AUTO_CORRECT -> "Auto Corrected Text";
+                case REFACTOR_CONTENT -> "Refined Content";
+                case GENERATE_OUTLINE -> "Generated Outline";
+                case FORMAT_WRITING -> "Formatted Writing";
+                case SHORT_TO_FULL -> "Converted Short to Full Text";
+                case CUSTOM_PROMPT -> "Custom Prompt";
+            };
+            title.setText(sTitle);
+            aiConnector.sendQuery(outputArea, output);
         }
     }
 

@@ -66,7 +66,7 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
     };
 
 
-
+    private AIConnector aiConnector;
     public CustomStyledArea(
             ParStyle parStyle,
             BiConsumer<TextFlow, ParStyle> paragraphStyler,
@@ -87,7 +87,12 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
 
     }
 
-
+    public void setAiConnector(AIConnector aiCon){
+        aiConnector = aiCon;
+    }
+    public AIConnector getAiConnector() {
+        return aiConnector;
+    }
 
     @Override
     public void deletePreviousChar() {

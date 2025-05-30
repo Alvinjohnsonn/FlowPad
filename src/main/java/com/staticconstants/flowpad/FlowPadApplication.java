@@ -15,13 +15,10 @@ public class FlowPadApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-
-
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("login-view.fxml"));
 
         Scene scene = new Scene(fxmlLoader.load());
         scene.getStylesheets().add(getClass().getResource("flowpad-stylesheet.css").toExternalForm());
-
 
         stage.setTitle("FlowPad");
         stage.setScene(scene);

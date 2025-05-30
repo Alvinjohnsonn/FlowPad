@@ -65,6 +65,9 @@ public class AIHelperUtility {
     }
 
     private TextStyle parseStyle(JsonNode styleNode) {
+        if (styleNode == null || styleNode.isNull()) {
+            return TextStyle.EMPTY;
+        }
         TextStyle style = TextStyle.EMPTY;
         if (styleNode.has("bold")) style = style.setBold(styleNode.get("bold").asBoolean());
         if (styleNode.has("italic")) style = style.setItalic(styleNode.get("italic").asBoolean());

@@ -14,11 +14,11 @@ import static com.staticconstants.flowpad.FlowPadApplication.aiExecutor;
 
 
 public class AsyncQuery {
-
     static final String LLAMA3 = "llama3.2";
     private static final int HTTP_OK = 200;
     static final String host = "http://localhost:11434/";
     private final static String PROMPT = "List all cricket world cup teams of 2019.";
+
 
     public static void main(String[] args) throws Exception {
         OllamaAPI ollamaAPI = new OllamaAPI(host);
@@ -69,6 +69,9 @@ public class AsyncQuery {
                     if (!streamer.isAlive()) break;
 
                     Thread.sleep(pollIntervalMilliseconds);
+                }
+                if (textArea.getAiConnector() != null){
+                    textArea.getAiConnector().addPreviousAnswer(streamer.getCompleteResponse());
                 }
                 return null;
             }
@@ -153,6 +156,9 @@ public class AsyncQuery {
                     Thread.sleep(pollIntervalMilliseconds);
                 }
 
+                if (textArea.getAiConnector() != null){
+                    textArea.getAiConnector().addPreviousAnswer(streamer.getCompleteResponse());
+                }
                 return null;
             }
         };
@@ -161,5 +167,26 @@ public class AsyncQuery {
     }
 
 
+    public static String sendQueryAndReceiveResponse(String prompt) {
+        OllamaAPI ollamaAPI = new OllamaAPI(host);
+        ollamaAPI.setRequestTimeoutSeconds(60);
 
+        OllamaAsyncResultStreamer streamer = ollamaAPI.generateAsync(LLAMA3, prompt, false);
+        int pollIntervalMilliseconds = 1000;
+
+        while (true) {
+//            String tokens = streamer.getStream().poll();
+//
+            if (!streamer.isAlive()) {
+                break;
+            }
+            try {
+                Thread.sleep(pollIntervalMilliseconds);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        System.out.println(streamer.getCompleteResponse());
+        return streamer.getCompleteResponse();
+    }
 }

@@ -37,6 +37,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import org.fxmisc.richtext.CustomCssMetaData;
 import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.*;
 
@@ -73,6 +74,7 @@ public class MainEditorController {
     @FXML private Button btnMarker;
     @FXML private ToolBar toolBar;
     @FXML private Button btnAlign;
+    @FXML private Button btnTextColor;
     @FXML private Button btnClearFormatting;
     @FXML public ImageView imgActiveAlignment;
     @FXML public Button btnNumberedList;
@@ -342,6 +344,62 @@ public class MainEditorController {
         popup.show();
     }
 
+    private void showColorPicker(Node anchorNode) {
+        String tag = "setTextColor";
+        if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
+            return;
+        }
+
+        TextAreaController active = textAreas.get(activeNote);
+        ColorPicker picker = new ColorPicker();
+
+        picker.setValue(active.getTextArea().getStyleAtPosition(active.getTextArea().getCaretPosition()).getTextColor());
+        picker.setOnAction(e->{
+            active.setStyle(TextAttribute.TEXT_COLOR, picker.getValue());
+            popup.close();
+        });
+
+        HBox itemBox = new HBox(4);
+        itemBox.setPadding(new Insets(4));
+        itemBox.setBackground(new Background(
+                new BackgroundFill(Color.web("#E0EDEC"), new CornerRadii(8), Insets.EMPTY)
+        ));
+
+        itemBox.setStyle("""
+    -fx-background-color: #E0EDEC;
+    -fx-background-radius: 8;
+""");
+        Rectangle clip = new Rectangle();
+        clip.setArcWidth(8);
+        clip.setArcHeight(8);
+        clip.widthProperty().bind(itemBox.widthProperty());
+        clip.heightProperty().bind(itemBox.heightProperty());
+        itemBox.setClip(clip);
+
+        itemBox.getChildren().add(picker);
+
+        Scene scene = new Scene(itemBox);
+        scene.setFill(Color.TRANSPARENT);
+        scene.getStylesheets().add(FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm());
+
+        Bounds bounds = anchorNode.localToScreen(anchorNode.getBoundsInLocal());
+
+        popup = new Stage(StageStyle.TRANSPARENT);
+        popup.setUserData(tag);
+        popup.setScene(scene);
+        popup.initModality(Modality.NONE);
+        popup.setX(bounds.getMinX());
+        popup.setY(bounds.getMaxY());
+        popup.initOwner(btnAlign.getScene().getWindow());
+
+        itemBox.setOpacity(0);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(150), itemBox);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+        fadeIn.play();
+        popup.show();
+    }
+
     public static void showHyperlinkEditorPopup(TextExt textNode, HyperlinkSegment segment, double screenX, double screenY, Consumer<HyperlinkSegment> onConfirm) {
         String tag = "setHyperlink";
         if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
@@ -437,7 +495,9 @@ public class MainEditorController {
         AIConnector aiCon = textAreas.get(activeNote).getAIConnector();
         btnSelectAll.setOnAction(e -> {
             popup.close();
-            textAreas.get(activeNote).showAIOutput(aiCon.getAllText());
+            if (aiCon.getActivePromptType() == Prompt.CUSTOM_PROMPT)
+                aiCon.showSelectConfirmation(true);
+            else textAreas.get(activeNote).showAIOutput(aiCon.getAllText());
         });
         btnSelectPar.setOnAction(e -> {
             popup.close();
@@ -451,7 +511,7 @@ public class MainEditorController {
         popup.show();
     }
 
-    public static void showSelectConfirmationPopup(double screenX, double screenY, String selectedText){
+    public static void showSelectConfirmationPopup(double screenX, double screenY, String selectedText, boolean isSelectAll){
         String tag = "setSelectConfirm";
         if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
             return;
@@ -472,6 +532,14 @@ public class MainEditorController {
         content.setMinWidth(24);
         VBox.setVgrow(content, Priority.ALWAYS);
 
+        if (isSelectAll){
+            content.setManaged(false);
+            content.setVisible(false);
+        }
+        TextField prompt = new TextField();
+        prompt.setPromptText("Enter your custom prompt...");
+        prompt.requestFocus();
+
         Button btnCancel = new Button("Cancel");
         Button btnReselect = new Button("Reselect");
         Button btnConfirm = new Button("Confirm");
@@ -489,6 +557,11 @@ public class MainEditorController {
         buttons.getChildren().addAll(btnCancel, spacer, btnReselect, btnConfirm);
 
         VBox layout = new VBox(10, title, content, buttons);
+
+        if (textAreas.get(activeNote).getAIConnector().getActivePromptType() == Prompt.CUSTOM_PROMPT){
+            layout = new VBox(10, title, content, prompt, buttons);
+        }
+
         layout.setPadding(new Insets(15));
         layout.setStyle("-fx-background-color: white; -fx-background-radius: 10;");
         layout.setEffect(new DropShadow(10, Color.rgb(0, 0, 0, 0.3)));
@@ -894,7 +967,11 @@ public class MainEditorController {
     }
     @FXML
     private void setTextColor(){
-//        TODO: Add code
+        if (popup != null && popup.isShowing()) {
+            popup.close();
+        } else {
+            showColorPicker(btnTextColor);
+        }
     }
     @FXML
     private void insertHyperlink() {
