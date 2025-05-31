@@ -497,7 +497,7 @@ public class MainEditorController {
             popup.close();
             if (aiCon.getActivePromptType() == Prompt.CUSTOM_PROMPT)
                 aiCon.showSelectConfirmation(true);
-            else textAreas.get(activeNote).showAIOutput(aiCon.getAllText());
+            else textAreas.get(activeNote).showAIOutput(aiCon.getAllText(), "");
         });
         btnSelectPar.setOnAction(e -> {
             popup.close();
@@ -587,10 +587,15 @@ public class MainEditorController {
             popup.close();
         });
         btnConfirm.setOnAction(e -> {
+            if (aiCon.getActivePromptType() == Prompt.CUSTOM_PROMPT && prompt.getText().isEmpty()){
+                prompt.requestFocus();
+                return;
+            }
+
             popup.close();
 
             aiCon.cancelOperation();
-            textAreas.get(activeNote).showAIOutput(selectedText);
+            textAreas.get(activeNote).showAIOutput(selectedText, prompt.getText());
         });
 
         popup.show();

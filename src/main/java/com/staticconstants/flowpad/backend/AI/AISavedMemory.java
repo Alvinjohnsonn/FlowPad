@@ -12,6 +12,11 @@ public class AISavedMemory {
         return advancedResponse;
     }
 
+    public void setInitialPrompt(String initPrompt){
+        if (previousPrompts != null) {
+            previousPrompts.addFirst(initPrompt);
+        }
+    }
     public void setAdvancedResponse(boolean advancedResponse) {
         this.advancedResponse = advancedResponse;
     }
@@ -33,18 +38,11 @@ public class AISavedMemory {
     public String constructNewPrompt(String prompt){
         previousPrompts.add(prompt);
         StringBuilder promptToSend = new StringBuilder();
-        for (int i = 0; i < previousPrompts.size(); i++){
-            if (i == 0) promptToSend.append(previousPrompts.get(i)).append("\n\n");
-
-            for (int j = 0; j < previousResponses.size(); j++){
-                if (j==0) promptToSend.append("Since you didn't save your previous responses, I'll provide the help of showing you what you responded with previously:").append("\n\n");
-                promptToSend.append("Your Response ").append(j+1).append(": \n\n\"").append(previousResponses.get(j)).append("\"\n\n");
-            }
-
-            if (i > 0) promptToSend.append("Could you revise your answer to consider the following request:").append("\n\n\"").append(prompt).append("\"\n\n");
-
+        promptToSend.append(previousPrompts.getFirst()).append("\n\n").append("Since you didn't save your previous responses, I'll provide the help of showing you what you responded with previously:").append("\n\n");;
+        for (int i = 1; i < previousPrompts.size(); i++){
+            if (i-1<previousResponses.size())promptToSend.append("Your Response ").append(i).append(": \n\n\"").append(previousResponses.get(i-1)).append("\"\n\n");
+            promptToSend.append("Could you revise your answer to consider the following request:").append("\n\n\"").append(previousPrompts.get(i)).append("\"\n\n");
         }
-
         System.out.println(promptToSend);
         return promptToSend.toString();
     }

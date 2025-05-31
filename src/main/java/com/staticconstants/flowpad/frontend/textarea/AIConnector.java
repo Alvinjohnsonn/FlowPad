@@ -59,7 +59,11 @@ public class AIConnector {
         memory = new AISavedMemory(prompt);
         memory.setAdvancedResponse(getActivePromptType() == Prompt.FORMAT_WRITING || getActivePromptType() ==  Prompt.AI_HIGHLIGHT || getActivePromptType() == Prompt.GENERATE_OUTLINE);
     }
-    public void sendOptionalRequest(CustomStyledArea<ParStyle, RichSegment, TextStyle> outputArea, String content, String request){
+    public void sendCustomPrompt(CustomStyledArea<ParStyle, RichSegment, TextStyle> outputArea, String content, String customPrompt){
+        memory = new AISavedMemory(customPrompt); // temporary init, so that memory is not null
+        memory.setInitialPrompt(GeneratePrompt.customPrompt(outputArea, content, customPrompt));
+    }
+    public void sendOptionalRequest(CustomStyledArea<ParStyle, RichSegment, TextStyle> outputArea, String request){
         GeneratePrompt.sendOptionalRequest(outputArea,request,memory, memory.isAdvancedResponse());
     }
 

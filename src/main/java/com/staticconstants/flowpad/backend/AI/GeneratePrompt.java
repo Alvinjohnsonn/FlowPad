@@ -38,7 +38,18 @@ public class GeneratePrompt {
 
     private static String JSONFormat(){
         return """
-                The text area can have styles or contain custom elements using segments.
+                You are generating structured content for a styled text editor. Output only JSON — one JSON object per line, with no commentary or extra text.
+                
+                Each object represents a segment and may be a single character, word, phrase, or full paragraph.
+                
+                You may split a sentence into multiple JSON objects to apply different styles (e.g. rainbow coloring).
+                Do not include escape characters such as \\n, \\t, or \\r in the text.
+                Do not output HTML, markdown, or any explanation.
+                Do not include comments inside or outside the JSON.
+                Do not use color names (like "red" or "orange") — use valid 6-digit hex codes only (#RRGGBB).
+                You may not include "paragraphStyle" when you're inserting inline characters or words.
+                You may omit some keys if the value is false, because false is the default value.
+                
                 Each segment can be of one of the following types:
                 1. Text segment:
                    {
@@ -71,15 +82,29 @@ public class GeneratePrompt {
                    {
                      "type": "hyperlink",
                      "text": "clickable text",
-                     "url": a working url (example: https://google.com)
+                     "url": a working url // Please insert a valid URL
                    }
                 
-                Do not add any commentary, markdown, or additional explanation.
-                DO NOT INCLUDE COMMENTS INSIDE THE JSON!!!
-                Only output JSON, one object per line.
-                Return structured content as JSON. Do not include \\\\n or \\\\t characters in the text. Each paragraph or heading should be a separate JSON object.
-                You may format a group of words, you can do this without including "paragraphStyle"
+                ## SPECIAL INSTRUCTION EXAMPLE — RAINBOW TEXT
                 
+                If asked to style a sentence like "Hello" with rainbow colors (left to right), output:
+                {"type":"text","content":"H","style":{"textColor":"#FF0000",...}}
+                {"type":"text","content":"e","style":{"textColor":"#FF7F00",...}}
+                {"type":"text","content":"l","style":{"textColor":"#FFFF00",...}}
+                {"type":"text","content":"l","style":{"textColor":"#00FF00",...}}
+                {"type":"text","content":"o","style":{"textColor":"#0000FF",...}}
+                Note: If this output is "Hello" (inline), you shouldn't include "paragraphStyle"
+                
+                ## SPECIAL INSTRUCTION EXAMPLE — INSERTING SPACE BETWEEN PARAGRAPH
+                
+                {"type":"text","content":"Paragraph 1","style":{...}}
+                {"type":"text","content":"\\n","style":{...}}
+                {"type":"text","content":"Paragraph 2","style":{...}}
+                Note: This will insert "Paragraph 2" below "Paragraph 1". If you want to add a space between the two paragraphs, insert a duplicate of the second JSON.
+              
+                DO NOT ADD COMMENTS INSIDE THE JSON!!!!!!!!!!!!!!!!
+                You are allowed to split any content into multiple JSON lines if needed to change styling.
+                Only valid structured JSON objects should be returned — one per line, no additional text.
                 """;
     }
     private static String formatWriting(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text) {
@@ -232,8 +257,8 @@ public class GeneratePrompt {
     private static boolean needAdvanced(String prompt){
         String prefix = """
                 Below is a custom prompt written by the user. Determine whether ths prompt requires advanced
-                features (formatting styles, handling image/hyperlink/paragraph, etc) or if it merely needs to return a regular text
-                Return "true" if it does and "false" otherwise
+                features (formatting styles, changing colors, handling image/hyperlink/paragraph, etc) or if it merely needs to return a regular text
+                Return "true" if it does need those advanced features and "false" otherwise
                 Only return "true" or "false"
                 The prompt:
                 
@@ -243,7 +268,7 @@ public class GeneratePrompt {
     }
 
 
-    private static String customPrompt(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String customPrompt) {
+    public static String customPrompt(CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea, String text, String customPrompt) {
         boolean needAdvanced = needAdvanced(customPrompt);
         if (textArea.getAiConnector() != null ) textArea.getAiConnector().setAdvancedResponse(needAdvanced);
 

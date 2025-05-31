@@ -562,7 +562,7 @@ public class TextAreaController {
     private CustomStyledArea<ParStyle,RichSegment,TextStyle> outputArea;
     private Label title;
 
-    public void showAIOutput(String output) {
+    public void showAIOutput(String output, String customPrompt) {
         if (AIOutputContainer == null) {
             AIOutputContainer = new VBox();
             VBox.setVgrow(AIOutputContainer, Priority.ALWAYS);
@@ -614,7 +614,8 @@ public class TextAreaController {
             outputArea.setFocusTraversable(false);
             outputArea.setPadding(new Insets(12));
 
-            aiConnector.sendQuery(outputArea, output);
+            if (customPrompt.isEmpty()) aiConnector.sendQuery(outputArea, output);
+            else aiConnector.sendCustomPrompt(outputArea, output, customPrompt);
 
             VBox.setVgrow(outputArea, Priority.ALWAYS);
             // Bottom HBox
@@ -645,7 +646,7 @@ public class TextAreaController {
             });
             Button btnSend = new Button("Send");
             btnSend.setOnAction(e->{
-                aiConnector.sendOptionalRequest(outputArea, output, message.getText());
+                aiConnector.sendOptionalRequest(outputArea, message.getText());
                 message.setText("");
             });
             btnBack.setStyle("-fx-background-color: -primary-color;");

@@ -21,7 +21,7 @@ public class AIHelperUtility {
     }
 
     public void insertParagraph(String text, TextStyle style, ParStyle parStyle) {
-        RichSegment segment = new TextSegment(text+"\n\n");
+        RichSegment segment = new TextSegment(text);
         textArea.append(segment, style);
 
         int paragraphIndex = textArea.getParagraphs().size() - 1;
