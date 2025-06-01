@@ -1,0 +1,8 @@
+module:com.staticconstants.flowpad.flowpad
+com.staticconstants.flowpad
+com.staticconstants.flowpad.backend
+com.staticconstants.flowpad.backend.notes
+com.staticconstants.flowpad.frontend
+com.staticconstants.flowpad.frontend.folders
+com.staticconstants.flowpad.frontend.Settings
+com.staticconstants.flowpad.frontend.textarea
