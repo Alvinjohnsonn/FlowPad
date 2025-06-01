@@ -32,6 +32,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 import javafx.stage.FileChooser;
@@ -45,11 +46,13 @@ import org.fxmisc.richtext.model.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Array;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import static javafx.collections.FXCollections.observableArrayList;
+import static org.controlsfx.tools.Utils.getWindow;
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
 
 public class MainEditorController {
@@ -1069,6 +1072,7 @@ public class MainEditorController {
                 abs += seg.length();
             }
         }
+        textAreas.get(activeNote.getFilename()).setSuppressHyperlinkMonitoring(false);
     }
 
 

@@ -19,6 +19,7 @@ module com.staticconstants.flowpad.flowpad {
     exports com.staticconstants.flowpad.backend.notes to com.google.gson;
     opens com.staticconstants.flowpad.frontend.textarea to com.google.gson;
 
+    opens com.staticconstants.flowpad.frontend.Settings to javafx.fxml;
 
 //    TODO: Evaluate this code, I'm not sure if it's a safe approach for the maven build test
     opens com.staticconstants.flowpad.backend.security;

@@ -93,4 +93,8 @@ public class User implements DbRecord {
     public int hashCode() {
         return Objects.hash(getId(), getFirstName(), getLastName(), getHashedPassword());
     }
+
 }
+
+
+
