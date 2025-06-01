@@ -40,70 +40,55 @@ public class GeneratePrompt {
         return """
                 You are generating structured content for a styled text editor. Output only JSON — one JSON object per line, with no commentary or extra text.
                 
-                Each object represents a segment and may be a single character, word, phrase, or full paragraph.
+                Split sentences into multiple segments only when you need to apply different styles or insert media.
                 
                 You may split a sentence into multiple JSON objects to apply different styles (e.g. rainbow coloring).
-                Do not include escape characters such as \\n, \\t, or \\r in the text.
+                DO NOT include escape characters such as \\n, \\t, or \\r in the Text segment. Use the line break segment instead!
                 Do not output HTML, markdown, or any explanation.
                 Do not include comments inside or outside the JSON.
-                Do not use color names (like "red" or "orange") — use valid 6-digit hex codes only (#RRGGBB).
-                You may not include "paragraphStyle" when you're inserting inline characters or words.
-                You may omit some keys if the value is false, because false is the default value.
-                
-                Each segment can be of one of the following types:
+                Do not use color names (like "red" or "orange") — use valid 6-digit hex codes only (#RRGGBB) — DO NOT ADD COMMENTS ABOUT WHAT THE COLOR NAME IS.
+               
+                Please write the JSON following this format: (Note that each segment have their own set of key value pairs, so do not mix them up!)
                 1. Text segment:
                    {
-                     "type": "text",   // if want to insert heading have this set to text and change the heading level below!
-                     "content": " . . . ", // plain string of the user's original text
+                     "type": "text",
+                     "content": "string",
                      "style": {
-                       "bold": true | false,
-                       "italic": true | false,
-                       "underline": true | false,
-                       "fontSize": integer (e.g. 14),
-                       "textColor": "#RRGGBB", // THIS CAN ONLY CONTAIN 1 COLOR VALUE WHICH APPLY TO EACH SEGMENT (EACH JSON OBJECT)
-                       "backgroundColor": "#RRGGBB", // THIS CAN ONLY CONTAIN 1 COLOR VALUE WHICH APPLY TO EACH SEGMENT (EACH JSON OBJECT)
-                       "headingLevel": 0 to 5  // 0 means normal text
+                       "bold": true | false,  // default value = false
+                       "italic": true | false,  // default value = false
+                       "underline": true | false,  // default value = false
+                       "fontSize": integer (e.g. 14),  // default value = 12
+                       "textColor": "#RRGGBB",  // default value = #000000
+                       "backgroundColor": "#RRGGBB",  // default value = #FFFFFF
+                       "headingLevel": 0-5  // default value = 0 (normal text)
                      },
                      "paragraphStyle": {
-                        "alignment": "left" | "center" | "right" | "justify",
-                        "lineSpacing": 0 to 5, // 0 = no line spacing
-                        "listType": "none" | "bullet" | "numbered",
-                        "listLevel": 0 to 5 // level of indentation, with 0 being no indent
+                        "alignment": "left" | "center" | "right" | "justify",  // default value = left
+                        "lineSpacing": 0-5,  // default value = 0
+                        "listType": "none" | "bullet" | "numbered",  // default value = none
+                        "listLevel": 0-5  // default value = 0
                      }
                    }
                 
-                2. Image segment:
-                   {
-                     "type": "image",
-                     "url": a working url // Please insert a valid image URL
-                   }
-                
-                3. Hyperlink segment:
+                2. Hyperlink segment:
                    {
                      "type": "hyperlink",
                      "text": "clickable text",
-                     "url": a working url // Please insert a valid URL
+                     "url": a working url
+                   }
+                3. Line break:
+                   {
+                     "type": "br"
                    }
                 
-                ## SPECIAL INSTRUCTION EXAMPLE — RAINBOW TEXT
+                DO NOT COME UP WITH OTHER TYPES OF THE JSON!!! THERE AREA ONLY "text", "hyperlink", and "br"!!!
+                You do not have to insert hyperlinks if it is not specifically asked or is not appropriate, and please include a working url if you do so.
                 
-                If asked to style a sentence like "Hello" with rainbow colors (left to right), output:
-                {"type":"text","content":"H","style":{"textColor":"#FF0000",...}}
-                {"type":"text","content":"e","style":{"textColor":"#FF7F00",...}}
-                {"type":"text","content":"l","style":{"textColor":"#FFFF00",...}}
-                {"type":"text","content":"l","style":{"textColor":"#00FF00",...}}
-                {"type":"text","content":"o","style":{"textColor":"#0000FF",...}}
-                Note: If this output is "Hello" (inline), you shouldn't include "paragraphStyle"
-                
-                ## SPECIAL INSTRUCTION EXAMPLE — INSERTING SPACE BETWEEN PARAGRAPH
-                
-                {"type":"text","content":"Paragraph 1","style":{...}}
-                {"type":"text","content":"\\n","style":{...}}
-                {"type":"text","content":"Paragraph 2","style":{...}}
-                Note: This will insert "Paragraph 2" below "Paragraph 1". If you want to add a space between the two paragraphs, insert a duplicate of the second JSON.
-              
-                DO NOT ADD COMMENTS INSIDE THE JSON!!!!!!!!!!!!!!!!
+                For Text segments:
+                Only include "paragraphStyle" for segments that begin a new paragraph or require specific alignment/list behavior. Inline text within a paragraph should omit it.
+                You may omit keys which have a default value and you're setting the same value as the default value,
                 You are allowed to split any content into multiple JSON lines if needed to change styling.
+                
                 Only valid structured JSON objects should be returned — one per line, no additional text.
                 """;
     }
@@ -128,35 +113,42 @@ public class GeneratePrompt {
         String prompt = """
                 You are an AI assistant inside a rich text note-taking application.
                 
-                Your task is to analyze the given text and generate a clear, hierarchical outline capturing the main ideas and supporting points. 
-                You MUST use bullet points or numbered lists, and indent subpoints under their parent topics. 
-                Do not rewrite or summarize the content—just structure it into an outline.
+                Your task is to analyze the given text and generate a clear, hierarchical outline capturing the main ideas and supporting points.
+                You MUST use bullet points or numbered lists, and indent subpoints under their parent topics.
                 
                 Return only the outline. Do not include any preamble or explanation.
                 
-                Do not change any of the user's original wording.
                 Only output JSON, one object per line.
-                Return structured content as JSON. Do not include \\\\n or \\\\t characters in the text. Each paragraph/line should be a separate JSON object.
-                You should always include "paragraphStyle" as that indicates a new line.
+                Return structured content as JSON. Do not include \\n or \\t characters in the text. Each paragraph/line should be a separate JSON object.
+                You should ALWAYS include "paragraphStyle" as that indicates a new line.
+ 
+                You may omit keys which have a default value and you're setting the same value as the default value,
                 
                 Please return a JSON following this criteria:
                 
-                1.   {
+                1.  Text segment
+                    {
                      "type": "text",
-                     "content": "<insert content here>",
+                     "content": "string",
                      "paragraphStyle": {
-                        "alignment": "left" | "center" | "right" | "justify",
-                        "lineSpacing": 0 to 5, // 0 = no line spacing
+                        "alignment": "left" | "center" | "right" | "justify", // default value = left
+                        "lineSpacing": 0-5, // default value = 0
                         "listType": "bullet" | "numbered",
-                        "listLevel": 1 to 5 // level of indentation
+                        "listLevel": 0-5 // default value = 0
                      }
                    }
+                2.  Line break
+                    {
+                    "type": "br"
+                    }
                 
                 For better clarity these are examples of what you should return in each line:
                 {"type": "text", "content": "First point goes here", "paragraphStyle":{"alignment":"left", "listType": "bullet", "listLevel":1}}
                 {"type": "text", "content": "Second point goes here", "paragraphStyle":{"alignment":"left", "listType": "bullet", "listLevel":1}}
                 {"type": "text", "content": "Third point goes here", "paragraphStyle":{"alignment":"left", "listType": "bullet", "listLevel":1}}
                 
+                SPECIAL CASE: If the original text already has numbered list or bullet characters, please remove the number or bullet character because setting
+                the listType bullet or numbered will give the appropriate prefix. DO NOT UNDER ANY CIRCUMSTANCES SET THE KEY "listType" to another string other than "bullet" or "numbered!
                 
                 Here is the text:
                 

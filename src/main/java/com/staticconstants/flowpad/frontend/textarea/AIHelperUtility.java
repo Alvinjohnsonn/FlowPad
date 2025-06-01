@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
+import org.fxmisc.richtext.model.TwoDimensional;
 
 import java.io.IOException;
 
@@ -16,18 +17,20 @@ public class AIHelperUtility {
     }
 
     public void insertText(String text, TextStyle style) {
-        RichSegment segment = new TextSegment(text);
+        RichSegment segment = new TextSegment(text+" ");
         textArea.append(segment, style);
     }
 
     public void insertParagraph(String text, TextStyle style, ParStyle parStyle) {
-        RichSegment segment = new TextSegment(text);
-        textArea.append(segment, style);
+        int insertPos = textArea.getLength();
 
-        int paragraphIndex = textArea.getParagraphs().size() - 1;
-        textArea.applyParStyleToParagraph(paragraphIndex, parStyle);
-        int pos = textArea.getLength();
-        textArea.setStyle(pos, pos, TextStyle.EMPTY);
+        RichSegment segment = new TextSegment(text);
+        textArea.insert(insertPos, segment, style);
+
+        textArea.insertText(insertPos + text.length(), "\n");
+
+        int paragraphIndex = textArea.offsetToPosition(insertPos, TwoDimensional.Bias.Forward).getMajor();
+        textArea.setParagraphStyle(paragraphIndex, parStyle);
     }
 
     public void insertImage(Image image) {
@@ -49,6 +52,9 @@ public class AIHelperUtility {
     public void applyJsonInstruction(JsonNode node) throws IOException {
         String type = node.get("type").asText();
         switch (type) {
+            case "br" -> {
+                insertParagraph("\n", TextStyle.EMPTY, ParStyle.EMPTY);
+            }
             case "text" -> {
                 String content = node.get("content").asText();
                 JsonNode styleNode = node.get("style");
