@@ -18,8 +18,13 @@ module com.staticconstants.flowpad.flowpad {
     opens com.staticconstants.flowpad to javafx.fxml;
     exports com.staticconstants.flowpad;
     exports com.staticconstants.flowpad.frontend;
+    exports com.staticconstants.flowpad.frontend.textarea;
+    exports com.staticconstants.flowpad.frontend.Settings;
+    exports com.staticconstants.flowpad.frontend.folders;
+    exports com.staticconstants.flowpad.backend;
+
     opens com.staticconstants.flowpad.frontend to javafx.fxml;
-    exports com.staticconstants.flowpad.backend.notes to com.google.gson;
+    exports com.staticconstants.flowpad.backend.notes;
     opens com.staticconstants.flowpad.frontend.textarea to com.google.gson;
 
     opens com.staticconstants.flowpad.frontend.Settings to javafx.fxml;
