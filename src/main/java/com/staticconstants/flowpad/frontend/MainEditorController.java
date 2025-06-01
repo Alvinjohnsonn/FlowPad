@@ -249,9 +249,8 @@ public class MainEditorController {
                     activeNote = LoggedInUser.notes.get(newTab.getUserData().toString());
                     textAreas.get(activeNote.getFilename()).reload();
                 });
-//        tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
+        tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
 
-//        newNote();
 
         // Initialize Button AI On Click
         btnGenerateSummary.setOnAction(e -> {
@@ -286,8 +285,6 @@ public class MainEditorController {
             textAreas.get(activeNote.getFilename()).getAIConnector().setActivePromptType(Prompt.CUSTOM_PROMPT);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
-
-        newNote();
     }
 
     private static void initPopupStage(String tag, Scene scene, Node container, double screenX, double screenY){
@@ -850,8 +847,6 @@ public class MainEditorController {
                 title.setEditable(false);
                 renameFile(title);
             }
-
-//            TODO: Rename Note object
         });
 
         title.textProperty().addListener((obs, oldS, newS) -> {
@@ -890,9 +885,6 @@ public class MainEditorController {
         VBox.setVgrow(mainContainer, Priority.ALWAYS);
         mainContainer.getChildren().add(toolBar);
 
-//        Initialize GenericStyledArea
-
-
 
 //        Initialize Editor Container
         VBox editor = new VBox();
@@ -917,8 +909,6 @@ public class MainEditorController {
     private static int numOfNewNote = 0;
     @FXML
     private void newNote(){
-//        TODO: Create Note object
-
         String fileName = "New Note" + (numOfNewNote>0 ? " "+numOfNewNote : "") ;
         numOfNewNote++;
 
