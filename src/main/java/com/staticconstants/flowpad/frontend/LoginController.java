@@ -2,6 +2,7 @@ package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
 import com.staticconstants.flowpad.backend.LoggedInUser;
+import com.staticconstants.flowpad.backend.db.notes.Note;
 import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
 import com.staticconstants.flowpad.backend.db.users.LoginResult;
 import com.staticconstants.flowpad.backend.db.users.UserDAO;
@@ -15,6 +16,7 @@ import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 public class LoginController {
 
@@ -57,8 +59,18 @@ public class LoginController {
             //check if the username and password is correct
             if (userDAO.login(username, password).get() == LoginResult.SUCCESS){
                 // Get user details
-                new NoteDAO().getAll().whenComplete(((notes, throwable) -> {
-                    LoggedInUser.notes = notes;
+                new NoteDAO().getAll().whenComplete(((notes, ex) -> {
+
+                    LoggedInUser.notes = new HashMap<>();
+                    if (ex != null) {
+                        System.err.println("Could not get notes");
+                        return;
+                    }
+
+                    for(Note note : notes) {
+                        LoggedInUser.notes.put(note.getFilename(), note);
+                    }
+
                 }));
                 // Success
                 Stage stage = (Stage) btnSubmit.getScene().getWindow();

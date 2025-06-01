@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class RegisterPageController {
     @FXML
@@ -71,7 +72,7 @@ public class RegisterPageController {
 
             UserDAO userDAO = new UserDAO();
             LoggedInUser.user = new User(firstName, lastName, username, password);
-            LoggedInUser.notes = new ArrayList<>();
+            LoggedInUser.notes = new HashMap<>();
 
             userDAO.insert(LoggedInUser.user).thenAccept(success -> {
                 Platform.runLater(() -> {  // Ensure this runs on the JavaFX Application Thread

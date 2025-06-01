@@ -80,7 +80,7 @@ public class MainEditorController {
     @FXML public Button btnBulletList;
     @FXML private Button profilebtn;
 
-    private static HashMap<Note, TextAreaController> textAreas;
+    private static HashMap<String, TextAreaController> textAreas;
     private static Note activeNote;
 
     private static Stage popup;
@@ -112,13 +112,13 @@ public class MainEditorController {
     public void initialize() {
         textAreas = new HashMap<>();
 
-        LoggedInUser.notes.sort(Comparator.comparingLong(Note::getLastModifiedTime)); // most recent note is last in the list now
-
         if ( LoggedInUser.notes.isEmpty() ) {
             newNote();
         }
         else {
-            activeNote = LoggedInUser.notes.getLast();
+            List<Note> notes = LoggedInUser.notes.values().stream().toList();
+            notes.sort(Comparator.comparingLong(Note::getLastModifiedTime)); // most recent note is last in the list now
+            activeNote = notes.getLast();
         }
 
         TreeItem<String> rootItem = new TreeItem<>();
@@ -126,7 +126,7 @@ public class MainEditorController {
 
         List<List<String>> folders = new ArrayList<>();
         // setup treeview
-        for (Note note : LoggedInUser.notes)
+        for (Note note : LoggedInUser.notes.values())
         {
             List<String> fileTree = new ArrayList<>(note.getFolders().stream().toList());
             fileTree.add(note.getFilename());
@@ -151,7 +151,7 @@ public class MainEditorController {
 
         TextAreaController tac = new TextAreaController(editorContainer, activeNote.getFilename());
         tac.initializeUpdateToolbar(this);
-        textAreas.put(activeNote, tac);
+        textAreas.put(activeNote.getFilename(), tac);
 
         textFieldFontSize.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getText();
@@ -159,7 +159,7 @@ public class MainEditorController {
         }));
 
         textFieldFontSize.textProperty().addListener((obs, oldText, newText) -> {
-            if (textAreas.get(activeNote).isProgrammaticUpdate()) return;
+            if (textAreas.get(activeNote.getFilename()).isProgrammaticUpdate()) return;
             handleFontSizeChange(newText);
         });
 
@@ -169,17 +169,17 @@ public class MainEditorController {
 
         fontComboBox.getItems().addAll(Font.getFamilies());
         fontComboBox.setOnAction(event -> {
-            if (textAreas.get(activeNote).isProgrammaticUpdate()) return;
+            if (textAreas.get(activeNote.getFilename()).isProgrammaticUpdate()) return;
             String selectedFont = (String)fontComboBox.getValue();
             if (selectedFont != null) {
-                TextAreaController active = textAreas.get(activeNote);
+                TextAreaController active = textAreas.get(activeNote.getFilename());
                 active.setStyle(TextAttribute.FONT_FAMILY, selectedFont);
             }
         });
 
         fontComboBox.showingProperty().addListener((obs, wasShowing, isNowShowing) -> {
             if (!isNowShowing) {
-                Platform.runLater(() -> textAreas.get(activeNote).getTextArea().requestFocus());
+                Platform.runLater(() -> textAreas.get(activeNote.getFilename()).getTextArea().requestFocus());
             }
         });
 
@@ -192,7 +192,7 @@ public class MainEditorController {
                 new HeadingOption("Normal text", 0)
         ));
         headingComboBox.setOnAction( event -> {
-            TextAreaController active = textAreas.get(activeNote);
+            TextAreaController active = textAreas.get(activeNote.getFilename());
 
             if (active.isProgrammaticUpdate()) return;
             int headingLevel = ((HeadingOption)headingComboBox.getValue()).getLevel();
@@ -200,7 +200,7 @@ public class MainEditorController {
         });
         headingComboBox.showingProperty().addListener((obs, wasShowing, isNowShowing) -> {
             if (!isNowShowing) {
-                Platform.runLater(() -> textAreas.get(activeNote).getTextArea().requestFocus());
+                Platform.runLater(() -> textAreas.get(activeNote.getFilename()).getTextArea().requestFocus());
             }
         });
 
@@ -220,7 +220,7 @@ public class MainEditorController {
                     }
                     activeNote = LoggedInUser.notes.get(index);
 
-                    textAreas.get(activeNote).reload();
+                    textAreas.get(activeNote.getFilename()).reload();
                 });
         tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
 
@@ -287,7 +287,7 @@ public class MainEditorController {
                 else if (icon.contains("right")) alignment = TextAlignment.RIGHT;
                 else if (icon.contains("justify")) alignment = TextAlignment.JUSTIFY;
 
-                TextAreaController active = textAreas.get(activeNote);
+                TextAreaController active = textAreas.get(activeNote.getFilename());
                 active.getTextArea().applyParStyleToSelection(active.getDesiredParStyle().setAlignment(alignment));
                 imgActiveAlignment.setImage(img);
 
@@ -418,10 +418,10 @@ public class MainEditorController {
         int fontSize = Integer.parseInt(textFieldFontSize.getText());
         fontSize++;
         textFieldFontSize.setText(fontSize + "");
-        TextStyle newStyle = textAreas.get(activeNote).getDesiredStyle().setFontSize(fontSize);
-        textAreas.get(activeNote).setDesiredStyle(newStyle);
+        TextStyle newStyle = textAreas.get(activeNote.getFilename()).getDesiredStyle().setFontSize(fontSize);
+        textAreas.get(activeNote.getFilename()).setDesiredStyle(newStyle);
 
-        textAreas.get(activeNote).setDesiredStyleChanged(true);
+        textAreas.get(activeNote.getFilename()).setDesiredStyleChanged(true);
     }
 
     @FXML
@@ -430,35 +430,35 @@ public class MainEditorController {
         if (fontSize > 1) {
             fontSize--;
             textFieldFontSize.setText(fontSize + "");
-            TextStyle newStyle = textAreas.get(activeNote).getDesiredStyle().setFontSize(fontSize);
-            textAreas.get(activeNote).setDesiredStyle(newStyle);
+            TextStyle newStyle = textAreas.get(activeNote.getFilename()).getDesiredStyle().setFontSize(fontSize);
+            textAreas.get(activeNote.getFilename()).setDesiredStyle(newStyle);
 
-            textAreas.get(activeNote).setDesiredStyleChanged(true);
+            textAreas.get(activeNote.getFilename()).setDesiredStyleChanged(true);
         }
     }
 
     @FXML
     private void bold(){
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         active.setStyle(TextAttribute.BOLD, active.getDesiredStyle().toggleBold().isBold());
         toggleSelectedButton(btnBold);
     }
     @FXML
     private void italic(){
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         active.setStyle(TextAttribute.ITALIC, active.getDesiredStyle().toggleItalic().isItalic());
         toggleSelectedButton(btnItalic);
     }
     @FXML
     private void underline(){
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         active.setStyle(TextAttribute.UNDERLINE, active.getDesiredStyle().toggleUnderline().isUnderline());
         toggleSelectedButton(btnUnderline);
     }
 
     @FXML
     private void highlight() {
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         active.setStyle(TextAttribute.HIGHLIGHT, active.getDesiredStyle().toggleHighlight().getBackgroundColor());
         toggleSelectedButton(btnMarker);
     }
@@ -468,7 +468,7 @@ public class MainEditorController {
 
         try {
 
-            byte[] serializedText = StyledTextCodec.serializeStyledText(textAreas.get(activeNote).getTextArea());
+            byte[] serializedText = StyledTextCodec.serializeStyledText(textAreas.get(activeNote.getFilename()).getTextArea());
             NoteDAO dao = new NoteDAO();
 
             activeNote = Note.fromExisting(
@@ -497,7 +497,7 @@ public class MainEditorController {
 
     @FXML
     private void handleFontSizeChange(String size){
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         active.setStyle(TextAttribute.FONT_SIZE, Integer.parseInt(size));
     }
 
@@ -515,13 +515,7 @@ public class MainEditorController {
 
                     if (!tabPane.getTabs().isEmpty())
                     {
-                        int index = 0;
-                        for (int i = 0; i < LoggedInUser.notes.size(); i++) {
-                            if (LoggedInUser.notes.get(i).getFilename() == tabPane.getTabs().getFirst().getUserData().toString()) {
-                                index = i;
-                            }
-                        }
-                        activeNote = LoggedInUser.notes.get(index);
+                        activeNote = LoggedInUser.notes.get(tabPane.getTabs().getFirst().getUserData().toString());
                     }
 
                     break;
@@ -539,7 +533,7 @@ public class MainEditorController {
         numOfNewNote++;
 
         activeNote = new Note(fileName, new byte[]{}, new String[]{});
-        LoggedInUser.notes.add(activeNote);
+        LoggedInUser.notes.put(fileName, activeNote);
 
 //        Initialize Tab
         Tab newTab = new Tab();
@@ -658,7 +652,7 @@ public class MainEditorController {
 
         TextAreaController newTextArea = new TextAreaController(editor,fileName);
         newTextArea.initializeUpdateToolbar(this);
-        textAreas.put(activeNote, newTextArea);
+        textAreas.put(activeNote.getFilename(), newTextArea);
 
 //        Complete All Setup
         mainContainer.getChildren().add(editor);
@@ -672,7 +666,7 @@ public class MainEditorController {
 
     @FXML
     private void undo(){
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         if (active != null && active.getTextArea().isUndoAvailable()) {
             active.getTextArea().undo();
         }
@@ -680,21 +674,21 @@ public class MainEditorController {
 
     @FXML
     private void redo(){
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         if (active != null && active.getTextArea().isRedoAvailable()) {
             active.getTextArea().redo();
         }
     }
     @FXML
     private void cut(){
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         if (active != null) {
             active.getTextArea().cut();
         }
     }
     @FXML
     private void copy(){
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         if (active != null) {
             active.getTextArea().copy();
         }
@@ -702,7 +696,7 @@ public class MainEditorController {
 
     @FXML
     private void paste(){
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         if (active != null) {
             active.getTextArea().paste();
         }
@@ -710,7 +704,7 @@ public class MainEditorController {
 
     @FXML
     private void selectAll(){
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         if (active != null) {
             active.getTextArea().selectAll();
         }
@@ -734,7 +728,7 @@ public class MainEditorController {
     }
     @FXML
     private void setBulletList() {
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         ParStyle parStyle = active.getParStyleOnSelection();
 
         ParStyle newParStyle=null;
@@ -753,7 +747,7 @@ public class MainEditorController {
     }
     @FXML
     private void setNumberedList(){
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         ParStyle parStyle = active.getParStyleOnSelection();
 
         ParStyle newParStyle=null;
@@ -780,7 +774,7 @@ public class MainEditorController {
     }
     @FXML
     private void insertHyperlink() {
-        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote).getTextArea();
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote.getFilename()).getTextArea();
         int caretPos = area.getCaretPosition();
         IndexRange selection = area.getSelection();
 
@@ -822,7 +816,7 @@ public class MainEditorController {
     }
 
     private void insertImageAtCaret(File file) {
-        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote).getTextArea();
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote.getFilename()).getTextArea();
         int caretPos = area.getCaretPosition();
         IndexRange selection = area.getSelection();
 
@@ -893,8 +887,8 @@ public class MainEditorController {
     }
 
     private static void replaceHyperlinkSegment(Node node, HyperlinkSegment oldSegment, HyperlinkSegment newSegment) {
-        textAreas.get(activeNote).setSuppressHyperlinkMonitoring(true);
-        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote).getTextArea();
+        textAreas.get(activeNote.getFilename()).setSuppressHyperlinkMonitoring(true);
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote.getFilename()).getTextArea();
 
 
         int pos = area.getCaretPosition();
@@ -907,7 +901,7 @@ public class MainEditorController {
                     int segEnd = abs + seg.length();
 
                     area.replace(segStart, segEnd, newSegment, area.getStyleAtPosition(segStart));
-                    textAreas.get(activeNote).setSuppressHyperlinkMonitoring(false);
+                    textAreas.get(activeNote.getFilename()).setSuppressHyperlinkMonitoring(false);
                     return;
                 }
                 abs += seg.length();
