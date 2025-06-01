@@ -22,6 +22,9 @@ public class PasswordHasher {
                     Base64.getEncoder().encodeToString(salt));
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }finally {
+            // Securely zero the password after use
+            java.util.Arrays.fill(password, '\0');
         }
     }
 
