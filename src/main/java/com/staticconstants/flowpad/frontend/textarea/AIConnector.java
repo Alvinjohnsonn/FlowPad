@@ -142,11 +142,11 @@ public class AIConnector {
 
         textArea.setOnMouseExited(event -> textArea.deselect());
 
-        textArea.getScene().setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ESCAPE) {
-                cancelOperation();
-            }
-        });
+//        textArea.getScene().setOnKeyPressed(event -> {
+//            if (event.getCode() == KeyCode.ESCAPE) {
+//                cancelOperation();
+//            }
+//        });
 
         textArea.setOnMouseClicked(event -> {
             if (hoveredParagraphIndex != null) {
@@ -175,7 +175,7 @@ public class AIConnector {
         textArea.setOnMouseMoved(null);
         textArea.setOnMouseExited(null);
         textArea.setOnMouseClicked(null);
-        textArea.getScene().setOnKeyPressed(null);
+//        textArea.getScene().setOnKeyPressed(null);
         textArea.deselect();
     }
 
