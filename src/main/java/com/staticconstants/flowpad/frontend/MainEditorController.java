@@ -57,7 +57,10 @@ import java.util.function.Consumer;
 import static javafx.collections.FXCollections.observableArrayList;
 import static org.controlsfx.tools.Utils.getWindow;
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
-
+/**
+ * The main controller class for the FlowPad text editor application.
+ * Handles all UI interactions, document management, and text formatting operations.
+ */
 public class MainEditorController {
 
     @FXML private TreeView<String> folderTree;
@@ -96,11 +99,16 @@ public class MainEditorController {
     @FXML public Button btnCustomPrompt;
     private AnchorPane parentPane;
 
+    /** Map of filename to TextAreaController instances */
     private static HashMap<String, TextAreaController> textAreas;
+    /** The currently active note being edited */
     private static Note activeNote;
-
+    /** The popup stage used for various dialogs */
     private static Stage popup;
 
+    /**
+     * Shows the documents view and hides AI options.
+     */
     @FXML
     private void showDocuments() {
         setActiveButton(btnDocuments, btnAi);
@@ -112,6 +120,9 @@ public class MainEditorController {
         aiOptions.setManaged(false);
     }
 
+    /**
+     * Shows the AI options view and hides documents.
+     */
     @FXML
     private void showAIOptions() {
         setActiveButton(btnAi, btnDocuments);
@@ -123,7 +134,10 @@ public class MainEditorController {
         aiOptions.setManaged(true);
     }
 
-
+    /**
+     * Initializes the controller after FXML loading.
+     * Sets up UI components, event handlers, and initial state.
+     */
     @FXML
     public void initialize() {
 
@@ -295,6 +309,15 @@ public class MainEditorController {
         });
     }
 
+    /**
+     * Initializes a popup stage with common settings.
+     *
+     * @param tag The identifier for the popup
+     * @param scene The scene to display in the popup
+     * @param container The root container node
+     * @param screenX The x position on screen
+     * @param screenY The y position on screen
+     */
     private static void initPopupStage(String tag, Scene scene, Node container, double screenX, double screenY){
         popup = new Stage(StageStyle.TRANSPARENT);
         popup.setUserData(tag);
@@ -314,6 +337,11 @@ public class MainEditorController {
         //        TODO: Fix error if anchorNode is outside of bounds
     }
 
+    /**
+     * Shows the text alignment options popup.
+     *
+     * @param anchorNode The node to anchor the popup to
+     */
     private void showAlignStage(Node anchorNode) {
         String tag = "setAlignment";
         if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
@@ -388,6 +416,11 @@ public class MainEditorController {
         popup.show();
     }
 
+    /**
+     * Shows the color picker popup for text color selection.
+     *
+     * @param anchorNode The node to anchor the popup to
+     */
     private void showColorPicker(Node anchorNode) {
         String tag = "setTextColor";
         if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
@@ -444,6 +477,15 @@ public class MainEditorController {
         popup.show();
     }
 
+    /**
+     * Shows the hyperlink editor popup.
+     *
+     * @param textNode The text node being edited
+     * @param segment The current hyperlink segment
+     * @param screenX The x position on screen
+     * @param screenY The y position on screen
+     * @param onConfirm Callback when changes are confirmed
+     */
     public static void showHyperlinkEditorPopup(TextExt textNode, HyperlinkSegment segment, double screenX, double screenY, Consumer<HyperlinkSegment> onConfirm) {
         String tag = "setHyperlink";
         if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
@@ -500,6 +542,11 @@ public class MainEditorController {
         popup.show();
     }
 
+    /**
+     * Shows the text selection options popup for AI operations.
+     *
+     * @param anchorNode The node to anchor the popup to
+     */
     public void showTextSelectOptionPopup(Node anchorNode){
         String tag = "setTextSelect";
         if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
@@ -555,6 +602,14 @@ public class MainEditorController {
         popup.show();
     }
 
+    /**
+     * Shows the selection confirmation popup for AI operations.
+     *
+     * @param screenX The x position on screen
+     * @param screenY The y position on screen
+     * @param selectedText The text that was selected
+     * @param isSelectAll Whether all text was selected
+     */
     public static void showSelectConfirmationPopup(double screenX, double screenY, String selectedText, boolean isSelectAll){
         String tag = "setSelectConfirm";
         if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
@@ -645,6 +700,12 @@ public class MainEditorController {
         popup.show();
     }
 
+    /**
+     * Converts a style HashMap to a CSS style string.
+     *
+     * @param styles The style map to convert
+     * @return The CSS style string
+     */
     public static String hashMapStyleToString(HashMap<String, String> styles){
         String styleString = "";
         for (String style : styles.keySet()){
@@ -653,12 +714,24 @@ public class MainEditorController {
         return styleString;
     }
 
+    /**
+     * Sets the active state for a button pair (one active, one inactive).
+     *
+     * @param active The button to set as active
+     * @param inactive The button to set as inactive
+     */
     public static void setActiveButton(Button active, Button inactive) {
         if (!active.getStyleClass().contains("selected")) active.getStyleClass().add("selected");
 
         inactive.getStyleClass().removeAll("selected");
     }
 
+    /**
+     * Sets the selected state for a formatting button.
+     *
+     * @param att The text attribute being toggled
+     * @param isSelected Whether the button should appear selected
+     */
     public void setSelectedButton(TextAttribute att, boolean isSelected) {
         Button btn = null;
         switch(att){
@@ -675,12 +748,19 @@ public class MainEditorController {
         else if (!isSelected) btn.getStyleClass().removeAll("selected");
     }
 
+    /**
+     * Toggles the selected state of a button.
+     *
+     * @param btn The button to toggle
+     */
     public static void toggleSelectedButton(Button btn) {
         if (!btn.getStyleClass().contains("selected")) btn.getStyleClass().add("selected");
         else btn.getStyleClass().removeAll("selected");
     }
 
-
+    /**
+     * Increases the font size of the selected text.
+     */
     @FXML
     private void increaseFontSize() {
         int fontSize = Integer.parseInt(textFieldFontSize.getText());
@@ -692,6 +772,9 @@ public class MainEditorController {
         textAreas.get(activeNote.getFilename()).setDesiredStyleChanged(true);
     }
 
+    /**
+     * Decreases the font size of the selected text.
+     */
     @FXML
     private void decreaseFontSize() {
         int fontSize = Integer.parseInt(textFieldFontSize.getText());
@@ -705,18 +788,29 @@ public class MainEditorController {
         }
     }
 
+    /**
+     * Toggles bold formatting for the selected text.
+     */
     @FXML
     private void bold(){
         TextAreaController active = textAreas.get(activeNote.getFilename());
         active.setStyle(TextAttribute.BOLD, active.getDesiredStyle().toggleBold().isBold());
         toggleSelectedButton(btnBold);
     }
+
+    /**
+     * Toggles italic formatting for the selected text.
+     */
     @FXML
     private void italic(){
         TextAreaController active = textAreas.get(activeNote.getFilename());
         active.setStyle(TextAttribute.ITALIC, active.getDesiredStyle().toggleItalic().isItalic());
         toggleSelectedButton(btnItalic);
     }
+
+    /**
+     * Toggles underline formatting for the selected text.
+     */
     @FXML
     private void underline(){
         TextAreaController active = textAreas.get(activeNote.getFilename());
@@ -724,6 +818,9 @@ public class MainEditorController {
         toggleSelectedButton(btnUnderline);
     }
 
+    /**
+     * Toggles highlight formatting for the selected text.
+     */
     @FXML
     private void highlight() {
         TextAreaController active = textAreas.get(activeNote.getFilename());
@@ -731,6 +828,9 @@ public class MainEditorController {
         toggleSelectedButton(btnMarker);
     }
 
+    /**
+     * Saves the current note to the database.
+     */
     @FXML
     private void save(){
 
@@ -759,12 +859,22 @@ public class MainEditorController {
 
     }
 
+    /**
+     * Handles font size changes from the text field.
+     *
+     * @param size The new font size as a string
+     */
     @FXML
     private void handleFontSizeChange(String size){
         TextAreaController active = textAreas.get(activeNote.getFilename());
         active.setStyle(TextAttribute.FONT_SIZE, Integer.parseInt(size));
     }
 
+    /**
+     * Closes the specified tab.
+     *
+     * @param event The action event that triggered the close
+     */
     @FXML
     private void closeTab(ActionEvent event) {
         Node source = (Node) event.getSource();
@@ -788,6 +898,12 @@ public class MainEditorController {
         }
     }
 
+    /**
+     * Opens a note in a new tab.
+     *
+     * @param fileName The name of the note file to open
+     * @throws IOException If there's an error loading the note
+     */
     private void openNote(String fileName) throws IOException {
         activeNote = LoggedInUser.notes.get(fileName);
 
@@ -915,6 +1031,9 @@ public class MainEditorController {
         tabPane.getSelectionModel().select(newTab);
     }
 
+    /**
+     * Creates a new note and opens it in a tab.
+     */
     private static int numOfNewNote = 0;
     @FXML
     private void newNote(){
@@ -1048,7 +1167,9 @@ public class MainEditorController {
         tabPane.getSelectionModel().select(newTab);
     }
 
-
+    /**
+     * Performs an undo operation on the text area.
+     */
     @FXML
     private void undo(){
         TextAreaController active = textAreas.get(activeNote.getFilename());
@@ -1057,6 +1178,9 @@ public class MainEditorController {
         }
     }
 
+    /**
+     * Performs a redo operation on the text area.
+     */
     @FXML
     private void redo(){
         TextAreaController active = textAreas.get(activeNote.getFilename());
@@ -1064,6 +1188,10 @@ public class MainEditorController {
             active.getTextArea().redo();
         }
     }
+
+    /**
+     * Cuts the selected text to the clipboard.
+     */
     @FXML
     private void cut(){
         TextAreaController active = textAreas.get(activeNote.getFilename());
@@ -1071,6 +1199,10 @@ public class MainEditorController {
             active.getTextArea().cut();
         }
     }
+
+    /**
+     * Copies the selected text to the clipboard.
+     */
     @FXML
     private void copy(){
         TextAreaController active = textAreas.get(activeNote.getFilename());
@@ -1079,6 +1211,9 @@ public class MainEditorController {
         }
     }
 
+    /**
+     * Pastes text from the clipboard.
+     */
     @FXML
     private void paste(){
         TextAreaController active = textAreas.get(activeNote.getFilename());
@@ -1087,6 +1222,9 @@ public class MainEditorController {
         }
     }
 
+    /**
+     * Selects all text in the current text area.
+     */
     @FXML
     private void selectAll(){
         TextAreaController active = textAreas.get(activeNote.getFilename());
@@ -1094,11 +1232,16 @@ public class MainEditorController {
             active.getTextArea().selectAll();
         }
     }
+
     @FXML
-    private void find(){
-
+    private void find() {
     }
-
+    @FXML
+    private void setLineSpacing() {
+    }
+    /**
+     * Shows or hides the alignment options popup.
+     */
     @FXML
     private void align(){
         if (popup != null && popup.isShowing()) {
@@ -1107,10 +1250,10 @@ public class MainEditorController {
             showAlignStage(btnAlign);
         }
     }
-    @FXML
-    private void setLineSpacing(){
 
-    }
+    /**
+     * Toggles bullet list formatting for the selected paragraphs.
+     */
     @FXML
     private void setBulletList() {
         TextAreaController active = textAreas.get(activeNote.getFilename());
@@ -1130,6 +1273,10 @@ public class MainEditorController {
         if (newParStyle!=null) active.setDesiredParStyle(newParStyle);
         btnNumberedList.getStyleClass().removeAll("active");
     }
+
+    /**
+     * Toggles numbered list formatting for the selected paragraphs.
+     */
     @FXML
     private void setNumberedList(){
         TextAreaController active = textAreas.get(activeNote.getFilename());
@@ -1149,10 +1296,18 @@ public class MainEditorController {
         if (newParStyle!=null) active.setDesiredParStyle(newParStyle);
         btnBulletList.getStyleClass().removeAll("active");
     }
+
+    /**
+     * Clears all formatting from the selected text (not yet implemented).
+     */
     @FXML
     private void clearFormatting(){
         //TODO: Add code
     }
+
+    /**
+     * Shows the text color picker popup.
+     */
     @FXML
     private void setTextColor(){
         if (popup != null && popup.isShowing()) {
@@ -1161,6 +1316,10 @@ public class MainEditorController {
             showColorPicker(btnTextColor);
         }
     }
+
+    /**
+     * Inserts a hyperlink at the current caret position or around selection.
+     */
     @FXML
     private void insertHyperlink() {
         CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote.getFilename()).getTextArea();
@@ -1187,6 +1346,9 @@ public class MainEditorController {
         });
     }
 
+    /**
+     * Opens a file chooser to insert an image at the caret position.
+     */
     @FXML
     private void insertImage(){
         FileChooser fileChooser = new FileChooser();
@@ -1204,6 +1366,11 @@ public class MainEditorController {
         }
     }
 
+    /**
+     * Inserts an image at the current caret position.
+     *
+     * @param file The image file to insert
+     */
     private void insertImageAtCaret(File file) {
         CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote.getFilename()).getTextArea();
         int caretPos = area.getCaretPosition();
@@ -1219,6 +1386,14 @@ public class MainEditorController {
         }
     }
 
+    /**
+     * Renames a leaf node in the folder tree.
+     *
+     * @param root The root tree item to search from
+     * @param targetName The current name to find
+     * @param newName The new name to set
+     * @return true if the node was found and renamed, false otherwise
+     */
     private boolean renameLeaf(TreeItem<String> root, String targetName, String newName) {
         if (root == null) return false;
 
@@ -1237,6 +1412,11 @@ public class MainEditorController {
         return false; // Not found
     }
 
+    /**
+     * Renames the currently active note file.
+     *
+     * @param tf The text field containing the new name
+     */
     @FXML
     private void renameFile(TextField tf){
         Object tag = tf.getUserData()==null ? "" : tf.getUserData();
@@ -1271,7 +1451,11 @@ public class MainEditorController {
         LoggedInUser.notes.put(tf.getText(), activeNote);
     }
 
-
+    /**
+     * Handles the back button click, returning to the home page.
+     *
+     * @throws IOException If there's an error loading the home page
+     */
     @FXML
     protected void onBackButtonClick() throws IOException {
         Stage stage = (Stage) btnBack.getScene().getWindow();
@@ -1286,7 +1470,11 @@ public class MainEditorController {
         stage.setMaximized(true);
     }
 
-
+    /**
+     * Handles the profile button click, opening the settings page.
+     *
+     * @throws IOException If there's an error loading the settings page
+     */
     @FXML
     protected void onProfileButtonClick() throws IOException {
         Stage stage = (Stage) profilebtn.getScene().getWindow();
@@ -1301,8 +1489,13 @@ public class MainEditorController {
         stage.setMaximized(true);
     }
 
-
-
+    /**
+     * Replaces a hyperlink segment in the text area.
+     *
+     * @param node The node containing the hyperlink
+     * @param oldSegment The segment to replace
+     * @param newSegment The new segment to insert
+     */
     private static void replaceHyperlinkSegment(Node node, HyperlinkSegment oldSegment, HyperlinkSegment newSegment) {
         textAreas.get(activeNote.getFilename()).setSuppressHyperlinkMonitoring(true);
         CustomStyledArea<ParStyle, RichSegment, TextStyle> area = textAreas.get(activeNote.getFilename()).getTextArea();
@@ -1327,7 +1520,13 @@ public class MainEditorController {
         textAreas.get(activeNote.getFilename()).setSuppressHyperlinkMonitoring(false);
     }
 
-
+    /**
+     * Gets the segment at a specific position in the text area.
+     *
+     * @param controller The text area controller
+     * @param position The position to check
+     * @return The segment at the position, or null if not found
+     */
     public static RichSegment getSegmentAt(TextAreaController controller, int position) {
         if (position < 0 || position >= controller.getTextArea().getLength()) {
             return null;
@@ -1351,11 +1550,24 @@ public class MainEditorController {
         return null;
     }
 
+    /**
+     * Gets a specific style value from a CSS style string.
+     *
+     * @param styleString The CSS style string
+     * @param key The style property to get
+     * @return The style value, or empty string if not found
+     */
     public static String getStyleValue(String styleString, String key) {
         Map<String, String> styles = parseStyle(styleString);
         return styles.getOrDefault(key, "");
     }
 
+    /**
+     * Parses a CSS style string into a map of properties.
+     *
+     * @param styleString The CSS style string to parse
+     * @return A map of style properties to values
+     */
     public static HashMap<String, String> parseStyle(String styleString) {
         HashMap<String, String> styles = new HashMap<>();
         if (styleString == null || styleString.isEmpty()) return styles;
