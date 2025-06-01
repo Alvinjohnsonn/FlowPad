@@ -1,7 +1,11 @@
 package com.staticconstants.flowpad.frontend.Settings;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.LoggedInUser;
+import com.staticconstants.flowpad.backend.db.users.LoginResult;
+import com.staticconstants.flowpad.backend.db.users.User;
 import com.staticconstants.flowpad.backend.db.users.UserDAO;
+import com.staticconstants.flowpad.backend.security.PasswordHasher;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -30,7 +34,7 @@ public class ChangePasswordController {
     }
 
     @FXML
-    private void handleChangePassword() {
+    private void handleChangePassword() throws Exception {
         String username = usernameField.getText();
         String oldPassword = oldPasswordField.getText();
         String newPassword = newPasswordField.getText();
@@ -46,20 +50,35 @@ public class ChangePasswordController {
             return;
         }
 
-        userDAO.checkLoginAsync(username, oldPassword.toCharArray()).thenAccept(valid -> {
-
-            if (!valid) {
+        userDAO.login(username, oldPassword.toCharArray()).thenAccept(loginResult -> {
+            if (loginResult == LoginResult.PASSWORD_INCORRECT) {
                 showAlertLater("Old password is incorrect.", Alert.AlertType.ERROR);
-            } else {
-                userDAO.updatePassword(username, newPassword.toCharArray()).thenAccept(success -> {
-                    if (success) {
-                        showAlertLater("Password changed successfully!", Alert.AlertType.INFORMATION);
-                        clearFields();
-                    } else {
-                        showAlertLater("Failed to update password.", Alert.AlertType.ERROR);
-                    }
-                });
+                return;
             }
+
+            if (loginResult != LoginResult.SUCCESS) {
+                showAlertLater("Error checking password", Alert.AlertType.ERROR);
+                return;
+            }
+
+
+            LoggedInUser.user = User.fromExisting(
+                    LoggedInUser.user.getId(),
+                    LoggedInUser.user.getFirstName(),
+                    LoggedInUser.user.getLastName(),
+                    LoggedInUser.user.getUsername(),
+                    PasswordHasher.hashPassword(newPassword.toCharArray())
+            );
+
+            userDAO.update(LoggedInUser.user).whenComplete((v, ex) -> {
+                if (ex == null) {
+                    showAlertLater("Password changed successfully!", Alert.AlertType.INFORMATION);
+                    clearFields();
+                } else {
+                    showAlertLater("Failed to update password.", Alert.AlertType.ERROR);
+                }
+            });
+
         }).exceptionally(ex -> {
             ex.printStackTrace();
             showAlertLater("An error occurred.", Alert.AlertType.ERROR);
