@@ -56,7 +56,7 @@ public class StyledTextCodec {
 
     public static void deserializeStyledText(byte[] compressedData, CustomStyledArea<?, ?, ?> area) throws IOException {
         String json = decompressJsonString(compressedData);
-        SerialisableParagraph[] paragraphs = new Gson().fromJson(json, SerialisableParagraph[].class);
+        SerialisableParagraph[] paragraphs = gson.fromJson(json, SerialisableParagraph[].class);
 
         area.clear();
 

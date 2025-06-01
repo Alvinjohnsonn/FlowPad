@@ -98,7 +98,10 @@ public final class DbHandler {
             try {
                 T result = task.operation.operation(dbConnection);
                 task.future.complete(result);
+                System.out.println("DBTask success");
             } catch (SQLException ex) {
+                System.err.println("DBTask failed");
+                System.err.println(ex);
                 task.future.completeExceptionally(ex);
             }
         }

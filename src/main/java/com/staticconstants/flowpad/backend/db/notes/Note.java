@@ -37,6 +37,7 @@ public class Note implements DbRecord {
         this.createdTime = createdTime;
         this.lastModifiedTime = lastModifiedTime;
         this.filename = filename;
+        this.serializedText = serializedText;
         this.folders = new LinkedList<>();
         for (String folder : folders) {
             this.folders.add(folder);
@@ -89,10 +90,14 @@ public class Note implements DbRecord {
     public boolean isNewNote() {
         return isNewNote;
     }
+
+    public void existingNote() { this.isNewNote = false; }
     
     public void setFilename(String newName) {
         this.filename = newName;
     }
+
+    public byte[] getSerializedText() { return serializedText; }
 
     @Override
     public int hashCode() {
@@ -109,6 +114,8 @@ public class Note implements DbRecord {
         Note other = (Note) obj;
         return id != null && id.equals(other.id);
     }
+
+    public void setSerializedText(byte[] serializedText) { this.serializedText = serializedText; }
 
     public long getCreatedTime() {
         return createdTime;

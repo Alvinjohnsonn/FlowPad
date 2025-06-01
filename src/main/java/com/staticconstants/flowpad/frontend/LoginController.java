@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class LoginController {
@@ -94,6 +95,7 @@ public class LoginController {
         } catch (Exception e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Login failed: " + e.getMessage());
+            System.out.println(e);
             alert.show();
         }
     }

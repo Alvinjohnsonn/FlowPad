@@ -39,21 +39,21 @@ public class NoteDAO extends DAO<Note> {
                 (id, filename, serialized_text, folders, created_time, last_modified_time, user_id) 
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, note.getId().toString());
-            ps.setString(2, note.filename);
-            ps.setBytes(3, note.serializedText);
-            ps.setString(4, String.join(",", note.folders));
-            ps.setLong(5, note.createdTime);
-            ps.setLong(6, note.lastModifiedTime);
-            ps.setString(7, LoggedInUser.user.getId().toString());
-            ps.executeUpdate();
-            return true;
-        }
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setString(1, note.getId().toString());
+        ps.setString(2, note.filename);
+        ps.setBytes(3, note.serializedText);
+        ps.setString(4, String.join(",", note.folders));
+        ps.setLong(5, note.createdTime);
+        ps.setLong(6, note.lastModifiedTime);
+        ps.setString(7, LoggedInUser.user.getId().toString());
+        ps.executeUpdate();
+        return true;
     }
 
     @Override
     protected Void updateImpl(Connection connection, Note note) throws SQLException {
+        System.out.println("Updating note: " + note.getFilename());
         String sql = "UPDATE notes SET filename = ?, serialized_text = ?, folders = ?, last_modified_time = ? WHERE id = ?";
         long time = System.currentTimeMillis();
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -106,6 +106,7 @@ public class NoteDAO extends DAO<Note> {
                 }
             }
         }
+
         return notes;
     }
 

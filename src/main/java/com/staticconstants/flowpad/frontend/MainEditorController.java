@@ -113,10 +113,11 @@ public class MainEditorController {
         textAreas = new HashMap<>();
 
         if ( LoggedInUser.notes.isEmpty() ) {
+            System.out.println("New note");
             newNote();
         }
         else {
-            List<Note> notes = LoggedInUser.notes.values().stream().toList();
+            List<Note> notes = new ArrayList<>(LoggedInUser.notes.values().stream().toList());
             notes.sort(Comparator.comparingLong(Note::getLastModifiedTime)); // most recent note is last in the list now
             activeNote = notes.getLast();
         }
@@ -141,6 +142,20 @@ public class MainEditorController {
             }
         });
         folderTree.setRoot(rootItem);
+
+        folderTree.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null && newValue.isLeaf()) {
+                // Perform your action here
+                String selectedValue = newValue.getValue();
+
+                try {
+                    openNote(selectedValue);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                textAreas.get(activeNote.getFilename()).reload();
+            }
+        });
 
         zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             int zoomPercent = newVal.intValue();
@@ -212,18 +227,12 @@ public class MainEditorController {
 
                     if (!vb.getChildren().contains(toolBar)) vb.getChildren().addFirst(toolBar);
 
-                    int index = 0;
-                    for (int i = 0; i < LoggedInUser.notes.size(); i++) {
-                        if (LoggedInUser.notes.get(i).getFilename() == newTab.getUserData().toString()) {
-                            index = i;
-                        }
-                    }
-                    activeNote = LoggedInUser.notes.get(index);
-
+                    activeNote = LoggedInUser.notes.get(newTab.getUserData().toString());
                     textAreas.get(activeNote.getFilename()).reload();
                 });
-        tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
+//        tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
 
+//        newNote();
     }
 
     private static void initPopupStage(String tag, Scene scene, Node container, double screenX, double screenY){
@@ -470,21 +479,16 @@ public class MainEditorController {
 
             byte[] serializedText = StyledTextCodec.serializeStyledText(textAreas.get(activeNote.getFilename()).getTextArea());
             NoteDAO dao = new NoteDAO();
-
-            activeNote = Note.fromExisting(
-                    activeNote.getId(),
-                    activeNote.isNewNote(),
-                    activeNote.getCreatedTime(),
-                    activeNote.getLastModifiedTime(),
-                    activeNote.getFilename(),
-                    serializedText,
-                    activeNote.getFolders()
-            );
+            activeNote.setSerializedText(serializedText);
+            LoggedInUser.notes.put(activeNote.getFilename(), activeNote);
 
             if (activeNote.isNewNote()) {
+                System.out.println("Inserting note");
                 dao.insert(activeNote);
+                activeNote.existingNote();
             }
             else {
+                System.out.println("Updating note");
                 dao.update(activeNote);
             }
 
@@ -522,6 +526,138 @@ public class MainEditorController {
                 }
             }
         }
+    }
+
+    private void openNote(String fileName) throws IOException {
+        activeNote = LoggedInUser.notes.get(fileName);
+
+//        Initialize Tab
+        Tab newTab = new Tab();
+        newTab.setUserData(fileName);
+
+//        Initialize HBox Tab Title
+        HBox hbox = new HBox();
+        hbox.setAlignment(Pos.CENTER_LEFT);
+        hbox.setSpacing(12.0);
+        hbox.setPadding(new Insets(2 ,8,2, 8));
+
+//        Initialize Label Title
+        TextField title = new TextField(fileName);
+        title.setPrefWidth(80);
+        title.setMaxWidth(80);
+        title.setMinWidth(80);
+        title.setEditable(false);
+        title.setPadding(new Insets(0,0,0,0));
+        title.setUserData(fileName);
+        title.getStyleClass().add("bg-transparent");
+        title.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                    if(mouseEvent.getClickCount() == 2){
+                        TextField tf = (TextField)mouseEvent.getSource();
+                        tf.setEditable(true);
+                        tf.selectAll();
+
+                    }
+                }
+            }
+        });
+
+        title.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            Object tag = ((TextField)event.getSource()).getUserData()==null ? "" : ((TextField)event.getSource()).getUserData();
+            Tab tab = null;
+
+            for (Tab t : tabPane.getTabs()){
+                if (t.getUserData()!=null && t.getUserData().equals(tag)){
+                    tab = t;
+                    break;
+                }
+            }
+
+            if (tab!=null) {
+                tabPane.getSelectionModel().select(tab);
+
+            }
+        });
+
+        title.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.ESCAPE){
+                title.deselect();
+                title.setEditable(false);
+                renameFile(title);
+
+            }
+        });
+
+        title.focusedProperty().addListener((obs,old,current) -> {
+            if (!current){
+                title.deselect();
+                title.setEditable(false);
+                renameFile(title);
+            }
+
+//            TODO: Rename Note object
+        });
+
+        title.textProperty().addListener((obs, oldS, newS) -> {
+            title.setPrefWidth(newS.length() * 7);
+        });
+
+//        Initialize X image
+        Image img = new Image(FlowPadApplication.class.getResource("icons/close.png").toExternalForm());
+        ImageView x = new ImageView();
+        x.setImage(img);
+        x.setFitHeight(8.0);
+        x.setFitWidth(8.0);
+        x.setPickOnBounds(true);
+        x.setPreserveRatio(true);
+
+//        Initialize Close Button
+        Button btnClose = new Button("");
+        btnClose.setOnAction(event -> closeTab(event));
+        btnClose.getStyleClass().add("tab-close");
+        btnClose.setGraphic(x);
+
+//        Combine Title and Button
+        hbox.getChildren().add(title);
+        hbox.getChildren().add(btnClose);
+        newTab.setGraphic(hbox);
+
+//        Initialize Content, starting with SplitPane
+        SplitPane splitPane = new SplitPane();
+        splitPane.getStyleClass().add("inner-split");
+
+//        Initialize Main Container
+        VBox mainContainer = new VBox();
+        mainContainer.setPrefWidth(501);
+        mainContainer.setPrefHeight(379);
+        mainContainer.setSpacing(5);
+        VBox.setVgrow(mainContainer, Priority.ALWAYS);
+        mainContainer.getChildren().add(toolBar);
+
+//        Initialize GenericStyledArea
+
+
+
+//        Initialize Editor Container
+        VBox editor = new VBox();
+        editor.prefWidth(500);
+        VBox.setVgrow(editor,Priority.ALWAYS);
+        editor.setPadding(new Insets(10,10,10,10));
+
+        TextAreaController newTextArea = new TextAreaController(editor,fileName);
+        StyledTextCodec.deserializeStyledText(activeNote.getSerializedText(), newTextArea.getTextArea());
+        newTextArea.initializeUpdateToolbar(this);
+        textAreas.put(activeNote.getFilename(), newTextArea);
+
+//        Complete All Setup
+        mainContainer.getChildren().add(editor);
+        splitPane.getItems().add(mainContainer);
+        newTab.setContent(splitPane);
+
+        tabPane.getTabs().add(newTab);
+        tabPane.getSelectionModel().select(newTab);
     }
 
     private static int numOfNewNote = 0;
@@ -830,6 +966,24 @@ public class MainEditorController {
         }
     }
 
+    private boolean renameLeaf(TreeItem<String> root, String targetName, String newName) {
+        if (root == null) return false;
+
+        // Check if it's a leaf and matches the target name
+        if (root.isLeaf() && root.getValue().equals(targetName)) {
+            root.setValue(newName);
+            return true; // Found and renamed
+        }
+
+        // Recursively search children
+        for (TreeItem<String> child : root.getChildren()) {
+            boolean found = renameLeaf(child, targetName, newName);
+            if (found) return true; // Stop on first match
+        }
+
+        return false; // Not found
+    }
+
     @FXML
     private void renameFile(TextField tf){
         Object tag = tf.getUserData()==null ? "" : tf.getUserData();
@@ -847,6 +1001,11 @@ public class MainEditorController {
 
         if (tab==null) return;
 
+        String oldFilename = activeNote.getFilename();
+        TextAreaController tac = textAreas.get(oldFilename);
+        textAreas.remove(oldFilename);
+
+        renameLeaf(folderTree.getRoot(), oldFilename, tf.getText());
         activeNote.setFilename(tf.getText());
         NoteDAO noteDAO = new NoteDAO();
         noteDAO.update(activeNote);
@@ -854,6 +1013,9 @@ public class MainEditorController {
         tf.setUserData(tf.getText());
         tab.setUserData(tf.getText());
 
+        textAreas.put(tf.getText(), tac);
+        LoggedInUser.notes.remove(oldFilename);
+        LoggedInUser.notes.put(tf.getText(), activeNote);
     }
 
 
