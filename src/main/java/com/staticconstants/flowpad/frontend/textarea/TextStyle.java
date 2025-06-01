@@ -4,6 +4,9 @@ import javafx.scene.paint.Color;
 
 import java.util.Objects;
 
+/**
+ * A custom style class for {@link TextSegment}.
+ */
 public class TextStyle {
 
     private final boolean bold;
@@ -15,9 +18,23 @@ public class TextStyle {
     private final Color backgroundColor;
     private final int headingLevel;
 
+    /**
+     * Default style of text segment.
+     */
     public static final TextStyle EMPTY = new TextStyle(false, false, false,12, "Arial", Color.BLACK, Color.TRANSPARENT, 0);
 
 
+    /**
+     * Construct a {@link TextStyle} object
+     * @param bold Sets the font weight.
+     * @param italic Sets font style italic.
+     * @param underline Sets text decoration underline.
+     * @param fontSize Sets the size of the text font.
+     * @param fontFamily Sets the font family.
+     * @param textColor Sets the text color.
+     * @param backgroundColor Sets the background color (highlight).
+     * @param headingLevel Sets the type of heading (0-5), 0 = normal text.
+     */
     public TextStyle(boolean bold, boolean italic, boolean underline, int fontSize, String fontFamily, Color textColor, Color backgroundColor, int headingLevel) {
         this.bold = bold;
         this.italic = italic;
@@ -31,18 +48,31 @@ public class TextStyle {
     public TextStyle setBold(boolean bold) {
         return new TextStyle(bold, this.italic, this.underline, this.fontSize, this.fontFamily, this.textColor, this.backgroundColor, this.headingLevel);
     }
+
+    /**
+     * Reverse the boolean value of the bold property.
+     * @return {@link TextStyle} object with previous attributes except the bold property is reversed.
+     */
     public TextStyle toggleBold() {
         return new TextStyle(!this.bold, this.italic, this.underline, this.fontSize, this.fontFamily, this.textColor, this.backgroundColor, this.headingLevel);
     }
     public TextStyle setItalic(boolean italic) {
         return new TextStyle(this.bold, italic, this.underline, this.fontSize, this.fontFamily, this.textColor, this.backgroundColor, this.headingLevel);
     }
+    /**
+     * Reverse the boolean value of the italic property.
+     * @return {@link TextStyle} object with previous attributes except the italic property is reversed.
+     */
     public TextStyle toggleItalic() {
         return new TextStyle(this.bold, !this.italic, this.underline, this.fontSize, this.fontFamily, this.textColor, this.backgroundColor, this.headingLevel);
     }
     public TextStyle setUnderline(boolean underline) {
         return new TextStyle(this.bold, this.italic, underline, this.fontSize, this.fontFamily, this.textColor, this.backgroundColor, this.headingLevel);
     }
+    /**
+     * Reverse the boolean value of the underline property.
+     * @return {@link TextStyle} object with previous attributes except the underline property is reversed.
+     */
     public TextStyle toggleUnderline() {
         return new TextStyle(this.bold, this.italic, !this.underline, this.fontSize, this.fontFamily, this.textColor, this.backgroundColor, this.headingLevel);
     }
@@ -110,7 +140,12 @@ public class TextStyle {
         return Objects.hash(bold, italic, underline, fontSize, fontFamily,textColor, backgroundColor, headingLevel);
     }
 
-
+    /**
+     * Toggle a particular style selected from attribute which will be applied to area.
+     * @param area {@link CustomStyledArea} object which style to modify.
+     * @param attribute The {@link TextAttribute} to modify.
+     * @param desiredStyle The desired {@link TextStyle} to switch into (will only take the style specified from {@link TextAttribute}).
+     */
     public static void toggleStyle(CustomStyledArea<ParStyle, RichSegment, TextStyle> area,
                                    TextAttribute attribute,
                                    TextStyle desiredStyle) {
@@ -134,6 +169,10 @@ public class TextStyle {
         }
     }
 
+    /**
+     * Highlight a regular text and un-highlight already highlighted text
+     * @return {@link TextStyle} object with previous attributes except the highlight property is reversed.
+     */
     public TextStyle toggleHighlight() {
         Color newColor = Color.YELLOW;
 //        TODO: Change to match default color highlight from settings
@@ -142,7 +181,15 @@ public class TextStyle {
                 newColor.equals(this.backgroundColor) ? Color.TRANSPARENT : newColor, this.headingLevel);
     }
 
-
+    /**
+     * Check whether a style is applied fully from a selection of characters.
+     * @param area {@link CustomStyledArea} object to run the check.
+     * @param start The starting index of the character.
+     * @param end The ending index of the character.
+     * @param attribute The {@link TextAttribute} of the style that is going to be checked.
+     * @param desiredStyle The {@link TextStyle} to be compared to.
+     * @return True if style is fully applied, and False otherwise.
+     */
     public static boolean isStyleFullyApplied(CustomStyledArea<ParStyle, RichSegment, TextStyle> area,
                                               int start, int end,
                                               TextAttribute attribute,
@@ -168,6 +215,13 @@ public class TextStyle {
         return true;
     }
 
+    /**
+     * Get the {@link TextStyle} from a particular text segment of {@link CustomStyledArea}. Styles will be overridden by truth-ty and bigger values if different styles are found.
+     * @param area {@link CustomStyledArea} which the {@link TextStyle} will be extracted from.
+     * @param start The starting index of the TextStyle.
+     * @param end The ending index of the TextStyle
+     * @return {@link TextStyle} of the selection from a {@link CustomStyledArea}.
+     */
     public static TextStyle getStyleSelection(CustomStyledArea<ParStyle, RichSegment, TextStyle> area,
                                               int start, int end) {
         TextStyle result = area.getStyleAtPosition(start+1);
@@ -186,6 +240,12 @@ public class TextStyle {
     }
 
 
+    /**
+     * Apply a particular style from the object {@link TextAttribute} to the {@link TextStyle}.
+     * @param attr {@link TextAttribute}, the type of style to apply.
+     * @param desiredStyle The {@link TextStyle} object which particular style will be used to be applied.
+     * @return A new {@link TextStyle} object with new {@link TextAttribute} applied.
+     */
     public TextStyle apply(TextAttribute attr, TextStyle desiredStyle) {
         return switch (attr) {
             case BOLD -> new TextStyle(desiredStyle.bold, isItalic(), underline, fontSize, fontFamily, textColor, backgroundColor, headingLevel);
@@ -199,7 +259,11 @@ public class TextStyle {
         };
     }
 
-
+    /**
+     * Remove a particular style based on the {@link TextAttribute} given
+     * @param attr {@link TextAttribute} to remove.
+     * @return {@link TextStyle} which {@link TextAttribute} has been removed/disabled.
+     */
     public TextStyle remove(TextAttribute attr) {
         return switch (attr) {
             case BOLD -> new TextStyle(false, italic, underline, fontSize, fontFamily, textColor, backgroundColor, headingLevel);
@@ -213,6 +277,12 @@ public class TextStyle {
         };
     }
 
+    /**
+     * Checks whether this {@link TextStyle} has the same {@link TextAttribute} with the given desired {@link TextStyle}.
+     * @param attr {@link TextAttribute} to compare.
+     * @param desiredStyle {@link TextStyle} which will be used for comparison.
+     * @return True if the {@link TextAttribute} value matches and false otherwise.
+     */
     public boolean matches(TextAttribute attr, TextStyle desiredStyle) {
         return switch (attr) {
             case BOLD -> bold == desiredStyle.bold;
@@ -233,5 +303,4 @@ public class TextStyle {
                 "\nUnderline: " + (isUnderline() ? "true" : "false") +
                 "\nBackground Color: " + (getBackgroundColor()) + "\n";
     }
-//    TODO: Complete this
 }

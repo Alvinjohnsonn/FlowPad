@@ -1,5 +1,8 @@
 package com.staticconstants.flowpad.frontend.textarea;
 
+/**
+ * An enum stating different types of style that can be applied to {@link TextStyle}
+ */
 public enum TextAttribute {
     BOLD,
     ITALIC,

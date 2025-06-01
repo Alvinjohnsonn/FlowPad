@@ -28,21 +28,48 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
-
+/**
+ * Controller class managing the behavior and state of a {@link CustomStyledArea} rich text editor component.
+ * <p>
+ * This controller handles text input, style changes, hyperlink detection, AI content insertion,
+ * paragraph style modifications (such as list indentation), and integrates with a {@link MainEditorController}
+ * for updating the UI toolbar and other interactions.
+ * </p>
+ */
 public class TextAreaController {
+    /** Reference to the main editor controller owning this text area controller */
     private MainEditorController scene;
+    /** Flag indicating if the text area is being updated programmatically */
     private boolean programmaticUpdate;
+    /** Flag tracking whether the desired text style has changed */
     private boolean desiredStyleChanged;
+    /** The rich text editor component managed by this controller */
     private CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea;
+    /** User data tag identifying the current note or document */
     private String userData;
+    /** The desired text style currently applied to newly inserted text */
     private TextStyle desiredStyle;
+    /** The desired paragraph style (e.g., list indentation) applied to paragraphs */
     private ParStyle desiredParStyle;
+    /** Last known start position of caret or selection in the text area */
     private int lastStartCaretPosition;
+    /** Last known end position of caret selection, or -1 if no selection */
     private int lastEndCaretPosition;
+    /** Flag to suppress automatic hyperlink monitoring to prevent unwanted text changes */
     private boolean suppressHyperlinkMonitoring;
+    /** Reference to the SplitPane container that holds this text area alongside the AI output pane */
     private SplitPane innerSplitPane;
+    /** Connector handling AI-powered content insertion and communication */
     private AIConnector aiConnector;
 
+
+
+    /**
+     * Constructs a new TextAreaController with the specified container, note tag, and inner split pane.
+     * @param editorContainer The container which holds the CustomStyledArea (VBox)
+     * @param userData The tag used to label the current active note
+     * @param innerSplitPane The split pane between the editable text area and the AI output text area
+     */
     public TextAreaController(VBox editorContainer, String userData, SplitPane innerSplitPane) {
         programmaticUpdate = false;
         desiredStyleChanged = false;
@@ -282,6 +309,13 @@ public class TextAreaController {
     }
 
 
+    /**
+     * Creates and returns a new read-only {@link CustomStyledArea} configured
+     * to display rich text content including hyperlinks and images without allowing edits.
+     * The read-only area shares the same AI connector as the editable area.
+     *
+     * @return a configured, non-editable {@code CustomStyledArea} instance
+     */
     public CustomStyledArea<ParStyle, RichSegment, TextStyle> createReadOnlyTextArea(){
         BiConsumer<TextFlow, ParStyle> paragraphStyler = ParStyle::apply;
 
@@ -325,15 +359,26 @@ public class TextAreaController {
 
         return textArea;
     }
+
+    /**
+     * Sets up a listener on the text area's caret position to update the UI toolbar
+     * when the selection changes, and initializes the reference to the main editor controller.
+     *
+     * @param scene the {@link MainEditorController} that manages the overall editing UI
+     */
     public void initializeUpdateToolbar(MainEditorController scene){
         textArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
             updateToolbar(scene);
             desiredStyleChanged = false;
-//            TODO: Do more testing, doesn't always work
         });
         this.scene=scene;
     }
 
+    /**
+     * Reloads the text area content while preserving the last caret or selection positions,
+     * then updates the toolbar to reflect the current text style and state.
+     * Typically called after external programmatic changes to the text.
+     */
     public void reload(){
         desiredStyleChanged = false;
         programmaticUpdate = false;
@@ -351,47 +396,98 @@ public class TextAreaController {
             desiredStyleChanged = false;
         });
     }
-
+    /**
+     * Returns the {@link CustomStyledArea} instance managed by this controller.
+     *
+     * @return the editable rich text area component
+     */
     public CustomStyledArea<ParStyle, RichSegment, TextStyle> getTextArea(){
         return textArea;
     }
-
+    /**
+     * Returns whether the desired text style has changed since the last update.
+     *
+     * @return {@code true} if the desired style changed, {@code false} otherwise
+     */
     public boolean isDesiredStyleChanged(){
         return desiredStyleChanged;
     }
-
+    /**
+     * Sets the flag indicating whether the desired text style has changed.
+     *
+     * @param changed {@code true} if the desired style changed, {@code false} otherwise
+     */
     public void setDesiredStyleChanged(boolean changed){
         desiredStyleChanged = changed;
     }
-
+    /**
+     * Returns the current desired {@link TextStyle} that will be applied to newly inserted text.
+     *
+     * @return the desired text style
+     */
     public TextStyle getDesiredStyle(){
         return desiredStyle;
     }
-
+    /**
+     * Returns the current desired {@link ParStyle} that will be applied to paragraphs,
+     * including styles such as list indentation and bullet types.
+     *
+     * @return the desired paragraph style
+     */
     public ParStyle getDesiredParStyle(){
         return desiredParStyle;
     }
-
+    /**
+     * Updates the desired text style that will be applied to new text input.
+     *
+     * @param newStyle the new {@link TextStyle} to set
+     */
     public void setDesiredStyle(TextStyle newStyle){
         desiredStyle = newStyle;
     }
-
+    /**
+     * Updates the desired paragraph style that will be applied to paragraphs.
+     *
+     * @param newStyle the new {@link ParStyle} to set
+     */
     public void setDesiredParStyle(ParStyle newStyle){
         desiredParStyle = newStyle;
     }
-
+    /**
+     * Returns whether the text area is currently being updated programmatically
+     * to prevent recursive or redundant event handling.
+     *
+     * @return {@code true} if a programmatic update is in progress, {@code false} otherwise
+     */
     public boolean isProgrammaticUpdate(){
         return programmaticUpdate;
     }
-
+    /**
+     * Returns whether hyperlink monitoring is currently suppressed.
+     * Suppressing prevents automatic replacement or conversion of hyperlinks during edits.
+     *
+     * @return {@code true} if hyperlink monitoring is suppressed, {@code false} otherwise
+     */
     public boolean getSuppressHyperlinkMonitoring(){
         return suppressHyperlinkMonitoring;
     }
-
+    /**
+     * Enables or disables suppression of hyperlink monitoring.
+     *
+     * @param state {@code true} to suppress hyperlink monitoring, {@code false} to enable it
+     */
     public void setSuppressHyperlinkMonitoring(boolean state){
         suppressHyperlinkMonitoring = state;
     }
-
+    /**
+     * Updates the font size text field to reflect the font size of the current text selection.
+     * If the selection is empty, the font size from the given style is used.
+     * If there is a selection, the maximum font size among the selected characters is used.
+     * Also updates the desiredStyle's font size if there are no pending user style changes.
+     *
+     * @param textFieldFontSize The TextField UI control that displays the font size.
+     * @param style The TextStyle reference to use when there is no text selected.
+     */
     private void updateFontSizeField(TextField textFieldFontSize, TextStyle style) {
         IndexRange selection = textArea.getSelection();
         int fontSize = 0;
@@ -414,6 +510,13 @@ public class TextAreaController {
         programmaticUpdate = false;
     }
 
+    /**
+     * Updates the formatting toolbar buttons based on the current text selection style.
+     * If the selection is empty, the provided style is used as a reference.
+     *
+     * @param scene The main editor controller containing toolbar buttons.
+     * @param style The reference TextStyle for the current selection or caret position.
+     */
     private void updateFormattingField(MainEditorController scene, TextStyle style){
         IndexRange selection = textArea.getSelection();
         int start = selection.getStart();
@@ -428,7 +531,16 @@ public class TextAreaController {
 
         programmaticUpdate = true;
         if (!desiredStyleChanged) {
-            desiredStyle = new TextStyle(referenceStyle.isBold(), referenceStyle.isItalic(), referenceStyle.isUnderline(), desiredStyle.getFontSize(), desiredStyle.getFontFamily(), desiredStyle.getTextColor(), desiredStyle.getBackgroundColor(), desiredStyle.getHeadingLevel());
+            desiredStyle = new TextStyle(
+                    referenceStyle.isBold(),
+                    referenceStyle.isItalic(),
+                    referenceStyle.isUnderline(),
+                    desiredStyle.getFontSize(),
+                    desiredStyle.getFontFamily(),
+                    desiredStyle.getTextColor(),
+                    desiredStyle.getBackgroundColor(),
+                    desiredStyle.getHeadingLevel()
+            );
         }
         programmaticUpdate = false;
 
@@ -436,10 +548,16 @@ public class TextAreaController {
         scene.setSelectedButton(TextAttribute.ITALIC, referenceStyle.isItalic());
         scene.setSelectedButton(TextAttribute.UNDERLINE, referenceStyle.isUnderline());
         scene.setSelectedButton(TextAttribute.HIGHLIGHT, referenceStyle.getBackgroundColor().equals(Color.YELLOW));
-//        TODO: Change "yellow" to the highlight color settings from LoggedIn user property
+        // TODO: Replace "yellow" with user-configurable highlight color
     }
 
-
+    /**
+     * Updates the font family ComboBox to reflect the current text style.
+     * If no user changes are pending, updates the desiredStyle accordingly.
+     *
+     * @param fontComboBox The ComboBox control for selecting font family.
+     * @param style The current TextStyle to update from.
+     */
     private void updateFontFamily(ComboBox fontComboBox, TextStyle style){
         String fontFamily = style.getFontFamily();
 
@@ -452,6 +570,13 @@ public class TextAreaController {
         }
     }
 
+    /**
+     * Updates the heading level ComboBox to reflect the current paragraph's heading level.
+     * If no user changes are pending, updates the desiredStyle accordingly.
+     *
+     * @param headingComboBox The ComboBox control for heading levels.
+     * @param style The current TextStyle to update from.
+     */
     private void updateHeadingLevel(ComboBox headingComboBox, TextStyle style){
         int headingLevel = style.getHeadingLevel();
 
@@ -470,6 +595,13 @@ public class TextAreaController {
         }
     }
 
+    /**
+     * Updates the text alignment toolbar icon to reflect the current paragraph's alignment.
+     * Also updates the desired paragraph style if there are no pending changes.
+     *
+     * @param scene The main editor controller with alignment icon controls.
+     * @param parStyle The current paragraph style to reflect.
+     */
     private void updateTextAlignment(MainEditorController scene, ParStyle parStyle){
         programmaticUpdate = true;
         if (!desiredStyleChanged) {
@@ -488,6 +620,13 @@ public class TextAreaController {
         programmaticUpdate = false;
     }
 
+    /**
+     * Updates the list type toolbar buttons (bullet/numbered) based on the current paragraph style.
+     * Also updates the desired paragraph style if there are no pending changes.
+     *
+     * @param scene The main editor controller containing list type buttons.
+     * @param parStyle The current paragraph style to reflect.
+     */
     private void updateListType(MainEditorController scene, ParStyle parStyle){
         programmaticUpdate = true;
         if (!desiredStyleChanged) {
@@ -498,7 +637,6 @@ public class TextAreaController {
             case NONE -> {
                 scene.btnBulletList.getStyleClass().removeAll("active");
                 scene.btnNumberedList.getStyleClass().removeAll("active");
-
             }
             case BULLET -> scene.btnBulletList.getStyleClass().add("active");
             case NUMBERED -> scene.btnNumberedList.getStyleClass().add("active");
@@ -507,15 +645,26 @@ public class TextAreaController {
         programmaticUpdate = false;
     }
 
+    /**
+     * Gets the paragraph style at the current selection start position.
+     *
+     * @return The ParStyle of the paragraph containing the selection start.
+     */
     public ParStyle getParStyleOnSelection(){
         int startPar = textArea.offsetToPosition(textArea.getSelection().getStart(), Forward).getMajor();
         return textArea.getParagraph(startPar).getParagraphStyle();
     }
 
-
+    /**
+     * Updates all toolbar controls to reflect the current caret position styles,
+     * including font family, font size, formatting buttons, heading level,
+     * text alignment, and list type.
+     *
+     * @param scene The main editor controller containing all toolbar controls.
+     */
     private void updateToolbar(MainEditorController scene){
         int caretPosition = textArea.getCaretPosition();
-        TextStyle style = textArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition+1);
+        TextStyle style = textArea.getStyleAtPosition(caretPosition > 0 ? caretPosition : caretPosition + 1);
 
         ParStyle parStyle = getParStyleOnSelection();
 
@@ -527,6 +676,12 @@ public class TextAreaController {
         updateListType(scene, parStyle);
     }
 
+    /**
+     * Inserts an image segment at the current caret position with the current text style.
+     * Adds an empty text segment after the image to allow the caret to move forward.
+     *
+     * @param image The Image to insert.
+     */
     private void insertImage(Image image) {
         if (image == null) return;
 
@@ -537,9 +692,16 @@ public class TextAreaController {
 
         textArea.insert(pos, new ImageSegment(image), style);
         textArea.insert(pos + 1, new TextSegment(""), style);
-        textArea.moveTo(pos+1);
+        textArea.moveTo(pos + 1);
     }
 
+    /**
+     * Updates the desired text style based on a given text attribute and value,
+     * applies the style toggle to the text area, and marks the desired style as changed.
+     *
+     * @param att The TextAttribute to modify (e.g., BOLD, ITALIC).
+     * @param value The new value for the attribute.
+     */
     public void setStyle(TextAttribute att, Object value){
         TextStyle newStyle = getDesiredStyle();
         switch(att){
@@ -558,10 +720,28 @@ public class TextAreaController {
         setDesiredStyleChanged(true);
     }
 
+    /**
+     * Container VBox for AI output pane, lazily initialized.
+     */
     private VBox AIOutputContainer;
-    private CustomStyledArea<ParStyle,RichSegment,TextStyle> outputArea;
+
+    /**
+     * Read-only CustomStyledArea to display AI output.
+     */
+    private CustomStyledArea<ParStyle, RichSegment, TextStyle> outputArea;
+
+    /**
+     * Label displaying the AI output pane title.
+     */
     private Label title;
 
+    /**
+     * Displays AI output in a separate pane below the editor.
+     * Creates the pane lazily on first call.
+     *
+     * @param output The AI-generated output text or document.
+     * @param customPrompt Optional custom prompt string for AI query.
+     */
     public void showAIOutput(String output, String customPrompt) {
         if (AIOutputContainer == null) {
             AIOutputContainer = new VBox();
@@ -712,6 +892,10 @@ public class TextAreaController {
         }
     }
 
+    /**
+     * Get the {@link AIConnector} of this controller
+     * @return {@link AIConnector} connected to this controller.
+     */
     public AIConnector getAIConnector(){
         return aiConnector;
     }

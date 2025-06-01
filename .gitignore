@@ -40,3 +40,4 @@ build/
 
 ### SQL ###
 *.db
+/docs/javadoc/

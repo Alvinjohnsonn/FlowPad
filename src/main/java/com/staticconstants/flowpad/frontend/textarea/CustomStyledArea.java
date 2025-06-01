@@ -20,7 +20,19 @@ import java.util.function.UnaryOperator;
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Backward;
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
 
+/**
+ * A custom rich text area based on {@link GenericStyledArea} that supports rich segments,
+ * styled paragraphs, list formatting, and AI integration.
+ *
+ * @param <P> paragraph style type
+ * @param <R> segment type (not used directly, but inherited)
+ * @param <T> text style type
+ */
 public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichSegment, TextStyle> {
+
+    /**
+     * Factory for rendering paragraph graphics (e.g. list bullets or numbers).
+     */
     private final IntFunction<Node> graphicFactory = paragraph -> {
         TextFlow flow = new TextFlow();
         ParStyle pStyle = getParagraph(paragraph).getParagraphStyle();
@@ -35,7 +47,7 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
             Text prefix;
 
             int level = Math.max(0, pStyle.getListLevel());
-            double indent = 20 * (level-1);
+            double indent = 20 * (level - 1);
             flow.setPadding(new Insets(pStyle.getTopMargin(), 0, pStyle.getBottomMargin(), indent));
 
             if (pStyle.getListType() == ParStyle.ListType.BULLET) {
@@ -65,8 +77,17 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
         return flow;
     };
 
-
     private AIConnector aiConnector;
+
+    /**
+     * Constructs a CustomStyledArea with paragraph/text styles, segment ops, and a node factory.
+     *
+     * @param parStyle initial paragraph style
+     * @param paragraphStyler function to apply paragraph styles to a TextFlow
+     * @param textStyle initial text style
+     * @param segmentOps segment operations for handling {@link RichSegment}
+     * @param nodeFactory factory for creating display nodes for segments
+     */
     public CustomStyledArea(
             ParStyle parStyle,
             BiConsumer<TextFlow, ParStyle> paragraphStyler,
@@ -81,19 +102,31 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
                 segmentOps,
                 nodeFactory
         );
-
         setParagraphGraphicFactory(graphicFactory);
-
-
     }
 
-    public void setAiConnector(AIConnector aiCon){
+    /**
+     * Sets the AI connector used for generating or augmenting content.
+     *
+     * @param aiCon the AI connector instance
+     */
+    public void setAiConnector(AIConnector aiCon) {
         aiConnector = aiCon;
     }
+
+    /**
+     * Returns the current AI connector used by this editor.
+     *
+     * @return the AI connector instance
+     */
     public AIConnector getAiConnector() {
         return aiConnector;
     }
 
+    /**
+     * Overrides the deletion logic to safely delete {@link ImageSegment} instances
+     * when pressing backspace, especially handling edge cases like the start of a line.
+     */
     @Override
     public void deletePreviousChar() {
         int caretPosition = getCaretPosition();
@@ -109,19 +142,14 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
         List<StyledSegment<RichSegment, TextStyle>> segments = paragraph.getStyledSegments();
 
         int charCount = 0;
-        for (int i = 0; i < segments.size(); i++) {
-            StyledSegment<RichSegment, TextStyle> segment = segments.get(i);
+        for (StyledSegment<RichSegment, TextStyle> segment : segments) {
             RichSegment richSegment = segment.getSegment();
-
             int segLength = richSegment.length();
 
             if (charCount + segLength >= columnPosition) {
                 if (richSegment instanceof ImageSegment) {
-
-//                    TODO: Fix runtime error when deleting image located on the first line
-
+                    // TODO: Fix runtime error when deleting image located on the first line
                     deleteText(caretPosition - 1, caretPosition);
-
                     return;
                 } else {
                     break;
@@ -133,6 +161,11 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
         super.deletePreviousChar();
     }
 
+    /**
+     * Applies a paragraph style to all paragraphs within the current selection.
+     *
+     * @param style the paragraph style to apply
+     */
     public void applyParStyleToSelection(ParStyle style) {
         int startPar = offsetToPosition(getSelection().getStart(), Forward).getMajor();
         int endPar = offsetToPosition(getSelection().getEnd(), Backward).getMajor();
@@ -143,14 +176,22 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
         }
     }
 
+    /**
+     * Applies a paragraph style to a specific paragraph by index.
+     *
+     * @param paragraphIndex index of the paragraph
+     * @param style          the paragraph style to apply
+     */
     public void applyParStyleToParagraph(int paragraphIndex, ParStyle style) {
         setParagraphStyle(paragraphIndex, style);
         refreshParagraphGraphics();
     }
 
+    /**
+     * Refreshes the paragraph graphic factory to update bullet/number rendering.
+     */
     public void refreshParagraphGraphics() {
-        setParagraphGraphicFactory(null);
+        setParagraphGraphicFactory(null); // Force refresh
         setParagraphGraphicFactory(graphicFactory);
     }
 }
-
