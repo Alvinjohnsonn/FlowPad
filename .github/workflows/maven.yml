@@ -7,8 +7,7 @@ on:
     branches: [ "master" ]
 
 permissions:
-  checks: write
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -31,6 +30,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
             folder: target/docs/javadoc
+            token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test
         run: mvn --batch-mode -Dmaven.test.failure.ignore=true test
 
