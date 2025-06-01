@@ -20,7 +20,10 @@ import javafx.scene.image.Image;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-
+/**
+ * Controller class responsible for handling the login screen functionality.
+ * Allows users to log in or navigate to the registration page.
+ */
 public class LoginController {
 
     @FXML
@@ -37,7 +40,10 @@ public class LoginController {
     @FXML
     private PasswordField txtPassword;
 
-
+    /**
+     * Initializes the login view by loading and displaying the application logo.
+     * This method is automatically called after the FXML is loaded.
+     */
     @FXML
     public void initialize() {
 
@@ -48,7 +54,14 @@ public class LoginController {
         Circle clip = new Circle(150, 150, 150);
         Logo.setClip(clip);
     }
-
+    /**
+     * Handles the login submission process.
+     * Validates the username and password against the database,
+     * loads the user's notes on successful login,
+     * and transitions to the main editor view.
+     *
+     * @throws IOException if an error occurs while loading the main editor FXML
+     */
     // When the Submit Button is clicked, could lead to the Home Page.
     @FXML
     protected void onSubmitButtonClick() throws IOException {
@@ -106,7 +119,11 @@ public class LoginController {
         }
     }
 
-
+    /**
+     * Handles navigation to the account registration page when the "Register Account" button is clicked.
+     *
+     * @throws IOException if an error occurs while loading the registration FXML
+     */
     @FXML
     protected void onRegisterAccountButtonClick() throws IOException {
         Stage stage = (Stage) RegisterAccountButton.getScene().getWindow();
