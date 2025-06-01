@@ -161,6 +161,14 @@ public class MainEditorController {
         folderTree.setRoot(rootItem);
 
         folderTree.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+
+            for (Tab tab : tabPane.getTabs()) {
+                if (tab.getUserData().toString().equals(newValue.getValue())) {
+                    tabPane.getSelectionModel().select(tab);
+                    return;
+                }
+            }
+
             if (newValue != null && newValue.isLeaf()) {
                 // Perform your action here
                 String selectedValue = newValue.getValue();
@@ -737,6 +745,7 @@ public class MainEditorController {
                 System.out.println("Inserting note");
                 dao.insert(activeNote);
                 activeNote.existingNote();
+                folderTree.getRoot().getChildren().getLast().getChildren().add(new TreeItem<>(activeNote.getFilename()));
             }
             else {
                 System.out.println("Updating note");
