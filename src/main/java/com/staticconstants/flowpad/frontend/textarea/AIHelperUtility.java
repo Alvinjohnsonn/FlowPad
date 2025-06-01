@@ -1,9 +1,11 @@
 package com.staticconstants.flowpad.frontend.textarea;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
+import org.fxmisc.richtext.model.TwoDimensional;
 
 import java.io.IOException;
 
@@ -12,7 +14,7 @@ import java.io.IOException;
  * It also provides functionality to parse structured JSON input (e.g. from AI) and apply content and styles accordingly.
  */
 public class AIHelperUtility {
-    private final CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea;
+    private CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea;
 
     /**
      * Constructs a new AIHelperUtility bound to the given {@link CustomStyledArea}.
@@ -30,7 +32,7 @@ public class AIHelperUtility {
      * @param style the {@link TextStyle} to apply to the text
      */
     public void insertText(String text, TextStyle style) {
-        RichSegment segment = new TextSegment(text);
+        RichSegment segment = new TextSegment(text+" ");
         textArea.append(segment, style);
     }
 
@@ -42,15 +44,15 @@ public class AIHelperUtility {
      * @param parStyle the {@link ParStyle} for paragraph formatting (alignment, list type, etc.)
      */
     public void insertParagraph(String text, TextStyle style, ParStyle parStyle) {
+        int insertPos = textArea.getLength();
+
         RichSegment segment = new TextSegment(text);
-        textArea.append(segment, style);
+        textArea.insert(insertPos, segment, style);
 
-        int paragraphIndex = textArea.getParagraphs().size() - 1;
-        textArea.applyParStyleToParagraph(paragraphIndex, parStyle);
+        textArea.insertText(insertPos + text.length(), "\n");
 
-        // Ensure style resets after paragraph
-        int pos = textArea.getLength();
-        textArea.setStyle(pos, pos, TextStyle.EMPTY);
+        int paragraphIndex = textArea.offsetToPosition(insertPos, TwoDimensional.Bias.Forward).getMajor();
+        textArea.setParagraphStyle(paragraphIndex, parStyle);
     }
 
     /**
@@ -104,10 +106,8 @@ public class AIHelperUtility {
                 TextStyle style = parseStyle(styleNode);
                 ParStyle parStyle = parseParStyle(parStyleNode);
 
-                if (parStyleNode == null)
-                    insertText(content, style);
-                else
-                    insertParagraph(content, style, parStyle);
+                if (parStyleNode == null) insertText(content, style);
+                else insertParagraph(content, style, parStyle);
             }
             case "image" -> insertImage(new Image(node.get("url").asText(), true));
             case "hyperlink" -> insertHyperlink(node.get("text").asText(), node.get("url").asText());
@@ -130,10 +130,7 @@ public class AIHelperUtility {
         if (styleNode.has("underline")) style = style.setItalic(styleNode.get("underline").asBoolean());
         if (styleNode.has("fontSize")) style = style.setFontSize(styleNode.get("fontSize").asInt());
         if (styleNode.has("textColor")) style = style.setTextColor(Color.valueOf(styleNode.get("textColor").asText()));
-        if (styleNode.has("backgroundColor")) {
-            String bg = styleNode.get("backgroundColor").asText();
-            style = style.setBackgroundColor("transparent".equals(bg) ? Color.TRANSPARENT : Color.valueOf(bg));
-        }
+        if (styleNode.has("backgroundColor")) style = style.setBackgroundColor(styleNode.get("backgroundColor").asText().equals("transparent") ? Color.TRANSPARENT : Color.valueOf(styleNode.get("backgroundColor").asText()));
         if (styleNode.has("headingLevel")) style = style.setHeadingLevel(styleNode.get("headingLevel").asInt());
         return style;
     }
@@ -153,24 +150,25 @@ public class AIHelperUtility {
 
         if (parStyleNode.has("alignment")) {
             String alignment = parStyleNode.get("alignment").asText();
-            style = switch (alignment.toLowerCase()) {
-                case "center" -> style.setAlignment(TextAlignment.CENTER);
-                case "right" -> style.setAlignment(TextAlignment.RIGHT);
-                case "justify" -> style.setAlignment(TextAlignment.JUSTIFY);
-                default -> style.setAlignment(TextAlignment.LEFT);
-            };
+            switch (alignment.toLowerCase()) {
+                case "center" -> style = style.setAlignment(TextAlignment.CENTER);
+                case "right" -> style = style.setAlignment(TextAlignment.RIGHT);
+                case "justify" -> style = style.setAlignment(TextAlignment.JUSTIFY);
+                default -> style = style.setAlignment(TextAlignment.LEFT);
+            }
         }
 
         // TODO: Add margin parser if needed in the future
 
         if (parStyleNode.has("listType")) {
             String type = parStyleNode.get("listType").asText();
-            ParStyle.ListType listType = switch (type) {
+            ParStyle.ListType listType = switch (type){
                 case "none" -> ParStyle.ListType.NONE;
                 case "bullet" -> ParStyle.ListType.BULLET;
                 case "numbered" -> ParStyle.ListType.NUMBERED;
                 default -> ParStyle.ListType.NONE;
             };
+
             style = style.setListType(listType);
         }
 
@@ -180,9 +178,10 @@ public class AIHelperUtility {
         }
 
         if (parStyleNode.has("lineSpacing")) {
-            int spacing = parStyleNode.get("lineSpacing").asInt();
-            style = style.setLineSpacing(spacing);
+            int lineSpacing = parStyleNode.get("lineSpacing").asInt();
+            style = style.setLineSpacing(lineSpacing);
         }
+
 
         return style;
     }
