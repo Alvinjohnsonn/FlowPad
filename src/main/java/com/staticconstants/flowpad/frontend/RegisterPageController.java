@@ -17,7 +17,10 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
+/**
+ * Controller class for the registration page in the FlowPad application.
+ * Handles user input for account creation, validation, and scene transitions.
+ */
 public class RegisterPageController {
     @FXML
     private Button btnBack;
@@ -36,7 +39,10 @@ public class RegisterPageController {
 
     @FXML
     private PasswordField txtPassword;
-
+    /**
+     * Initializes the registration page.
+     * Ensures the user table is created in the database when the controller is loaded.
+     */
     @FXML
     public void initialize(){
         UserDAO userDAO = new UserDAO();
@@ -49,7 +55,12 @@ public class RegisterPageController {
             return null;
         });
     }
-
+    /**
+     * Handles the back button click.
+     * Navigates the user back to the login screen.
+     *
+     * @throws IOException if the login-view FXML cannot be loaded
+     */
     @FXML
     protected void onBackButtonClick() throws IOException {
         Stage stage = (Stage) btnBack.getScene().getWindow();
@@ -61,7 +72,12 @@ public class RegisterPageController {
         stage.setMaximized(true);
         stage.show();
     }
-
+    /**
+     * Handles the registration process when the register button is clicked.
+     * Captures form data, inserts a new user into the database, and navigates to the main screen upon success.
+     *
+     * @throws IOException if the main view FXML cannot be loaded
+     */
     @FXML
     protected void onRegisterButtonClick() throws IOException {
         try {

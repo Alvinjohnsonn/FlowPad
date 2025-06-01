@@ -20,6 +20,10 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
+/**
+ * Controller class for the Settings view in the FlowPad application.
+ * Handles user interactions related to settings, privacy, highlights, navigation, and logout.
+ */
 public class SettingsController {
     @FXML
     public Button Privacy;
@@ -42,7 +46,10 @@ public class SettingsController {
     @FXML
     public Button logoutbtn;
 
-
+    /**
+     * Initializes the controller by setting the profile image with a circular clip.
+     * Called automatically after the FXML is loaded.
+     */
     public void initialize() {
         if (profileImage != null) {
             Image image = new Image(getClass().getResource("/com/staticconstants/flowpad/icons/profiles.jpg").toExternalForm());
@@ -52,8 +59,11 @@ public class SettingsController {
         }
     }
 
-
-
+    /**
+     * Handles the Privacy button click event and loads the Privacy.fxml scene.
+     *
+     * @throws IOException if the FXML file cannot be loaded
+     */
     @FXML
     protected void onPrivacyButtonClick() throws IOException {
         Stage stage = (Stage) Privacy.getScene().getWindow();
@@ -61,6 +71,12 @@ public class SettingsController {
         Scene scene = new Scene(fxmlLoader.load(), stage.getWidth(), stage.getHeight());
         stage.setScene(scene);
     }
+
+    /**
+     * Handles the Highlight button click event and loads the HighlightOptions.fxml scene.
+     *
+     * @throws IOException if the FXML file cannot be loaded
+     */
     @FXML
     protected void onHighlight() throws IOException {
         Stage stage = (Stage) Highlight.getScene().getWindow();
@@ -69,7 +85,11 @@ public class SettingsController {
         stage.setScene(scene);
     }
 
-
+    /**
+     * Handles the Back button click event and returns to the settings-view scene.
+     *
+     * @throws IOException if the FXML file cannot be loaded
+     */
     @FXML
     private void onBackButton() throws IOException {
         Stage stage = (Stage) backButton.getScene().getWindow();
@@ -78,12 +98,16 @@ public class SettingsController {
         stage.setScene(scene);
     }
 
+    /**
+     * Handles the Go Back button click event and navigates back to the main editor view.
+     *
+     * @throws IOException if the FXML file cannot be loaded
+     */
     @FXML
     private void goBack() throws IOException {
-
         Stage stage = (Stage) btnGoBack.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("maineditor-view.fxml"));
-        String stylesheet =  FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm();
+        String stylesheet = FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm();
 
         Scene scene = new Scene(fxmlLoader.load());
         scene.getStylesheets().add(stylesheet);
@@ -93,11 +117,16 @@ public class SettingsController {
         stage.setMaximized(true);
     }
 
+    /**
+     * Handles the Logout button click event and navigates to the login view.
+     *
+     * @throws IOException if the FXML file cannot be loaded
+     */
     @FXML
     protected void onLogOutButtonClick() throws IOException {
         Stage stage = (Stage) logoutbtn.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(FlowPadApplication.class.getResource("login-view.fxml"));
-        String stylesheet =  FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
+        String stylesheet = FlowPadApplication.class.getResource("flowpad-stylesheet.css").toExternalForm();
 
         Scene scene = new Scene(fxmlLoader.load());
         scene.getStylesheets().add(stylesheet);
@@ -107,6 +136,13 @@ public class SettingsController {
         stage.setMaximized(true);
     }
 
+    /**
+     * Updates the password of the specified user in the database.
+     *
+     * @param currentUsername the username of the user whose password is to be updated
+     * @param charArray       the new password as a character array
+     * @return a CompletionStage representing the success or failure of the update operation
+     */
     public CompletionStage<Boolean> updatePassword(String currentUsername, char[] charArray) {
         return DbHandler.getInstance().dbOperation(conn -> {
             HashedPassword hashed = PasswordHasher.hashPassword(new String(charArray).toCharArray());
@@ -121,6 +157,5 @@ public class SettingsController {
                 return affected > 0;
             }
         });
-}}
-
-
+    }
+}

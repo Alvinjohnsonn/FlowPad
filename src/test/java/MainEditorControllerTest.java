@@ -38,62 +38,6 @@
         }
 
 
-//        TODO: Replace all test that interacts with GUI which is complicated to test and will most certainly fail on github action
-//        @Test
-//        void testSetActiveButton(){
-//            Button active = new Button();
-//            Button inactive = new Button();
-//            inactive.getStyleClass().add("selected");
-//
-//            MainEditorController.setActiveButton(active, inactive);
-//            assertTrue(active.getStyleClass().contains("selected") && !inactive.getStyleClass().contains("selected"));
-//
-//            MainEditorController.setActiveButton(active, inactive);
-//            int numOfClass = 0;
-//            for (String style : active.getStyleClass()){
-//                if (style.equals("selected")) numOfClass += 1;
-//            }
-//            assertEquals(1, numOfClass);
-//
-//        }
-//
-//        @Test
-//        void testSetSelectedButton(){
-//            Button btn = new Button();
-//            MainEditorController.setSelectedButton(btn, true);
-//            assertTrue(btn.getStyleClass().contains("selected"));
-//
-//            MainEditorController.setSelectedButton(btn, true);
-//            assertTrue(btn.getStyleClass().contains("selected"));
-//
-//            MainEditorController.setSelectedButton(btn, false);
-//            assertFalse(btn.getStyleClass().contains("selected"));
-//
-//        }
-//
-//        @Test
-//        void testToggleSelectedButton(){
-//            Button btn = new Button();
-//            MainEditorController.toggleSelectedButton(btn);
-//            assertTrue(btn.getStyleClass().contains("selected"));
-//
-//            MainEditorController.toggleSelectedButton(btn);
-//            assertFalse(btn.getStyleClass().contains("selected"));
-//        }
-
-
-//        @Test
-//        void testExtractFontSize(){
-//            // not sure if this one is suitable for unit testing
-//        }
-//
-//
-//        @Test
-//        void testAddOrRemoveStyle(){
-//            // work in progress, could not make it work if it's directly interacting with richtextfx
-//            // prob going to minimize the scale of the function can call it from the low level process
-//        }
-
         @Test void testParseStyle(){
             HashMap<String, String> result = MainEditorController.parseStyle(STYLE_STRING);
             for (String key : STYLE_HASHMAP.keySet()){
