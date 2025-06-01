@@ -98,7 +98,7 @@ public final class DbHandler {
             try {
                 T result = task.operation.operation(dbConnection);
                 task.future.complete(result);
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 task.future.completeExceptionally(ex);
             }
         }
