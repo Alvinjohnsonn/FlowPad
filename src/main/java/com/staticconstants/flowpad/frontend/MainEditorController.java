@@ -180,8 +180,10 @@ public class MainEditorController {
         });
 
         textFieldFontSize.setText(TextStyle.EMPTY.getFontSize()+"");
+        SplitPane splitPane = new SplitPane();
+        splitPane.getStyleClass().add("inner-split");
 
-        TextAreaController tac = new TextAreaController(editorContainer, activeNote.getFilename());
+        TextAreaController tac = new TextAreaController(editorContainer, activeNote.getFilename(), splitPane);
         tac.initializeUpdateToolbar(this);
         textAreas.put(activeNote.getFilename(), tac);
 
@@ -253,35 +255,35 @@ public class MainEditorController {
 
         // Initialize Button AI On Click
         btnGenerateSummary.setOnAction(e -> {
-            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.GENERATE_SUMMARY);
+            textAreas.get(activeNote.getFilename()).getAIConnector().setActivePromptType(Prompt.GENERATE_SUMMARY);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnAIHighlight.setOnAction(e -> {
-            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.AI_HIGHLIGHT);
+            textAreas.get(activeNote.getFilename()).getAIConnector().setActivePromptType(Prompt.AI_HIGHLIGHT);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnAutoCorrect.setOnAction(e -> {
-            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.AUTO_CORRECT);
+            textAreas.get(activeNote.getFilename()).getAIConnector().setActivePromptType(Prompt.AUTO_CORRECT);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnRefactorContent.setOnAction(e -> {
-            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.REFACTOR_CONTENT);
+            textAreas.get(activeNote.getFilename()).getAIConnector().setActivePromptType(Prompt.REFACTOR_CONTENT);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnGenerateOutline.setOnAction(e -> {
-            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.GENERATE_OUTLINE);
+            textAreas.get(activeNote.getFilename()).getAIConnector().setActivePromptType(Prompt.GENERATE_OUTLINE);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnFormatWriting.setOnAction(e -> {
-            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.FORMAT_WRITING);
+            textAreas.get(activeNote.getFilename()).getAIConnector().setActivePromptType(Prompt.FORMAT_WRITING);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnShortToFull.setOnAction(e -> {
-            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.SHORT_TO_FULL);
+            textAreas.get(activeNote.getFilename()).getAIConnector().setActivePromptType(Prompt.SHORT_TO_FULL);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
         btnCustomPrompt.setOnAction(e -> {
-            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.CUSTOM_PROMPT);
+            textAreas.get(activeNote.getFilename()).getAIConnector().setActivePromptType(Prompt.CUSTOM_PROMPT);
             showTextSelectOptionPopup(((Button)e.getSource()));
         });
 
@@ -387,7 +389,7 @@ public class MainEditorController {
             return;
         }
 
-        TextAreaController active = textAreas.get(activeNote);
+        TextAreaController active = textAreas.get(activeNote.getFilename());
         ColorPicker picker = new ColorPicker();
 
         picker.setValue(active.getTextArea().getStyleAtPosition(active.getTextArea().getCaretPosition()).getTextColor());
@@ -529,12 +531,12 @@ public class MainEditorController {
         initPopupStage(tag, scene, layout, bounds.getMinX(), bounds.getMaxY());
         popup.initOwner(anchorNode.getScene().getWindow());
 
-        AIConnector aiCon = textAreas.get(activeNote).getAIConnector();
+        AIConnector aiCon = textAreas.get(activeNote.getFilename()).getAIConnector();
         btnSelectAll.setOnAction(e -> {
             popup.close();
             if (aiCon.getActivePromptType() == Prompt.CUSTOM_PROMPT)
                 aiCon.showSelectConfirmation(true);
-            else textAreas.get(activeNote).showAIOutput(aiCon.getAllText(), "");
+            else textAreas.get(activeNote.getFilename()).showAIOutput(aiCon.getAllText(), "");
         });
         btnSelectPar.setOnAction(e -> {
             popup.close();
@@ -595,7 +597,7 @@ public class MainEditorController {
 
         VBox layout = new VBox(10, title, content, buttons);
 
-        if (textAreas.get(activeNote).getAIConnector().getActivePromptType() == Prompt.CUSTOM_PROMPT){
+        if (textAreas.get(activeNote.getFilename()).getAIConnector().getActivePromptType() == Prompt.CUSTOM_PROMPT){
             layout = new VBox(10, title, content, prompt, buttons);
         }
 
@@ -615,7 +617,7 @@ public class MainEditorController {
         initPopupStage(tag, scene, layout, screenX, screenY);
 //        popup.initOwner(tabPane.getScene().getWindow());
 
-        AIConnector aiCon = textAreas.get(activeNote).getAIConnector();
+        AIConnector aiCon = textAreas.get(activeNote.getFilename()).getAIConnector();
         btnCancel.setOnAction(e -> {
             aiCon.cancelOperation();
             popup.close();
@@ -632,7 +634,7 @@ public class MainEditorController {
             popup.close();
 
             aiCon.cancelOperation();
-            textAreas.get(activeNote).showAIOutput(selectedText, prompt.getText());
+            textAreas.get(activeNote.getFilename()).showAIOutput(selectedText, prompt.getText());
         });
 
         popup.show();
@@ -898,7 +900,7 @@ public class MainEditorController {
         VBox.setVgrow(editor,Priority.ALWAYS);
         editor.setPadding(new Insets(10,10,10,10));
 
-        TextAreaController newTextArea = new TextAreaController(editor,fileName);
+        TextAreaController newTextArea = new TextAreaController(editor,fileName, splitPane);
         StyledTextCodec.deserializeStyledText(activeNote.getSerializedText(), newTextArea.getTextArea());
         newTextArea.initializeUpdateToolbar(this);
         textAreas.put(activeNote.getFilename(), newTextArea);
