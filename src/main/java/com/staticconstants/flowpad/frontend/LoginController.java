@@ -8,10 +8,12 @@ import com.staticconstants.flowpad.backend.db.users.LoginResult;
 import com.staticconstants.flowpad.backend.db.users.UserDAO;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.shape.Circle;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
@@ -82,9 +84,14 @@ public class LoginController {
                 Scene scene = new Scene(fxmlLoader.load());
                 scene.getStylesheets().add(stylesheet);
                 stage.setTitle("Home Page");
-                stage.setMaximized(true);
-                stage.setScene(scene);
 
+                stage.setScene(scene);
+                Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+                stage.setX(screenBounds.getMinX());
+                stage.setY(screenBounds.getMinY());
+                stage.setWidth(screenBounds.getWidth());
+                stage.setHeight(screenBounds.getHeight());
+                stage.show();
             }else{
                 Alert loginalert = new Alert(Alert.AlertType.INFORMATION);
                 loginalert.setContentText("Login failed!");
@@ -95,7 +102,6 @@ public class LoginController {
         } catch (Exception e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Login failed: " + e.getMessage());
-            System.out.println(e);
             alert.show();
         }
     }
@@ -108,6 +114,7 @@ public class LoginController {
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Register Page");
         stage.setScene(scene);
+        stage.show();
     }
 
 }

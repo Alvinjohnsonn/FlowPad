@@ -6,11 +6,14 @@ module com.staticconstants.flowpad.flowpad {
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.bootstrapfx.core;
     requires org.fxmisc.richtext;
-    requires java.desktop;
     requires reactfx;
     requires com.google.gson;
+    requires ollama4j;
+    requires org.slf4j;
+    requires com.fasterxml.jackson.databind;
     requires java.sql;
     requires javafx.swing;
+    requires java.desktop;
 
     opens com.staticconstants.flowpad to javafx.fxml;
     exports com.staticconstants.flowpad;

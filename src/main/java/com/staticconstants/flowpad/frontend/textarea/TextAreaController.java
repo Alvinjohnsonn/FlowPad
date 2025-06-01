@@ -1,17 +1,21 @@
 package com.staticconstants.flowpad.frontend.textarea;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.AI.GeneratePrompt;
+import com.staticconstants.flowpad.backend.AI.Prompt;
 import com.staticconstants.flowpad.frontend.MainEditorController;
 import javafx.application.Platform;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.IndexRange;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
@@ -36,12 +40,15 @@ public class TextAreaController {
     private int lastStartCaretPosition;
     private int lastEndCaretPosition;
     private boolean suppressHyperlinkMonitoring;
+    private SplitPane innerSplitPane;
+    private AIConnector aiConnector;
 
-    public TextAreaController(VBox editorContainer, String userData) {
+    public TextAreaController(VBox editorContainer, String userData, SplitPane innerSplitPane) {
         programmaticUpdate = false;
         desiredStyleChanged = false;
         suppressHyperlinkMonitoring = false;
         this.userData = userData;
+        this.innerSplitPane = innerSplitPane;
 
         ParStyle initialParStyle = ParStyle.EMPTY;
         TextStyle initialTextStyle = TextStyle.EMPTY;
@@ -268,11 +275,56 @@ public class TextAreaController {
                     }
                 });
 
+
+        this.aiConnector = new AIConnector(this);
         VBox.setVgrow(textArea, Priority.ALWAYS);
         editorContainer.getChildren().add(textArea);
     }
 
 
+    public CustomStyledArea<ParStyle, RichSegment, TextStyle> createReadOnlyTextArea(){
+        BiConsumer<TextFlow, ParStyle> paragraphStyler = ParStyle::apply;
+
+        Function<StyledSegment<RichSegment, TextStyle>, Node> nodeFactory = seg -> {
+            RichSegment s = seg.getSegment();
+            TextStyle style = seg.getStyle();
+
+            if (s instanceof TextSegment textSeg) {
+                return textSeg.createNode(style);
+            }
+            else if (s instanceof HyperlinkSegment linkSeg){
+                return linkSeg.createNode(style);
+            }
+            else if (s instanceof ImageSegment imgSeg) {
+                return imgSeg.createNode(style);
+            }
+
+            return new Text("?");
+        };
+
+        RichTextOps<RichSegment, TextStyle> segmentOps = new RichTextOps<RichSegment, TextStyle>();
+        RichSegmentCodec richSegmentCodec = new RichSegmentCodec();
+        TextStyleCodec textStyleCodec = new TextStyleCodec();
+        ParStyleCodec parStyleCodec = new ParStyleCodec();
+
+
+        CustomStyledArea<ParStyle, RichSegment, TextStyle> textArea =  new CustomStyledArea<ParStyle, RichSegment, TextStyle>(
+                ParStyle.EMPTY,
+                paragraphStyler,
+                TextStyle.EMPTY,
+                segmentOps,
+                nodeFactory
+        );
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+        textArea.setStyleCodecs(
+                parStyleCodec,
+                Codec.styledSegmentCodec(richSegmentCodec,textStyleCodec)
+        );
+        textArea.setAiConnector(aiConnector);
+
+        return textArea;
+    }
     public void initializeUpdateToolbar(MainEditorController scene){
         textArea.caretPositionProperty().addListener((obs, oldSel, newSel) -> {
             updateToolbar(scene);
@@ -291,7 +343,7 @@ public class TextAreaController {
 
             if (lastEndCaretPosition==-1)
                 textArea.moveTo(lastStartCaretPosition);
-            else{
+            else if (lastStartCaretPosition>=0 && lastStartCaretPosition<=lastEndCaretPosition){
                 textArea.selectRange(lastStartCaretPosition,lastEndCaretPosition);
             }
 
@@ -504,5 +556,163 @@ public class TextAreaController {
         setDesiredStyle(newStyle);
         TextStyle.toggleStyle(getTextArea(), att, getDesiredStyle());
         setDesiredStyleChanged(true);
+    }
+
+    private VBox AIOutputContainer;
+    private CustomStyledArea<ParStyle,RichSegment,TextStyle> outputArea;
+    private Label title;
+
+    public void showAIOutput(String output, String customPrompt) {
+        if (AIOutputContainer == null) {
+            AIOutputContainer = new VBox();
+            VBox.setVgrow(AIOutputContainer, Priority.ALWAYS);
+
+            // Top HBox: Title Bar
+            HBox hbox = new HBox();
+            hbox.setAlignment(Pos.CENTER_LEFT);
+            hbox.setSpacing(12.0);
+            hbox.setPadding(new Insets(8));
+            hbox.setMaxWidth(Double.MAX_VALUE);
+
+            String sTitle = switch(aiConnector.getActivePromptType()){
+                case GENERATE_SUMMARY -> "Generated Summary";
+                case AI_HIGHLIGHT -> "Highlighted Text";
+                case AUTO_CORRECT -> "Auto Corrected Text";
+                case REFACTOR_CONTENT -> "Refined Content";
+                case GENERATE_OUTLINE -> "Generated Outline";
+                case FORMAT_WRITING -> "Formatted Writing";
+                case SHORT_TO_FULL -> "Converted Short to Full Text";
+                case CUSTOM_PROMPT -> "Custom Prompt";
+            };
+            title = new Label(sTitle);
+            title.setStyle("-fx-font-weight: bold; -fx-font-size: 20px;");
+            title.getStyleClass().add("bg-transparent");
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            Image img = new Image(FlowPadApplication.class.getResource("icons/close.png").toExternalForm());
+            ImageView x = new ImageView(img);
+            x.setFitHeight(12.0);
+            x.setFitWidth(12.0);
+            x.setPickOnBounds(true);
+            x.setPreserveRatio(true);
+
+            Button btnClose = new Button("");
+            btnClose.setGraphic(x);
+            btnClose.getStyleClass().add("tab-close");
+            btnClose.setOnAction(e -> {
+                innerSplitPane.getItems().remove(AIOutputContainer);
+                textArea.requestFocus();
+            });
+
+            hbox.getChildren().addAll(title, spacer, btnClose);
+
+            outputArea = createReadOnlyTextArea();
+            outputArea.setWrapText(true);
+            outputArea.setEditable(false);
+            outputArea.setFocusTraversable(false);
+            outputArea.setPadding(new Insets(12));
+
+            if (customPrompt.isEmpty()) aiConnector.sendQuery(outputArea, output);
+            else aiConnector.sendCustomPrompt(outputArea, output, customPrompt);
+
+            VBox.setVgrow(outputArea, Priority.ALWAYS);
+            // Bottom HBox
+            HBox buttonBar = new HBox(10);
+            buttonBar.setPadding(new Insets(8));
+            buttonBar.setAlignment(Pos.CENTER_RIGHT);
+
+            // Send New Query
+            HBox queryBar = new HBox(10);
+            queryBar.setAlignment(Pos.BASELINE_CENTER);
+            queryBar.setPadding(new Insets(8));
+            queryBar.setMaxWidth(Double.MAX_VALUE);
+            queryBar.setVisible(false);
+            queryBar.setManaged(false);
+
+            TextField message = new TextField("");
+            message.setPromptText("Enter additional request...");
+            HBox.setHgrow(message,Priority.ALWAYS);
+            Button btnBack = new Button("Back");
+            btnBack.setOnAction(e->{
+                queryBar.setVisible(false);
+                queryBar.setManaged(false);
+
+                buttonBar.setVisible(true);
+                buttonBar.setManaged(true);
+
+                textArea.requestFocus();
+            });
+            Button btnSend = new Button("Send");
+            btnSend.setOnAction(e->{
+                aiConnector.sendOptionalRequest(outputArea, message.getText());
+                message.setText("");
+            });
+            btnBack.setStyle("-fx-background-color: -primary-color;");
+            btnSend.setStyle("-fx-background-color: -primary-color;");
+            queryBar.getChildren().addAll(btnBack, message, btnSend);
+
+            // Bottom HBox: Buttons
+            Button btnCopy = new Button("Copy");
+            Button btnApply = new Button("Apply");
+            Button btnRegenerate = new Button("Generate Again");
+            btnCopy.setOnAction(e -> {
+                outputArea.selectAll();
+                outputArea.copy();
+                outputArea.deselect();
+            });
+            btnApply.setOnAction(e -> {
+                int start = aiConnector.getStartIndex();
+                int end = aiConnector.getEndIndex();
+                if (start == -1 && start == end){
+                    textArea.replace(0, textArea.getLength(), outputArea.getDocument());
+                }
+                else{
+                    textArea.replace(start, end, outputArea.getDocument());
+                }
+            });
+            btnRegenerate.setOnAction(e->{
+                queryBar.setVisible(true);
+                queryBar.setManaged(true);
+
+                buttonBar.setVisible(false);
+                buttonBar.setManaged(false);
+
+                message.requestFocus();
+            });
+
+            btnCopy.setStyle("-fx-background-color: -primary-color;");
+            btnApply.setStyle("-fx-background-color: -primary-color;");
+            btnRegenerate.setStyle("-fx-background-color: -primary-color;");
+
+            buttonBar.getChildren().addAll(btnCopy, btnApply, btnRegenerate);
+
+            // Combine all parts
+            AIOutputContainer.getChildren().addAll(hbox, outputArea, buttonBar, queryBar);
+            innerSplitPane.getItems().add(AIOutputContainer);
+            SplitPane.setResizableWithParent(AIOutputContainer, true);
+        } else {
+
+            if (!innerSplitPane.getItems().contains(AIOutputContainer)) innerSplitPane.getItems().add(AIOutputContainer);
+            innerSplitPane.setDividerPositions(0.5);
+
+            String sTitle = switch(aiConnector.getActivePromptType()){
+                case GENERATE_SUMMARY -> "Generated Summary";
+                case AI_HIGHLIGHT -> "Highlighted Text";
+                case AUTO_CORRECT -> "Auto Corrected Text";
+                case REFACTOR_CONTENT -> "Refined Content";
+                case GENERATE_OUTLINE -> "Generated Outline";
+                case FORMAT_WRITING -> "Formatted Writing";
+                case SHORT_TO_FULL -> "Converted Short to Full Text";
+                case CUSTOM_PROMPT -> "Custom Prompt";
+            };
+            title.setText(sTitle);
+            aiConnector.sendQuery(outputArea, output);
+        }
+    }
+
+    public AIConnector getAIConnector(){
+        return aiConnector;
     }
 }

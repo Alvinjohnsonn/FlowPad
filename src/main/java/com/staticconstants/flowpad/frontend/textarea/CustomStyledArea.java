@@ -66,7 +66,7 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
     };
 
 
-
+    private AIConnector aiConnector;
     public CustomStyledArea(
             ParStyle parStyle,
             BiConsumer<TextFlow, ParStyle> paragraphStyler,
@@ -87,7 +87,12 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
 
     }
 
-
+    public void setAiConnector(AIConnector aiCon){
+        aiConnector = aiCon;
+    }
+    public AIConnector getAiConnector() {
+        return aiConnector;
+    }
 
     @Override
     public void deletePreviousChar() {
@@ -133,12 +138,14 @@ public class CustomStyledArea<P, R, T> extends GenericStyledArea<ParStyle, RichS
         int endPar = offsetToPosition(getSelection().getEnd(), Backward).getMajor();
 
         for (int i = startPar; i <= endPar; i++) {
-//            ParStyle existing = getParagraph(i).getParagraphStyle();
-//            ParStyle updated = existing.merge(style);
-
             setParagraphStyle(i, style);
             refreshParagraphGraphics();
         }
+    }
+
+    public void applyParStyleToParagraph(int paragraphIndex, ParStyle style) {
+        setParagraphStyle(paragraphIndex, style);
+        refreshParagraphGraphics();
     }
 
     public void refreshParagraphGraphics() {

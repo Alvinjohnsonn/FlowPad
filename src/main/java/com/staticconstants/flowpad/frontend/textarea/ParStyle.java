@@ -80,6 +80,9 @@ public class ParStyle {
     public int getListLevel(){
         return listLevel;
     }
+    public ParStyle setListLevel(int currentListLevel){
+        return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,currentListLevel);
+    }
     public ParStyle increaseListLevel(int currentListLevel){
         return new ParStyle(alignment,lineSpacing,leftMargin,rightMargin,topMargin,bottomMargin,backgroundColor,listType,currentListLevel<5?currentListLevel+1:currentListLevel);
     }

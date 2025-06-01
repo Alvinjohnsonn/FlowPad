@@ -1,6 +1,7 @@
 package com.staticconstants.flowpad.frontend;
 
 import com.staticconstants.flowpad.FlowPadApplication;
+import com.staticconstants.flowpad.backend.AI.Prompt;
 import com.staticconstants.flowpad.backend.LoggedInUser;
 import com.staticconstants.flowpad.backend.db.notes.Note;
 import com.staticconstants.flowpad.backend.db.notes.NoteDAO;
@@ -18,6 +19,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
@@ -40,6 +42,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import org.fxmisc.richtext.CustomCssMetaData;
 import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.*;
 
@@ -77,11 +80,21 @@ public class MainEditorController {
     @FXML private Button btnMarker;
     @FXML private ToolBar toolBar;
     @FXML private Button btnAlign;
+    @FXML private Button btnTextColor;
     @FXML private Button btnClearFormatting;
     @FXML public ImageView imgActiveAlignment;
     @FXML public Button btnNumberedList;
     @FXML public Button btnBulletList;
     @FXML private Button profilebtn;
+    @FXML public Button btnGenerateSummary;
+    @FXML public Button btnAIHighlight;
+    @FXML public Button btnAutoCorrect;
+    @FXML public Button btnRefactorContent;
+    @FXML public Button btnGenerateOutline;
+    @FXML public Button btnFormatWriting;
+    @FXML public Button btnShortToFull;
+    @FXML public Button btnCustomPrompt;
+    private AnchorPane parentPane;
 
     private static HashMap<String, TextAreaController> textAreas;
     private static Note activeNote;
@@ -113,6 +126,7 @@ public class MainEditorController {
 
     @FXML
     public void initialize() {
+
         textAreas = new HashMap<>();
 
         if ( LoggedInUser.notes.isEmpty() ) {
@@ -236,6 +250,42 @@ public class MainEditorController {
 //        tabPane.getTabs().removeFirst(); // delete the existing tab used for visual design purposes
 
 //        newNote();
+
+        // Initialize Button AI On Click
+        btnGenerateSummary.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.GENERATE_SUMMARY);
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnAIHighlight.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.AI_HIGHLIGHT);
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnAutoCorrect.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.AUTO_CORRECT);
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnRefactorContent.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.REFACTOR_CONTENT);
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnGenerateOutline.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.GENERATE_OUTLINE);
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnFormatWriting.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.FORMAT_WRITING);
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnShortToFull.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.SHORT_TO_FULL);
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+        btnCustomPrompt.setOnAction(e -> {
+            textAreas.get(activeNote).getAIConnector().setActivePromptType(Prompt.CUSTOM_PROMPT);
+            showTextSelectOptionPopup(((Button)e.getSource()));
+        });
+
+        newNote();
     }
 
     private static void initPopupStage(String tag, Scene scene, Node container, double screenX, double screenY){
@@ -331,6 +381,62 @@ public class MainEditorController {
         popup.show();
     }
 
+    private void showColorPicker(Node anchorNode) {
+        String tag = "setTextColor";
+        if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
+            return;
+        }
+
+        TextAreaController active = textAreas.get(activeNote);
+        ColorPicker picker = new ColorPicker();
+
+        picker.setValue(active.getTextArea().getStyleAtPosition(active.getTextArea().getCaretPosition()).getTextColor());
+        picker.setOnAction(e->{
+            active.setStyle(TextAttribute.TEXT_COLOR, picker.getValue());
+            popup.close();
+        });
+
+        HBox itemBox = new HBox(4);
+        itemBox.setPadding(new Insets(4));
+        itemBox.setBackground(new Background(
+                new BackgroundFill(Color.web("#E0EDEC"), new CornerRadii(8), Insets.EMPTY)
+        ));
+
+        itemBox.setStyle("""
+    -fx-background-color: #E0EDEC;
+    -fx-background-radius: 8;
+""");
+        Rectangle clip = new Rectangle();
+        clip.setArcWidth(8);
+        clip.setArcHeight(8);
+        clip.widthProperty().bind(itemBox.widthProperty());
+        clip.heightProperty().bind(itemBox.heightProperty());
+        itemBox.setClip(clip);
+
+        itemBox.getChildren().add(picker);
+
+        Scene scene = new Scene(itemBox);
+        scene.setFill(Color.TRANSPARENT);
+        scene.getStylesheets().add(FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm());
+
+        Bounds bounds = anchorNode.localToScreen(anchorNode.getBoundsInLocal());
+
+        popup = new Stage(StageStyle.TRANSPARENT);
+        popup.setUserData(tag);
+        popup.setScene(scene);
+        popup.initModality(Modality.NONE);
+        popup.setX(bounds.getMinX());
+        popup.setY(bounds.getMaxY());
+        popup.initOwner(btnAlign.getScene().getWindow());
+
+        itemBox.setOpacity(0);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(150), itemBox);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+        fadeIn.play();
+        popup.show();
+    }
+
     public static void showHyperlinkEditorPopup(TextExt textNode, HyperlinkSegment segment, double screenX, double screenY, Consumer<HyperlinkSegment> onConfirm) {
         String tag = "setHyperlink";
         if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
@@ -387,7 +493,150 @@ public class MainEditorController {
         popup.show();
     }
 
+    public void showTextSelectOptionPopup(Node anchorNode){
+        String tag = "setTextSelect";
+        if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
+            return;
+        }
 
+        Label title = new Label("Select text to modify");
+        title.setStyle("-fx-font-weight: bold;");
+
+        Button btnSelectAll = new Button("Select all");
+        Button btnSelectPar = new Button("Select paragraph");
+        Button btnSelectCursor = new Button("Select manually");
+
+        btnSelectAll.getStyleClass().add("align-button");
+        btnSelectPar.getStyleClass().add("align-button");
+        btnSelectCursor.getStyleClass().add("align-button");
+
+        VBox layout = new VBox(10, title, btnSelectAll, btnSelectPar, btnSelectCursor);
+        layout.setPadding(new Insets(15));
+        layout.setStyle("-fx-background-color: white; -fx-background-radius: 10;");
+        layout.setEffect(new DropShadow(10, Color.rgb(0, 0, 0, 0.3)));
+
+        StackPane root = new StackPane(layout);
+        root.setPadding(new Insets(20));
+        root.setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
+        root.setPickOnBounds(false);
+
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm());
+        scene.setFill(Color.TRANSPARENT);
+
+        Bounds bounds = anchorNode.localToScreen(anchorNode.getBoundsInLocal());
+
+        initPopupStage(tag, scene, layout, bounds.getMinX(), bounds.getMaxY());
+        popup.initOwner(anchorNode.getScene().getWindow());
+
+        AIConnector aiCon = textAreas.get(activeNote).getAIConnector();
+        btnSelectAll.setOnAction(e -> {
+            popup.close();
+            if (aiCon.getActivePromptType() == Prompt.CUSTOM_PROMPT)
+                aiCon.showSelectConfirmation(true);
+            else textAreas.get(activeNote).showAIOutput(aiCon.getAllText(), "");
+        });
+        btnSelectPar.setOnAction(e -> {
+            popup.close();
+            aiCon.startHighlightParagraphOnHover();
+        });
+        btnSelectCursor.setOnAction(e -> {
+            popup.close();
+            aiCon.startTrackingSelection();
+        });
+
+        popup.show();
+    }
+
+    public static void showSelectConfirmationPopup(double screenX, double screenY, String selectedText, boolean isSelectAll){
+        String tag = "setSelectConfirm";
+        if (popup != null && popup.isShowing() && popup.getUserData().equals(tag)) {
+            return;
+        }
+
+        Label title = new Label("Confirm Selection");
+        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px");
+
+//        Label content = new Label(selectedText);
+//        content.setWrapText(true);
+//        content.setMaxWidth(400);
+
+        TextArea content = new TextArea(selectedText);
+        content.setWrapText(true);
+        content.setEditable(false);
+        content.setFocusTraversable(false);
+        content.setStyle("-fx-font-size: 12px;");
+        content.setMinWidth(24);
+        VBox.setVgrow(content, Priority.ALWAYS);
+
+        if (isSelectAll){
+            content.setManaged(false);
+            content.setVisible(false);
+        }
+        TextField prompt = new TextField();
+        prompt.setPromptText("Enter your custom prompt...");
+        prompt.requestFocus();
+
+        Button btnCancel = new Button("Cancel");
+        Button btnReselect = new Button("Reselect");
+        Button btnConfirm = new Button("Confirm");
+        btnCancel.setStyle("-fx-font-size: 12px; -fx-background-color: -primary-color;");
+        btnReselect.setStyle("-fx-font-size: 12px; -fx-background-color: -primary-color;");
+        btnConfirm.setStyle("-fx-font-size: 12px; -fx-background-color: -primary-color;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox buttons = new HBox(12);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        HBox.setHgrow(buttons, Priority.ALWAYS);
+
+        buttons.getChildren().addAll(btnCancel, spacer, btnReselect, btnConfirm);
+
+        VBox layout = new VBox(10, title, content, buttons);
+
+        if (textAreas.get(activeNote).getAIConnector().getActivePromptType() == Prompt.CUSTOM_PROMPT){
+            layout = new VBox(10, title, content, prompt, buttons);
+        }
+
+        layout.setPadding(new Insets(15));
+        layout.setStyle("-fx-background-color: white; -fx-background-radius: 10;");
+        layout.setEffect(new DropShadow(10, Color.rgb(0, 0, 0, 0.3)));
+
+        StackPane root = new StackPane(layout);
+        root.setPadding(new Insets(20));
+        root.setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
+        root.setPickOnBounds(false);
+
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(FlowPadApplication.class.getResource("css/editor-style.css").toExternalForm());
+        scene.setFill(Color.TRANSPARENT);
+
+        initPopupStage(tag, scene, layout, screenX, screenY);
+//        popup.initOwner(tabPane.getScene().getWindow());
+
+        AIConnector aiCon = textAreas.get(activeNote).getAIConnector();
+        btnCancel.setOnAction(e -> {
+            aiCon.cancelOperation();
+            popup.close();
+        });
+        btnReselect.setOnAction(e -> {
+            popup.close();
+        });
+        btnConfirm.setOnAction(e -> {
+            if (aiCon.getActivePromptType() == Prompt.CUSTOM_PROMPT && prompt.getText().isEmpty()){
+                prompt.requestFocus();
+                return;
+            }
+
+            popup.close();
+
+            aiCon.cancelOperation();
+            textAreas.get(activeNote).showAIOutput(selectedText, prompt.getText());
+        });
+
+        popup.show();
+    }
 
     public static String hashMapStyleToString(HashMap<String, String> styles){
         String styleString = "";
@@ -779,17 +1028,13 @@ public class MainEditorController {
         VBox.setVgrow(mainContainer, Priority.ALWAYS);
         mainContainer.getChildren().add(toolBar);
 
-//        Initialize GenericStyledArea
-
-
-
 //        Initialize Editor Container
         VBox editor = new VBox();
         editor.prefWidth(500);
         VBox.setVgrow(editor,Priority.ALWAYS);
         editor.setPadding(new Insets(10,10,10,10));
 
-        TextAreaController newTextArea = new TextAreaController(editor,fileName);
+        TextAreaController newTextArea = new TextAreaController(editor, fileName, splitPane);
         newTextArea.initializeUpdateToolbar(this);
         textAreas.put(activeNote.getFilename(), newTextArea);
 
@@ -905,11 +1150,15 @@ public class MainEditorController {
     }
     @FXML
     private void clearFormatting(){
-
+        //TODO: Add code
     }
     @FXML
     private void setTextColor(){
-
+        if (popup != null && popup.isShowing()) {
+            popup.close();
+        } else {
+            showColorPicker(btnTextColor);
+        }
     }
     @FXML
     private void insertHyperlink() {
@@ -1050,6 +1299,8 @@ public class MainEditorController {
         stage.setScene(scene);
         stage.setMaximized(true);
     }
+
+
 
     private static void replaceHyperlinkSegment(Node node, HyperlinkSegment oldSegment, HyperlinkSegment newSegment) {
         textAreas.get(activeNote.getFilename()).setSuppressHyperlinkMonitoring(true);
